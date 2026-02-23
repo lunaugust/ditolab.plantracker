@@ -26,14 +26,14 @@ test.describe("Plan Tracker — E2E", () => {
     await expect(page.getByText("Press Banco Plano con Barra")).toBeVisible();
 
     await page.getByText("Día 1").click();
-    await expect(page.getByText("Sentadilla Hack")).toBeVisible();
+    await expect(page.getByText("Sentadilla Hack", { exact: true })).toBeVisible();
   });
 
   test("navigates to Log view and back to Plan", async ({ page }) => {
     await page.getByText("Registrar").click();
     await expect(page.getByText("SELECCIONÁ UN EJERCICIO")).toBeVisible();
 
-    await page.getByText("Plan").click();
+    await page.getByRole("button", { name: "Plan" }).click();
     await expect(page.getByText("Cuádriceps · Femoral · Glúteos · Pantorrillas")).toBeVisible();
   });
 
@@ -129,12 +129,12 @@ test.describe("Plan Tracker — E2E", () => {
     await expect(page.getByText("+10.0 kg")).toBeVisible();
 
     // Click into detail
-    await page.getByText("Sentadilla Hack").first().click();
+    await page.getByText("Sentadilla Hack", { exact: true }).click();
 
     // Stats should appear
-    await expect(page.getByText("ACTUAL")).toBeVisible();
-    await expect(page.getByText("MÁXIMO")).toBeVisible();
-    await expect(page.getByText("MÍNIMO")).toBeVisible();
+    await expect(page.getByText("Actual")).toBeVisible();
+    await expect(page.getByText("Máximo")).toBeVisible();
+    await expect(page.getByText("Mínimo")).toBeVisible();
   });
 
   /* ================================================================
