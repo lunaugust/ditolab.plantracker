@@ -49,7 +49,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ background: colors.bg, minHeight: "100vh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
+    <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary, paddingBottom: 72 }}>
       <Header view={nav.view} onViewChange={nav.setView} saveMsg={saveMsg} />
       {viewComponents[nav.view]}
     </div>

@@ -2,6 +2,7 @@ import { colors, fonts } from "../../theme";
 
 /**
  * "← volver" back button for detail screens.
+ * 44px minimum touch target for accessibility.
  *
  * @param {{ onClick: () => void }} props
  */
@@ -15,9 +16,13 @@ export function BackButton({ onClick }) {
         color: colors.textMuted,
         cursor: "pointer",
         fontFamily: fonts.mono,
-        fontSize: 12,
-        marginBottom: 20,
-        padding: 0,
+        fontSize: 13,
+        marginBottom: 16,
+        padding: "10px 12px 10px 0",
+        minHeight: 44,
+        display: "flex",
+        alignItems: "center",
+        WebkitTapHighlightColor: "transparent",
       }}
     >
       ← volver

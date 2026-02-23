@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Plan Tracker — E2E", () => {
+test.describe("GymBuddy AI — E2E", () => {
   test.beforeEach(async ({ page }) => {
     // Clear any leftover localStorage before each test
     await page.goto("/");

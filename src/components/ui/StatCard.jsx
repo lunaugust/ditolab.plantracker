@@ -17,10 +17,11 @@ export function StatCard({ label, value, color = colors.textPrimary }) {
 const styles = {
   card: {
     background: colors.surface,
-    borderRadius: 10,
-    padding: 16,
+    borderRadius: 12,
+    padding: "18px 14px",
     border: `1px solid ${colors.borderLight}`,
     textAlign: "center",
+    flex: 1,
   },
   label: {
     fontFamily: fonts.mono,
@@ -31,7 +32,7 @@ const styles = {
   },
   value: {
     fontFamily: fonts.mono,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 600,
   },
 };

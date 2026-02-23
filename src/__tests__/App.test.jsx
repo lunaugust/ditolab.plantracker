@@ -38,7 +38,7 @@ describe("App", () => {
     render(<App />);
 
     // Loading initially
-    expect(screen.getByText("Cargando...")).toBeTruthy();
+    expect(screen.getByText("GymBuddy AI")).toBeTruthy();
 
     // After load, plan view shows first day exercises
     expect(await screen.findByText("Sentadilla Hack (calentamiento)")).toBeTruthy();

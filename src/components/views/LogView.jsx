@@ -142,14 +142,6 @@ export function LogView({
               <div
                 key={originalIdx}
                 style={styles.logEntry}
-                onMouseEnter={(e) => {
-                  const btn = e.currentTarget.querySelector(".del-btn");
-                  if (btn) btn.style.opacity = "1";
-                }}
-                onMouseLeave={(e) => {
-                  const btn = e.currentTarget.querySelector(".del-btn");
-                  if (btn) btn.style.opacity = "0";
-                }}
               >
                 <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textDim, minWidth: 40 }}>
                   {formatDate(entry.date)}
@@ -187,8 +179,8 @@ export function LogView({
 const formStyles = {
   card: {
     background: colors.surface,
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 14,
+    padding: 18,
     marginBottom: 24,
     border: `1px solid ${colors.border}`,
   },
@@ -196,7 +188,7 @@ const formStyles = {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   fieldLabel: {
     fontFamily: fonts.mono,
@@ -209,32 +201,35 @@ const formStyles = {
     width: "100%",
     background: colors.bg,
     border: `1px solid #222`,
-    borderRadius: 8,
-    padding: "12px 14px",
+    borderRadius: 10,
+    padding: "14px 14px",
     color: colors.textPrimary,
     fontFamily: fonts.mono,
-    fontSize: 16,
+    fontSize: 18,
+    WebkitAppearance: "none",
   },
   textInput: {
     width: "100%",
     background: colors.bg,
     border: `1px solid #222`,
-    borderRadius: 8,
-    padding: "12px 14px",
+    borderRadius: 10,
+    padding: "14px 14px",
     color: colors.textPrimary,
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: 15,
   },
   submit: {
     width: "100%",
-    padding: 14,
+    padding: 16,
     border: "none",
-    borderRadius: 9,
+    borderRadius: 12,
     color: colors.bg,
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 700,
     cursor: "pointer",
+    minHeight: 50,
+    WebkitTapHighlightColor: "transparent",
   },
 };
 
@@ -248,8 +243,8 @@ const styles = {
   },
   logEntry: {
     background: colors.surface,
-    borderRadius: 9,
-    padding: "12px 14px",
+    borderRadius: 10,
+    padding: "14px 14px",
     display: "flex",
     alignItems: "center",
     gap: 12,
@@ -260,8 +255,16 @@ const styles = {
     border: "none",
     color: colors.textGhost,
     cursor: "pointer",
-    fontSize: 16,
-    opacity: 0,
+    fontSize: 18,
+    padding: "8px",
+    minWidth: 36,
+    minHeight: 36,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    opacity: 0.6,
     transition: "opacity 0.15s",
+    WebkitTapHighlightColor: "transparent",
   },
 };

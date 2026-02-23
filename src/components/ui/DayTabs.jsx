@@ -34,18 +34,20 @@ export function DayTabs({ days, activeDay, dayColors, onSelect }) {
 const styles = {
   container: {
     display: "flex",
-    gap: 10,
-    marginBottom: 24,
+    gap: 8,
+    marginBottom: 20,
   },
   tab: {
     flex: 1,
-    padding: "12px 10px",
-    borderRadius: 10,
+    padding: "14px 10px",
+    borderRadius: 12,
     cursor: "pointer",
     fontFamily: fonts.mono,
     fontSize: 12,
     fontWeight: 500,
     letterSpacing: 1,
     transition: "all 0.15s",
+    minHeight: 48,
+    WebkitTapHighlightColor: "transparent",
   },
 };

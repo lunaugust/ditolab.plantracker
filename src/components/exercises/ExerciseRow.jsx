@@ -36,15 +36,17 @@ export function ExerciseRow({
       onClick={interactive ? onClick : undefined}
       style={{
         background: disabled ? colors.surfaceAlt : colors.surface,
-        borderRadius: 10,
-        padding: "14px 16px",
+        borderRadius: 12,
+        padding: "16px 16px",
         display: "flex",
         alignItems: "center",
-        gap: 14,
+        gap: 12,
         cursor: interactive ? "pointer" : "default",
         border: `1px solid ${disabled ? colors.borderDim : colors.borderLight}`,
         opacity: disabled ? 0.4 : 1,
         transition: "background 0.1s",
+        minHeight: 56,
+        WebkitTapHighlightColor: "transparent",
       }}
       onMouseEnter={(e) => {
         if (interactive) e.currentTarget.style.background = "#1a1a1a";

@@ -1,7 +1,7 @@
 import { colors, fonts, layout } from "../../theme";
 
 /**
- * Max-width page wrapper (centres content).
+ * Max-width page wrapper (centres content, mobile-friendly padding).
  *
  * @param {{ children: React.ReactNode }} props
  */
@@ -11,7 +11,7 @@ export function PageContainer({ children }) {
       style={{
         maxWidth: layout.maxContentWidth,
         margin: "0 auto",
-        padding: "24px 20px",
+        padding: "16px 16px 24px",
       }}
     >
       {children}
