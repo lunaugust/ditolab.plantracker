@@ -247,7 +247,7 @@ const formStyles = {
   numberInput: {
     width: "100%",
     background: colors.bg,
-    border: `1px solid #222`,
+    border: `1px solid ${colors.border}`,
     borderRadius: 10,
     padding: "14px 14px",
     color: colors.textPrimary,
@@ -276,7 +276,7 @@ const formStyles = {
   textInput: {
     width: "100%",
     background: colors.bg,
-    border: `1px solid #222`,
+    border: `1px solid ${colors.border}`,
     borderRadius: 10,
     padding: "14px 14px",
     color: colors.textPrimary,

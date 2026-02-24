@@ -7,7 +7,7 @@ test.describe("GymBuddy AI — E2E", () => {
     await page.evaluate(() => localStorage.clear());
     await page.reload();
     // Wait for the app to load
-    await expect(page.getByText("Augusto")).toBeVisible();
+    await expect(page.getByText("GymBuddy")).toBeVisible();
   });
 
   /* ================================================================

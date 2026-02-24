@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { TRAINING_PLAN } from "../data/trainingPlan";
 import { loadTrainingPlan, persistTrainingPlan } from "../services/storageService";
 import { SAVE_MSG_DURATION_MS } from "../theme";
 import { useI18n } from "../i18n";
+import { makeExerciseId } from "../utils/helpers";
 
 function normalizeString(value, fallback = "") {
   return typeof value === "string" ? value : fallback;
@@ -12,10 +13,6 @@ const DEFAULT_DAY_COLORS = Object.values(TRAINING_PLAN).map((day) => day.color);
 
 function clonePlan(plan) {
   return JSON.parse(JSON.stringify(plan));
-}
-
-function makeExerciseId() {
-  return `ex_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function getNextDayName(existingKeys, template) {
@@ -95,6 +92,15 @@ export function useTrainingPlan(storageScope = "guest") {
     };
   }, [storageScope]);
 
+  const saveMsgTimerRef = useRef(null);
+
+  /* Clean up pending save-message timer on unmount */
+  useEffect(() => {
+    return () => {
+      if (saveMsgTimerRef.current) clearTimeout(saveMsgTimerRef.current);
+    };
+  }, []);
+
   const persist = useCallback(async (nextPlan) => {
     const normalized = normalizePlan(nextPlan);
     setTrainingPlan(normalized);
@@ -102,11 +108,11 @@ export function useTrainingPlan(storageScope = "guest") {
     try {
       await persistTrainingPlan(normalized, storageScope);
       setSaveMsg(t("plan.saveSuccess"));
-      setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
     } catch {
       setSaveMsg(t("plan.saveError"));
-      setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
     }
+    if (saveMsgTimerRef.current) clearTimeout(saveMsgTimerRef.current);
+    saveMsgTimerRef.current = setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
   }, [storageScope, t]);
 
   const saveDay = useCallback((dayKey, nextDay) => {

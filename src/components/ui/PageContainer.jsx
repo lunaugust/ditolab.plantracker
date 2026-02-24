@@ -1,4 +1,4 @@
-import { colors, fonts, layout } from "../../theme";
+import { layout } from "../../theme";
 
 /**
  * Max-width page wrapper (centres content, mobile-friendly padding).

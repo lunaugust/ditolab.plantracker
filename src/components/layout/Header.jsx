@@ -35,7 +35,7 @@ export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut })
       <div style={styles.topBar}>
         <div>
           <div style={styles.subtitle}>{t("header.subtitle")}</div>
-          <div style={styles.title}>Augusto</div>
+          <div style={styles.title}>{authUserName?.split(" ")[0] || "GymBuddy"}</div>
         </div>
         <div style={styles.actions}>
           <div style={styles.langSwitch}>
@@ -59,7 +59,7 @@ export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut })
           {saveMsg && <div style={styles.saveMsg}>{saveMsg}</div>}
           {onSignOut && (
             <button onClick={onSignOut} style={styles.signOutBtn}>
-              {t("header.signOut")}{authUserName ? ` · ${authUserName.split(" ")[0]}` : ""}
+              {t("header.signOut")}
             </button>
           )}
         </div>

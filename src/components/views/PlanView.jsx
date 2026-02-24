@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getLastLog } from "../../utils/helpers";
+import { getLastLog, makeExerciseId } from "../../utils/helpers";
 import { DayTabs, SectionLabel, PageContainer } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
@@ -18,8 +18,6 @@ import { useI18n } from "../../i18n";
  *   saveDay: (dayKey: string, nextDay: import("../../data/trainingPlan").TrainingDay) => void,
  *   addDay: () => string,
  *   removeDay: (dayKey: string) => void,
- *   addExercise: (dayKey: string) => void,
- *   removeExercise: (dayKey: string, exerciseId: string) => void,
  * }} props
  */
 export function PlanView({
@@ -42,7 +40,7 @@ export function PlanView({
   useEffect(() => {
     if (!isEditing || !day) return;
     setDraftDay(JSON.parse(JSON.stringify(day)));
-  }, [safeActiveDay]);
+  }, [isEditing, day, safeActiveDay]);
 
   if (!day) {
     return (
@@ -173,7 +171,7 @@ export function PlanView({
                   ...prev,
                   exercises: [
                     {
-                      id: `ex_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                      id: makeExerciseId(),
                       name: t("plan.exerciseNameTemplate", { n: prev.exercises.length + 1 }),
                       sets: "",
                       reps: "",

@@ -88,7 +88,7 @@ export function ExerciseRow({
       </div>
 
       {/* Right side: last log / progress */}
-      {lastLog && !progressDiff && (
+      {lastLog && progressDiff === null && (
         <div style={{ textAlign: "right", minWidth: 70 }}>
           {lastLog.weight && (
             <div style={{ fontFamily: fonts.mono, fontSize: 13, color: accentColor, fontWeight: 500 }}>

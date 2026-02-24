@@ -37,7 +37,7 @@ describe("useTrainingLogs", () => {
     const { result } = renderHook(() => useTrainingLogs());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    act(() => {
+    await act(async () => {
       result.current.addLog("ex1", { weight: "60", reps: "8", notes: "test" });
     });
 
@@ -69,7 +69,7 @@ describe("useTrainingLogs", () => {
     const { result } = renderHook(() => useTrainingLogs());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    act(() => {
+    await act(async () => {
       result.current.deleteLog("ex1", 0);
     });
 

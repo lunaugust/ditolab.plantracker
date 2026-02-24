@@ -51,7 +51,7 @@ describe("App", () => {
 
     // After load, plan view shows first day exercises
     expect(await screen.findByText("Sentadilla Hack (calentamiento)")).toBeTruthy();
-    expect(screen.getByText("Augusto")).toBeTruthy();
+    expect(screen.getByText("GymBuddy")).toBeTruthy();
   });
 
   it("renders all three navigation tabs", async () => {

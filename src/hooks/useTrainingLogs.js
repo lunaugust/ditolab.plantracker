@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { loadLogs, persistLogs } from "../services/storageService";
 import { SAVE_MSG_DURATION_MS } from "../theme";
 import { useI18n } from "../i18n";
@@ -19,6 +19,14 @@ export function useTrainingLogs(storageScope = "guest") {
   const [logs, setLogs] = useState({});
   const [loading, setLoading] = useState(true);
   const [saveMsg, setSaveMsg] = useState("");
+  const saveMsgTimerRef = useRef(null);
+
+  /* ---- Clean up pending save-message timer on unmount ---- */
+  useEffect(() => {
+    return () => {
+      if (saveMsgTimerRef.current) clearTimeout(saveMsgTimerRef.current);
+    };
+  }, []);
 
   /* ---- Bootstrap ---- */
   useEffect(() => {
@@ -40,11 +48,11 @@ export function useTrainingLogs(storageScope = "guest") {
     try {
       await persistLogs(nextLogs, storageScope);
       setSaveMsg(t("log.saveSuccess"));
-      setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
     } catch {
       setSaveMsg(t("log.saveError"));
-      setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
     }
+    if (saveMsgTimerRef.current) clearTimeout(saveMsgTimerRef.current);
+    saveMsgTimerRef.current = setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
   }, [storageScope, t]);
 
   /* ---- Public mutations ---- */
@@ -52,22 +60,29 @@ export function useTrainingLogs(storageScope = "guest") {
     (exerciseId, { weight, reps, notes }) => {
       if (!weight && !reps) return;
       const entry = { date: new Date().toISOString(), weight, reps, notes };
-      const nextLogs = {
-        ...logs,
-        [exerciseId]: [...(logs[exerciseId] || []), entry],
-      };
-      persist(nextLogs);
+      setLogs((prev) => {
+        const nextLogs = {
+          ...prev,
+          [exerciseId]: [...(prev[exerciseId] || []), entry],
+        };
+        persist(nextLogs);
+        return nextLogs;
+      });
     },
-    [logs, persist],
+    [persist],
   );
 
   const deleteLog = useCallback(
     (exerciseId, index) => {
-      const arr = [...(logs[exerciseId] || [])];
-      arr.splice(index, 1);
-      persist({ ...logs, [exerciseId]: arr });
+      setLogs((prev) => {
+        const arr = [...(prev[exerciseId] || [])];
+        arr.splice(index, 1);
+        const nextLogs = { ...prev, [exerciseId]: arr };
+        persist(nextLogs);
+        return nextLogs;
+      });
     },
-    [logs, persist],
+    [persist],
   );
 
   return { logs, loading, saveMsg, addLog, deleteLog };

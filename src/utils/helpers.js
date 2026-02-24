@@ -11,7 +11,15 @@ export function formatDate(iso) {
 }
 
 /**
- * Pad a 1-based index to two digits: 1 → "01", 12 → "12".
+ * Generate a unique exercise ID.
+ * @returns {string}
+ */
+export function makeExerciseId() {
+  return `ex_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/**
+ * Pad a 0-based index to display as two-digit 1-based: 0 → "01", 11 → "12".
  * @param {number} index — 0-based index
  * @returns {string}
  */

@@ -74,6 +74,14 @@ export async function persistLogs(logs, scope = "guest") {
       console.error("[StorageService] Failed to persist Firestore logs:", error);
       throw error;
     }
+
+    // Best-effort local cache — don't throw if Firestore already succeeded
+    try {
+      localStorage.setItem(getStorageKey(scope), JSON.stringify(logs));
+    } catch (error) {
+      console.error("[StorageService] Failed to cache logs locally:", error);
+    }
+    return;
   }
 
   try {
@@ -127,6 +135,14 @@ export async function persistTrainingPlan(plan, scope = "guest") {
       console.error("[StorageService] Failed to persist Firestore plan:", error);
       throw error;
     }
+
+    // Best-effort local cache — don't throw if Firestore already succeeded
+    try {
+      localStorage.setItem(getPlanStorageKey(scope), JSON.stringify(plan));
+    } catch (error) {
+      console.error("[StorageService] Failed to cache plan locally:", error);
+    }
+    return;
   }
 
   try {
