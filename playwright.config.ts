@@ -20,6 +20,14 @@ export default defineConfig({
   webServer: {
     command: "npm run dev",
     url: "http://localhost:5173",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
+    env: {
+      ...process.env,
+      VITE_E2E: "1",
+      VITE_FIREBASE_API_KEY: "",
+      VITE_FIREBASE_AUTH_DOMAIN: "",
+      VITE_FIREBASE_PROJECT_ID: "",
+      VITE_FIREBASE_APP_ID: "",
+    },
   },
 });

@@ -4,7 +4,10 @@ test.describe("GymBuddy AI — E2E", () => {
   test.beforeEach(async ({ page }) => {
     // Clear any leftover localStorage before each test
     await page.goto("/");
-    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => {
+      localStorage.clear();
+      localStorage.setItem("gymbuddy_lang", "es");
+    });
     await page.reload();
     // Wait for the app to load
     await expect(page.getByText("GymBuddy")).toBeVisible();
