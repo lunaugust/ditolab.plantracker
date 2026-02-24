@@ -24,11 +24,20 @@ export default function App() {
     addDay,
     removeDay,
     replacePlan,
+    isFirstVisit,
   } = useTrainingPlan(storageScope);
   const nav = useNavigation(dayKeys);
   const [showGenerator, setShowGenerator] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
+  // Auto-open wizard on very first login (no stored plan)
+  useEffect(() => {
+    if (!planLoading && isFirstVisit) {
+      setShowGenerator(true);
+    }
+  }, [planLoading, isFirstVisit]);
+
+  // Clear selected exercise if it no longer exists in the plan
   useEffect(() => {
     if (!nav.selectedExercise) return;
 
@@ -47,6 +56,7 @@ export default function App() {
     return (
       <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
         <PlanGeneratorWizard
+          isFirstVisit={isFirstVisit}
           onApply={(plan) => {
             replacePlan(plan);
             setShowGenerator(false);

@@ -74,6 +74,7 @@ export function useTrainingPlan(storageScope = "guest") {
   const [trainingPlan, setTrainingPlan] = useState(() => normalizePlan(TRAINING_PLAN));
   const [loading, setLoading] = useState(true);
   const [saveMsg, setSaveMsg] = useState("");
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,6 +83,8 @@ export function useTrainingPlan(storageScope = "guest") {
     (async () => {
       const data = await loadTrainingPlan(storageScope);
       if (!cancelled) {
+        const hasStoredPlan = data && typeof data === "object" && Object.keys(data).length > 0;
+        setIsFirstVisit(!hasStoredPlan);
         setTrainingPlan(normalizePlan(data));
         setLoading(false);
       }
@@ -206,5 +209,6 @@ export function useTrainingPlan(storageScope = "guest") {
     addExercise,
     removeExercise,
     replacePlan,
+    isFirstVisit,
   };
 }

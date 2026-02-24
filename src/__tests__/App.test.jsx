@@ -12,12 +12,15 @@ vi.mock("../services/authService", () => ({
 /* ================================================================
  * Mock storageService — always resolve with empty logs by default
  * ================================================================ */
-vi.mock("../services/storageService", () => ({
-  loadLogs: vi.fn().mockResolvedValue({}),
-  persistLogs: vi.fn().mockResolvedValue(undefined),
-  loadTrainingPlan: vi.fn().mockResolvedValue({}),
-  persistTrainingPlan: vi.fn().mockResolvedValue(undefined),
-}));
+vi.mock("../services/storageService", async () => {
+  const { TRAINING_PLAN } = await vi.importActual("../data/trainingPlan");
+  return {
+    loadLogs: vi.fn().mockResolvedValue({}),
+    persistLogs: vi.fn().mockResolvedValue(undefined),
+    loadTrainingPlan: vi.fn().mockResolvedValue(TRAINING_PLAN),
+    persistTrainingPlan: vi.fn().mockResolvedValue(undefined),
+  };
+});
 
 import { loadLogs, persistLogs } from "../services/storageService";
 
