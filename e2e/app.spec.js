@@ -118,7 +118,7 @@ test.describe("GymBuddy AI — E2E", () => {
           { date: "2026-02-01T10:00:00Z", weight: "70", reps: "10", notes: "" },
         ],
       };
-      localStorage.setItem("augusto_logs", JSON.stringify(logs));
+      localStorage.setItem("gymbuddy_logs", JSON.stringify(logs));
     });
 
     await page.reload();

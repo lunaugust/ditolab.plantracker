@@ -3,7 +3,7 @@ import { loadLogs, persistLogs } from "../services/storageService";
 /* ================================================================
  * Mock localStorage (jsdom provides one, but we want fine control)
  * ================================================================ */
-const STORAGE_KEY = "augusto_logs";
+const STORAGE_KEY = "gymbuddy_logs";
 
 beforeEach(() => {
   localStorage.clear();

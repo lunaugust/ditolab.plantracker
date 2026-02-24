@@ -8,8 +8,8 @@
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebaseClient";
 
-const STORAGE_KEY = "augusto_logs";
-const PLAN_STORAGE_KEY = "augusto_plan";
+const STORAGE_KEY = "gymbuddy_logs";
+const PLAN_STORAGE_KEY = "gymbuddy_plan";
 
 function getStorageKey(scope = "guest") {
   return scope === "guest" ? STORAGE_KEY : `${STORAGE_KEY}:${scope}`;
