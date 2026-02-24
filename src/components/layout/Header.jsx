@@ -25,7 +25,7 @@ const NAV_ICONS = {
  * Top header with branding + save feedback.
  * Bottom sticky navigation bar (mobile-friendly).
  */
-export function Header({ view, onViewChange, saveMsg }) {
+export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut }) {
   return (
     <>
       {/* Top bar — branding */}
@@ -34,7 +34,14 @@ export function Header({ view, onViewChange, saveMsg }) {
           <div style={styles.subtitle}>Entrenamiento</div>
           <div style={styles.title}>Augusto</div>
         </div>
-        {saveMsg && <div style={styles.saveMsg}>{saveMsg}</div>}
+        <div style={styles.actions}>
+          {saveMsg && <div style={styles.saveMsg}>{saveMsg}</div>}
+          {onSignOut && (
+            <button onClick={onSignOut} style={styles.signOutBtn}>
+              Salir{authUserName ? ` · ${authUserName.split(" ")[0]}` : ""}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Bottom navigation */}
@@ -102,6 +109,21 @@ const styles = {
     background: `${colors.success}15`,
     padding: "6px 12px",
     borderRadius: 20,
+  },
+  actions: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  signOutBtn: {
+    border: `1px solid ${colors.border}`,
+    background: colors.surface,
+    color: colors.textSecondary,
+    borderRadius: 20,
+    padding: "6px 10px",
+    fontSize: 11,
+    fontFamily: fonts.mono,
+    cursor: "pointer",
   },
   bottomNav: {
     position: "fixed",

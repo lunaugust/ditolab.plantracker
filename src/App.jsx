@@ -1,5 +1,5 @@
-import { useTrainingLogs, useNavigation } from "./hooks";
-import { Header, LoadingScreen } from "./components/layout";
+import { useTrainingLogs, useNavigation, useAuth } from "./hooks";
+import { Header, LoadingScreen, AuthScreen } from "./components/layout";
 import { PlanView, LogView, ProgressView } from "./components/views";
 import { colors } from "./theme";
 
@@ -10,10 +10,14 @@ import { colors } from "./theme";
  * rendering to the appropriate view component.
  */
 export default function App() {
-  const { logs, loading, saveMsg, addLog, deleteLog } = useTrainingLogs();
+  const auth = useAuth();
+  const { logs, loading, saveMsg, addLog, deleteLog } = useTrainingLogs(auth.user?.uid || "guest");
   const nav = useNavigation();
 
-  if (loading) return <LoadingScreen />;
+  if (auth.loading || loading) return <LoadingScreen />;
+  if (auth.enabled && !auth.user) {
+    return <AuthScreen onSignIn={auth.loginWithGoogle} error={auth.error} />;
+  }
 
   /** Map view key → component */
   const viewComponents = {
@@ -50,7 +54,13 @@ export default function App() {
 
   return (
     <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary, paddingBottom: 72 }}>
-      <Header view={nav.view} onViewChange={nav.setView} saveMsg={saveMsg} />
+      <Header
+        view={nav.view}
+        onViewChange={nav.setView}
+        saveMsg={saveMsg}
+        authUserName={auth.user?.displayName}
+        onSignOut={auth.enabled ? auth.logout : null}
+      />
       {viewComponents[nav.view]}
     </div>
   );

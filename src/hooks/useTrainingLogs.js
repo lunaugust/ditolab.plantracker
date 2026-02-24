@@ -13,7 +13,7 @@ import { SAVE_MSG_DURATION_MS } from "../theme";
  *   deleteLog: (exerciseId: string, index: number) => void,
  * }}
  */
-export function useTrainingLogs() {
+export function useTrainingLogs(storageScope = "guest") {
   const [logs, setLogs] = useState({});
   const [loading, setLoading] = useState(true);
   const [saveMsg, setSaveMsg] = useState("");
@@ -21,28 +21,29 @@ export function useTrainingLogs() {
   /* ---- Bootstrap ---- */
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     (async () => {
-      const data = await loadLogs();
+      const data = await loadLogs(storageScope);
       if (!cancelled) {
         setLogs(data);
         setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [storageScope]);
 
   /* ---- Persist helper ---- */
   const persist = useCallback(async (nextLogs) => {
     setLogs(nextLogs);
     try {
-      await persistLogs(nextLogs);
+      await persistLogs(nextLogs, storageScope);
       setSaveMsg("✓ Guardado");
       setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
     } catch {
       setSaveMsg("✗ Error al guardar");
       setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
     }
-  }, []);
+  }, [storageScope]);
 
   /* ---- Public mutations ---- */
   const addLog = useCallback(
