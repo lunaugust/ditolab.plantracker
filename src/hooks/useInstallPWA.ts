@@ -1,5 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
+
 /**
  * Captures the browser's `beforeinstallprompt` event and exposes a
  * one-shot `install()` helper.
@@ -10,20 +15,21 @@ import { useState, useEffect, useCallback } from "react";
  *     (e.g. iOS Safari, Firefox).
  */
 export function useInstallPWA() {
-  const [promptEvent, setPromptEvent] = useState(null);
+  const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
+  const navigatorWithStandalone = window.navigator as Navigator & { standalone?: boolean };
 
   const isStandalone =
     typeof window !== "undefined" &&
-    (window.matchMedia("(display-mode: standalone)").matches ||
-      window.navigator.standalone === true);
+    ((typeof window.matchMedia === "function" && window.matchMedia("(display-mode: standalone)").matches) ||
+      navigatorWithStandalone.standalone === true);
 
   useEffect(() => {
     if (isStandalone) return;
 
-    const handleBeforeInstall = (e) => {
+    const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
-      setPromptEvent(e);
+      setPromptEvent(e as BeforeInstallPromptEvent);
     };
 
     const handleInstalled = () => {
