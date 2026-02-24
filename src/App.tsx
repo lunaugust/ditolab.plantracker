@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan, useInstallPWA } from "./hooks";
-import { Header, LoadingScreen, AuthScreen, FeedbackModal } from "./components/layout";
-import { PlanView, LogView, ProgressView, PlanGeneratorWizard } from "./components/views";
+import { Header, LoadingScreen, AuthScreen, FeedbackModal, WhatsNewModal } from "./components/layout";
+import { APP_VERSION, WHATS_NEW_STORAGE_KEY } from "./data/changelog";
+import { PlanView, LogView, ProgressView, PlanGeneratorWizard, PlanImportWizard } from "./components/views";
 import { colors } from "./theme";
 
 /**
@@ -29,7 +30,23 @@ export default function App() {
   const nav = useNavigation(dayKeys);
   const { canInstall, install } = useInstallPWA();
   const [showGenerator, setShowGenerator] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
+
+  // Show "What's New" once per version, after auth resolves.
+  useEffect(() => {
+    if (auth.loading) return;
+    const seen = localStorage.getItem(WHATS_NEW_STORAGE_KEY);
+    if (seen !== APP_VERSION) {
+      setShowWhatsNew(true);
+    }
+  }, [auth.loading]);
+
+  const dismissWhatsNew = () => {
+    localStorage.setItem(WHATS_NEW_STORAGE_KEY, APP_VERSION);
+    setShowWhatsNew(false);
+  };
 
   // --- Login-redirect logic ---
   // Tracks whether the first auth resolution has been recorded.
@@ -105,6 +122,23 @@ export default function App() {
     );
   }
 
+  if (showImporter) {
+    return (
+      <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
+        <PlanImportWizard
+          onApply={(plan) => {
+            replacePlan(plan);
+            setShowImporter(false);
+            nav.setView("plan");
+            const firstDay = Object.keys(plan).sort()[0];
+            if (firstDay) nav.setActiveDay(firstDay);
+          }}
+          onClose={() => setShowImporter(false)}
+        />
+      </div>
+    );
+  }
+
   /** Map view key → component */
   const viewComponents = {
     plan: (
@@ -119,6 +153,7 @@ export default function App() {
         addDay={addDay}
         removeDay={removeDay}
         onOpenGenerator={() => setShowGenerator(true)}
+        onOpenImporter={() => setShowImporter(true)}
       />
     ),
     log: (
@@ -170,6 +205,9 @@ export default function App() {
           currentView={nav.view}
           onClose={() => setShowFeedback(false)}
         />
+      )}
+      {showWhatsNew && !showFeedback && (
+        <WhatsNewModal onDismiss={dismissWhatsNew} />
       )}
     </div>
   );

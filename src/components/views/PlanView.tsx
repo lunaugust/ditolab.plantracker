@@ -19,6 +19,7 @@ import { useI18n } from "../../i18n";
  *   addDay: () => string,
  *   removeDay: (dayKey: string) => void,
  *   onOpenGenerator: () => void,
+ *   onOpenImporter: () => void,
  * }} props
  */
 export function PlanView({
@@ -32,6 +33,7 @@ export function PlanView({
   addDay,
   removeDay,
   onOpenGenerator,
+  onOpenImporter,
 }) {
   const { t } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
@@ -49,9 +51,10 @@ export function PlanView({
       <PageContainer>
         <SectionLabel>{t("plan.title")}</SectionLabel>
         <div style={{ color: colors.textMuted, marginBottom: 12 }}>{t("plan.noDays")}</div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button onClick={addDay} style={styles.ghostButton}>{t("plan.addDay")}</button>
           <button onClick={onOpenGenerator} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>✦ {t("generator.title")}</button>
+          <button onClick={onOpenImporter} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>{t("importer.openButton")}</button>
         </div>
       </PageContainer>
     );
@@ -130,9 +133,15 @@ export function PlanView({
         </button>
         <button
           onClick={onOpenGenerator}
-          style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue, marginLeft: "auto" }}
+          style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}
         >
           ✦ {t("generator.title")}
+        </button>
+        <button
+          onClick={onOpenImporter}
+          style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue, marginLeft: "auto" }}
+        >
+          {t("importer.openButton")}
         </button>
       </div>
 
