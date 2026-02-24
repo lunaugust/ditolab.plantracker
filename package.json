@@ -21,7 +21,6 @@
     "recharts": "^2.13.3"
   },
   "devDependencies": {
-    "@rollup/rollup-win32-x64-msvc": "^4.59.0",
     "@playwright/mcp": "^0.0.68",
     "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.9.1",
@@ -37,5 +36,7 @@
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.0.18"
   },
-  "optionalDependencies": {}
+  "optionalDependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.59.0"
+  }
 }
