@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TRAINING_PLAN, DAY_KEYS, DAY_COLORS } from "../../data/trainingPlan";
 import { getLastLog, formatDate } from "../../utils/helpers";
 import { DayTabs, SectionLabel, BackButton, PageContainer } from "../ui";
@@ -31,9 +31,29 @@ export function LogView({
 }) {
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
 
+  useEffect(() => {
+    if (!selectedExercise) return;
+
+    const entries = logs[selectedExercise.id] || [];
+    const latest = entries[entries.length - 1];
+
+    setForm({
+      weight: latest?.weight ?? "",
+      reps: latest?.reps ?? "",
+      notes: "",
+    });
+  }, [selectedExercise, logs]);
+
   const handleSubmit = () => {
     addLog(selectedExercise.id, form);
-    setForm({ weight: "", reps: "", notes: "" });
+    setForm((prev) => ({ weight: prev.weight, reps: prev.reps, notes: "" }));
+  };
+
+  const adjustWeight = (delta) => {
+    const current = Number(form.weight);
+    const safeCurrent = Number.isFinite(current) ? current : 0;
+    const next = Math.max(0, safeCurrent + delta);
+    setForm((prev) => ({ ...prev, weight: String(next) }));
   };
 
   /* ---- Exercise picker ---- */
@@ -103,13 +123,31 @@ export function LogView({
           ].map(([field, label, placeholder]) => (
             <div key={field}>
               <div style={formStyles.fieldLabel}>{label.toUpperCase()}</div>
-              <input
-                value={form[field]}
-                onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-                placeholder={placeholder}
-                type="number"
-                style={formStyles.numberInput}
-              />
+              {field === "weight" ? (
+                <div style={formStyles.weightControls}>
+                  <button type="button" onClick={() => adjustWeight(-5)} style={formStyles.adjustBtn}>
+                    -5
+                  </button>
+                  <input
+                    value={form[field]}
+                    onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
+                    placeholder={placeholder}
+                    type="number"
+                    style={formStyles.numberInput}
+                  />
+                  <button type="button" onClick={() => adjustWeight(5)} style={formStyles.adjustBtn}>
+                    +5
+                  </button>
+                </div>
+              ) : (
+                <input
+                  value={form[field]}
+                  onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
+                  placeholder={placeholder}
+                  type="number"
+                  style={formStyles.numberInput}
+                />
+              )}
             </div>
           ))}
         </div>
@@ -207,6 +245,24 @@ const formStyles = {
     fontFamily: fonts.mono,
     fontSize: 18,
     WebkitAppearance: "none",
+  },
+  weightControls: {
+    display: "grid",
+    gridTemplateColumns: "48px 1fr 48px",
+    gap: 8,
+    alignItems: "center",
+  },
+  adjustBtn: {
+    border: `1px solid ${colors.border}`,
+    background: colors.bg,
+    color: colors.textPrimary,
+    borderRadius: 10,
+    minHeight: 48,
+    fontFamily: fonts.mono,
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
   },
   textInput: {
     width: "100%",
