@@ -21,18 +21,21 @@
     "recharts": "^2.13.3"
   },
   "devDependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.59.0",
     "@playwright/mcp": "^0.0.68",
     "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.5.2",
+    "@types/react": "^18.3.24",
+    "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.3.4",
     "jsdom": "^28.1.0",
+    "typescript": "^5.9.2",
     "vite": "^6.1.0",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.0.18"
   },
-  "optionalDependencies": {
-    "@rollup/rollup-win32-x64-msvc": "^4.59.0"
-  }
+  "optionalDependencies": {}
 }
