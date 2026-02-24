@@ -11,6 +11,7 @@ export const translations = {
     header: {
       subtitle: "Entrenamiento",
       signOut: "Salir",
+      install: "Instalar app",
     },
     auth: {
       subtitle: "Iniciá sesión para guardar tu progreso",
@@ -139,6 +140,7 @@ export const translations = {
     header: {
       subtitle: "Training",
       signOut: "Sign out",
+      install: "Install app",
     },
     auth: {
       subtitle: "Sign in to save your progress",

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan } from "./hooks";
+import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan, useInstallPWA } from "./hooks";
 import { Header, LoadingScreen, AuthScreen, FeedbackModal } from "./components/layout";
 import { PlanView, LogView, ProgressView, PlanGeneratorWizard } from "./components/views";
 import { colors } from "./theme";
@@ -27,6 +27,7 @@ export default function App() {
     replacePlan,
   } = useTrainingPlan(storageScope, auth.loading);
   const nav = useNavigation(dayKeys);
+  const { canInstall, install } = useInstallPWA();
   const [showGenerator, setShowGenerator] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
@@ -159,6 +160,8 @@ export default function App() {
         authUserName={auth.user?.displayName}
         onSignOut={auth.enabled ? auth.logout : null}
         onOpenFeedback={() => setShowFeedback(true)}
+        canInstall={canInstall}
+        onInstall={install}
       />
       {viewComponents[nav.view]}
       {showFeedback && (

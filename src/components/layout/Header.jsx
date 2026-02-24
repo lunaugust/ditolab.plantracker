@@ -26,7 +26,16 @@ const NAV_ICONS = {
  * Top header with branding + save feedback.
  * Bottom sticky navigation bar (mobile-friendly).
  */
-export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut, onOpenFeedback }) {
+/** Download / install icon */
+const InstallIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
+  </svg>
+);
+
+export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut, onOpenFeedback, canInstall, onInstall }) {
   const { language, setLanguage, t } = useI18n();
 
   return (
@@ -57,6 +66,15 @@ export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut, o
             ))}
           </div>
           {saveMsg && <div style={styles.saveMsg}>{saveMsg}</div>}
+          {canInstall && (
+            <button
+              onClick={onInstall}
+              title={t("header.install")}
+              style={styles.installBtn}
+            >
+              <InstallIcon />
+            </button>
+          )}
           <button
             onClick={onOpenFeedback}
             title={t("feedback.title")}
@@ -181,6 +199,21 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+  },
+  installBtn: {
+    background: colors.surface,
+    border: `1px solid ${colors.accent.orange}`,
+    color: colors.accent.orange,
+    borderRadius: 20,
+    padding: "6px 10px",
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+    minWidth: 36,
+    minHeight: 36,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
   },
   bottomNav: {
     position: "fixed",
