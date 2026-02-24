@@ -10,6 +10,7 @@ import { getLastLog, buildChartData, computeWeightStats } from "../../utils/help
 import { DayTabs, SectionLabel, BackButton, PageContainer, StatCard } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
+import { useI18n } from "../../i18n";
 
 /**
  * "Progresión" screen — charts + stats for each exercise.
@@ -37,6 +38,7 @@ export function ProgressView({
   clearExercise,
   logs,
 }) {
+  const { t } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : { exercises: [] };
   const accentColor = dayColors[safeActiveDay];
@@ -45,7 +47,7 @@ export function ProgressView({
   if (!selectedExercise) {
     return (
       <PageContainer>
-        <SectionLabel>PROGRESIÓN DE PESO</SectionLabel>
+        <SectionLabel>{t("progress.titleWeight")}</SectionLabel>
 
         <DayTabs
           days={dayKeys}
@@ -106,7 +108,7 @@ export function ProgressView({
       <BackButton onClick={clearExercise} />
 
       <div style={{ marginBottom: 24 }}>
-        <SectionLabel color={accentColor}>PROGRESIÓN</SectionLabel>
+        <SectionLabel color={accentColor}>{t("progress.title")}</SectionLabel>
         <div style={{ fontSize: 20, fontWeight: 700 }}>{selectedExercise.name}</div>
       </div>
 
@@ -114,7 +116,7 @@ export function ProgressView({
       {chartData.length < 2 ? (
         <div style={styles.noDataCard}>
           <div style={styles.noDataText}>
-            Necesitás al menos 2 registros con peso para ver la progresión
+            {t("progress.needTwoLogs")}
           </div>
         </div>
       ) : (
@@ -160,9 +162,9 @@ export function ProgressView({
       {/* Stats grid */}
       {stats && (
         <div style={styles.statsGrid}>
-          <StatCard label="Actual" value={`${stats.current} kg`} color={accentColor} />
-          <StatCard label="Máximo" value={`${stats.max} kg`} color={colors.textPrimary} />
-          <StatCard label="Mínimo" value={`${stats.min} kg`} color={colors.textMuted} />
+          <StatCard label={t("progress.current")} value={`${stats.current} kg`} color={accentColor} />
+          <StatCard label={t("progress.max")} value={`${stats.max} kg`} color={colors.textPrimary} />
+          <StatCard label={t("progress.min")} value={`${stats.min} kg`} color={colors.textMuted} />
         </div>
       )}
     </PageContainer>

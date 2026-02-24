@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { loadLogs, persistLogs } from "../services/storageService";
 import { SAVE_MSG_DURATION_MS } from "../theme";
+import { useI18n } from "../i18n";
 
 /**
  * Encapsulates all training-log state, persistence, and mutations.
@@ -14,6 +15,7 @@ import { SAVE_MSG_DURATION_MS } from "../theme";
  * }}
  */
 export function useTrainingLogs(storageScope = "guest") {
+  const { t } = useI18n();
   const [logs, setLogs] = useState({});
   const [loading, setLoading] = useState(true);
   const [saveMsg, setSaveMsg] = useState("");
@@ -37,13 +39,13 @@ export function useTrainingLogs(storageScope = "guest") {
     setLogs(nextLogs);
     try {
       await persistLogs(nextLogs, storageScope);
-      setSaveMsg("✓ Guardado");
+      setSaveMsg(t("log.saveSuccess"));
       setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
     } catch {
-      setSaveMsg("✗ Error al guardar");
+      setSaveMsg(t("log.saveError"));
       setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
     }
-  }, [storageScope]);
+  }, [storageScope, t]);
 
   /* ---- Public mutations ---- */
   const addLog = useCallback(

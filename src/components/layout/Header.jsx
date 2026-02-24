@@ -1,4 +1,5 @@
 import { colors, fonts, NAV_ITEMS } from "../../theme";
+import { useI18n } from "../../i18n";
 
 /** Simple SVG icons for the bottom nav */
 const NAV_ICONS = {
@@ -26,19 +27,39 @@ const NAV_ICONS = {
  * Bottom sticky navigation bar (mobile-friendly).
  */
 export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut }) {
+  const { language, setLanguage, t } = useI18n();
+
   return (
     <>
       {/* Top bar — branding */}
       <div style={styles.topBar}>
         <div>
-          <div style={styles.subtitle}>Entrenamiento</div>
+          <div style={styles.subtitle}>{t("header.subtitle")}</div>
           <div style={styles.title}>Augusto</div>
         </div>
         <div style={styles.actions}>
+          <div style={styles.langSwitch}>
+            {[
+              ["es", "ES"],
+              ["en", "EN"],
+            ].map(([code, label]) => (
+              <button
+                key={code}
+                onClick={() => setLanguage(code)}
+                style={{
+                  ...styles.langBtn,
+                  color: language === code ? colors.textPrimary : colors.textMuted,
+                  borderColor: language === code ? colors.accent.orange : colors.border,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           {saveMsg && <div style={styles.saveMsg}>{saveMsg}</div>}
           {onSignOut && (
             <button onClick={onSignOut} style={styles.signOutBtn}>
-              Salir{authUserName ? ` · ${authUserName.split(" ")[0]}` : ""}
+              {t("header.signOut")}{authUserName ? ` · ${authUserName.split(" ")[0]}` : ""}
             </button>
           )}
         </div>
@@ -46,7 +67,7 @@ export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut })
 
       {/* Bottom navigation */}
       <nav style={styles.bottomNav}>
-        {NAV_ITEMS.map(({ key, label }) => {
+        {NAV_ITEMS.map(({ key, labelKey }) => {
           const isActive = view === key;
           const color = isActive ? colors.accent.orange : colors.textDim;
           return (
@@ -64,7 +85,7 @@ export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut })
                 color,
                 fontWeight: isActive ? 600 : 400,
               }}>
-                {label}
+                {t(labelKey)}
               </span>
               {isActive && <div style={styles.activeIndicator} />}
             </button>
@@ -114,6 +135,21 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: 8,
+  },
+  langSwitch: {
+    display: "flex",
+    gap: 4,
+  },
+  langBtn: {
+    border: `1px solid ${colors.border}`,
+    background: colors.surface,
+    borderRadius: 12,
+    minWidth: 34,
+    minHeight: 24,
+    fontSize: 10,
+    fontFamily: fonts.mono,
+    cursor: "pointer",
+    padding: "0 6px",
   },
   signOutBtn: {
     border: `1px solid ${colors.border}`,

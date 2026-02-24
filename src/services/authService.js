@@ -16,7 +16,7 @@ export function subscribeToAuthState(callback) {
 }
 
 export async function signInWithGoogle() {
-  if (!auth) throw new Error("Firebase Auth no está configurado");
+  if (!auth) throw new Error("FIREBASE_AUTH_NOT_CONFIGURED");
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
   await signInWithPopup(auth, provider);

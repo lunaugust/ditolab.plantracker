@@ -3,6 +3,7 @@ import { getLastLog, formatDate } from "../../utils/helpers";
 import { DayTabs, SectionLabel, BackButton, PageContainer } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
+import { useI18n } from "../../i18n";
 
 /**
  * "Registrar" screen — exercise log form + history.
@@ -34,6 +35,7 @@ export function LogView({
   addLog,
   deleteLog,
 }) {
+  const { t } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : { exercises: [] };
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
@@ -67,7 +69,7 @@ export function LogView({
   if (!selectedExercise) {
     return (
       <PageContainer>
-        <SectionLabel>SELECCIONÁ UN EJERCICIO</SectionLabel>
+        <SectionLabel>{t("log.selectExercise")}</SectionLabel>
 
         <DayTabs
           days={dayKeys}
@@ -109,10 +111,10 @@ export function LogView({
 
       {/* Exercise header */}
       <div style={{ marginBottom: 24 }}>
-        <SectionLabel color={accentColor}>REGISTRAR</SectionLabel>
+        <SectionLabel color={accentColor}>{t("log.register")}</SectionLabel>
         <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{selectedExercise.name}</div>
         <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textMuted }}>
-          {selectedExercise.sets} series · {selectedExercise.reps} · {selectedExercise.rest}
+          {selectedExercise.sets} {t("common.series")} · {selectedExercise.reps} {t("common.reps")} · {selectedExercise.rest}
         </div>
         {selectedExercise.note && (
           <div style={{ fontSize: 11, color: colors.warning, marginTop: 6, fontStyle: "italic" }}>
@@ -125,8 +127,8 @@ export function LogView({
       <div style={formStyles.card}>
         <div style={formStyles.grid}>
           {[
-            ["weight", "Peso (kg)", "0"],
-            ["reps", "Reps realizadas", "0"],
+            ["weight", t("log.weightLabel"), "0"],
+            ["reps", t("log.repsDoneLabel"), "0"],
           ].map(([field, label, placeholder]) => (
             <div key={field}>
               <div style={formStyles.fieldLabel}>{label.toUpperCase()}</div>
@@ -160,25 +162,25 @@ export function LogView({
         </div>
 
         <div style={{ marginBottom: 14 }}>
-          <div style={formStyles.fieldLabel}>NOTAS (OPCIONAL)</div>
+          <div style={formStyles.fieldLabel}>{t("log.notesOptional")}</div>
           <input
             value={form.notes}
             onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-            placeholder="Ej: técnica mejorada, RPE 8..."
+            placeholder={t("log.notesPlaceholder")}
             style={formStyles.textInput}
           />
         </div>
 
         <button onClick={handleSubmit} style={{ ...formStyles.submit, background: accentColor }}>
-          Guardar registro
+          {t("log.saveRecord")}
         </button>
       </div>
 
       {/* History */}
-      <SectionLabel>HISTORIAL</SectionLabel>
+      <SectionLabel>{t("log.history")}</SectionLabel>
 
       {entries.length === 0 ? (
-        <div style={styles.emptyState}>Sin registros aún</div>
+        <div style={styles.emptyState}>{t("log.noRecords")}</div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {[...entries].reverse().map((entry, ri) => {
@@ -197,7 +199,7 @@ export function LogView({
                   </span>
                   {entry.reps && (
                     <span style={{ fontFamily: fonts.mono, fontSize: 12, color: colors.textMuted, marginLeft: 10 }}>
-                      × {entry.reps} reps
+                      × {entry.reps} {t("common.reps")}
                     </span>
                   )}
                   {entry.notes && (

@@ -3,6 +3,7 @@ import { getLastLog } from "../../utils/helpers";
 import { DayTabs, SectionLabel, PageContainer } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
+import { useI18n } from "../../i18n";
 
 /**
  * "Plan" screen — shows the structured training plan per day.
@@ -32,6 +33,7 @@ export function PlanView({
   addDay,
   removeDay,
 }) {
+  const { t } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : null;
   const [isEditing, setIsEditing] = useState(false);
@@ -45,9 +47,9 @@ export function PlanView({
   if (!day) {
     return (
       <PageContainer>
-        <SectionLabel>PLAN</SectionLabel>
-        <div style={{ color: colors.textMuted, marginBottom: 12 }}>No hay días cargados</div>
-        <button onClick={addDay} style={styles.ghostButton}>Agregar día</button>
+        <SectionLabel>{t("plan.title")}</SectionLabel>
+        <div style={{ color: colors.textMuted, marginBottom: 12 }}>{t("plan.noDays")}</div>
+        <button onClick={addDay} style={styles.ghostButton}>{t("plan.addDay")}</button>
       </PageContainer>
     );
   }
@@ -114,14 +116,14 @@ export function PlanView({
           }}
           style={styles.ghostButton}
         >
-          + Día
+          {t("plan.addDayShort")}
         </button>
         <button
           onClick={() => removeDay(safeActiveDay)}
           disabled={dayKeys.length <= 1}
           style={{ ...styles.ghostButton, opacity: dayKeys.length <= 1 ? 0.4 : 1 }}
         >
-          − Día
+          {t("plan.removeDayShort")}
         </button>
       </div>
 
@@ -145,16 +147,16 @@ export function PlanView({
         <div style={{ display: "flex", gap: 8 }}>
           {!isEditing && (
             <button onClick={startEditing} style={styles.ghostButton}>
-              Editar plan
+              {t("plan.editPlan")}
             </button>
           )}
           {isEditing && (
             <>
               <button onClick={cancelEditing} style={styles.ghostButton}>
-                Cancelar
+                {t("common.cancel")}
               </button>
               <button onClick={saveEditing} style={{ ...styles.ghostButton, color: dayColors[safeActiveDay], borderColor: dayColors[safeActiveDay] }}>
-                Guardar
+                {t("common.save")}
               </button>
             </>
           )}
@@ -172,7 +174,7 @@ export function PlanView({
                   exercises: [
                     {
                       id: `ex_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-                      name: `Nuevo ejercicio ${prev.exercises.length + 1}`,
+                      name: t("plan.exerciseNameTemplate", { n: prev.exercises.length + 1 }),
                       sets: "",
                       reps: "",
                       rest: "",
@@ -185,7 +187,7 @@ export function PlanView({
             }}
             style={styles.ghostButton}
           >
-            + Ejercicio
+            {t("plan.addExercise")}
           </button>
         </div>
       )}
@@ -213,15 +215,15 @@ export function PlanView({
               />
 
               <div style={styles.metaGrid}>
-                <input value={ex.sets} onChange={(e) => updateExerciseField(ex.id, "sets", e.target.value)} placeholder="Series" style={styles.metaInput} />
-                <input value={ex.reps} onChange={(e) => updateExerciseField(ex.id, "reps", e.target.value)} placeholder="Reps" style={styles.metaInput} />
-                <input value={ex.rest} onChange={(e) => updateExerciseField(ex.id, "rest", e.target.value)} placeholder="Descanso" style={styles.metaInput} />
+                <input value={ex.sets} onChange={(e) => updateExerciseField(ex.id, "sets", e.target.value)} placeholder={t("plan.setsPlaceholder")} style={styles.metaInput} />
+                <input value={ex.reps} onChange={(e) => updateExerciseField(ex.id, "reps", e.target.value)} placeholder={t("plan.repsPlaceholder")} style={styles.metaInput} />
+                <input value={ex.rest} onChange={(e) => updateExerciseField(ex.id, "rest", e.target.value)} placeholder={t("plan.restPlaceholder")} style={styles.metaInput} />
               </div>
 
               <input
                 value={ex.note || ""}
                 onChange={(e) => updateExerciseField(ex.id, "note", e.target.value)}
-                placeholder="Nota opcional"
+                placeholder={t("plan.notePlaceholder")}
                 style={styles.noteInput}
               />
 
@@ -231,14 +233,14 @@ export function PlanView({
                   disabled={i === 0}
                   style={{ ...styles.ghostButton, fontSize: 10, padding: "6px 8px", opacity: i === 0 ? 0.4 : 1 }}
                 >
-                  ↑ Subir
+                  {t("plan.moveUp")}
                 </button>
                 <button
                   onClick={() => moveExercise(i, 1)}
                   disabled={i === currentDay.exercises.length - 1}
                   style={{ ...styles.ghostButton, fontSize: 10, padding: "6px 8px", opacity: i === currentDay.exercises.length - 1 ? 0.4 : 1 }}
                 >
-                  ↓ Bajar
+                  {t("plan.moveDown")}
                 </button>
                 <button
                   onClick={() => {
@@ -252,7 +254,7 @@ export function PlanView({
                   }}
                   style={{ ...styles.ghostButton, fontSize: 10, padding: "6px 8px" }}
                 >
-                  Eliminar ejercicio
+                  {t("plan.removeExercise")}
                 </button>
               </div>
             </div>

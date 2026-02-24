@@ -1,4 +1,5 @@
 import { colors, fonts } from "../../theme";
+import { useI18n } from "../../i18n";
 
 /**
  * "← volver" back button for detail screens.
@@ -7,6 +8,8 @@ import { colors, fonts } from "../../theme";
  * @param {{ onClick: () => void }} props
  */
 export function BackButton({ onClick }) {
+  const { t } = useI18n();
+
   return (
     <button
       onClick={onClick}
@@ -25,7 +28,7 @@ export function BackButton({ onClick }) {
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      ← volver
+      {t("common.back")}
     </button>
   );
 }

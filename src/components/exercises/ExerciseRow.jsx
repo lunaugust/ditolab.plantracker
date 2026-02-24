@@ -1,5 +1,6 @@
 import { colors, fonts } from "../../theme";
 import { padIndex } from "../../utils/helpers";
+import { useI18n } from "../../i18n";
 
 /**
  * A single exercise row used across Plan, Log-picker and Progress screens.
@@ -29,6 +30,7 @@ export function ExerciseRow({
   progressDiff = null,
   disabled = false,
 }) {
+  const { t } = useI18n();
   const interactive = !!onClick && !disabled;
 
   return (
@@ -68,13 +70,13 @@ export function ExerciseRow({
 
         {showDetails && (
           <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textMuted }}>
-            {exercise.sets} series · {exercise.reps} reps · {exercise.rest}
+            {exercise.sets} {t("common.series")} · {exercise.reps} {t("common.reps")} · {exercise.rest}
           </div>
         )}
 
         {!showDetails && totalLogs > 0 && (
           <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textDim, marginTop: 2 }}>
-            {totalLogs} sesiones
+            {totalLogs} {t("common.sessions")}
           </div>
         )}
 
@@ -95,12 +97,12 @@ export function ExerciseRow({
           )}
           {lastLog.reps && (
             <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textDim }}>
-              {lastLog.reps} reps
+              {lastLog.reps} {t("common.reps")}
             </div>
           )}
           {totalLogs > 0 && (
             <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textGhost }}>
-              {totalLogs} registros
+              {totalLogs} {t("common.records")}
             </div>
           )}
         </div>
@@ -130,7 +132,7 @@ export function ExerciseRow({
       {/* "no data" label for progress disabled rows */}
       {disabled && (
         <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textDisabled }}>
-          sin datos
+          {t("common.noData")}
         </div>
       )}
 

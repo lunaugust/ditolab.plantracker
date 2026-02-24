@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { TRAINING_PLAN } from "../data/trainingPlan";
 import { loadTrainingPlan, persistTrainingPlan } from "../services/storageService";
 import { SAVE_MSG_DURATION_MS } from "../theme";
+import { useI18n } from "../i18n";
 
 function normalizeString(value, fallback = "") {
   return typeof value === "string" ? value : fallback;
@@ -17,12 +18,12 @@ function makeExerciseId() {
   return `ex_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function getNextDayName(existingKeys) {
+function getNextDayName(existingKeys, template) {
   let index = existingKeys.length + 1;
-  let candidate = `Día ${index}`;
+  let candidate = template.replace("{n}", String(index));
   while (existingKeys.includes(candidate)) {
     index += 1;
-    candidate = `Día ${index}`;
+    candidate = template.replace("{n}", String(index));
   }
   return candidate;
 }
@@ -72,6 +73,7 @@ function normalizePlan(inputPlan) {
  * Encapsulates editable training-plan state and persistence.
  */
 export function useTrainingPlan(storageScope = "guest") {
+  const { t } = useI18n();
   const [trainingPlan, setTrainingPlan] = useState(() => normalizePlan(TRAINING_PLAN));
   const [loading, setLoading] = useState(true);
   const [saveMsg, setSaveMsg] = useState("");
@@ -99,13 +101,13 @@ export function useTrainingPlan(storageScope = "guest") {
 
     try {
       await persistTrainingPlan(normalized, storageScope);
-      setSaveMsg("✓ Plan guardado");
+      setSaveMsg(t("plan.saveSuccess"));
       setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
     } catch {
-      setSaveMsg("✗ Error al guardar plan");
+      setSaveMsg(t("plan.saveError"));
       setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
     }
-  }, [storageScope]);
+  }, [storageScope, t]);
 
   const saveDay = useCallback((dayKey, nextDay) => {
     if (!trainingPlan[dayKey]) return;
@@ -121,13 +123,13 @@ export function useTrainingPlan(storageScope = "guest") {
 
   const addDay = useCallback(() => {
     const existingKeys = Object.keys(trainingPlan);
-    const newDayKey = getNextDayName(existingKeys);
+    const newDayKey = getNextDayName(existingKeys, t("plan.dayNameTemplate"));
     const color = DEFAULT_DAY_COLORS[existingKeys.length % DEFAULT_DAY_COLORS.length] || "#e8643a";
 
     const nextPlan = {
       ...trainingPlan,
       [newDayKey]: {
-        label: "Nuevo grupo muscular",
+        label: t("plan.dayLabelPlaceholder"),
         color,
         exercises: [],
       },
@@ -135,7 +137,7 @@ export function useTrainingPlan(storageScope = "guest") {
 
     persist(nextPlan);
     return newDayKey;
-  }, [trainingPlan, persist]);
+  }, [trainingPlan, persist, t]);
 
   const removeDay = useCallback((dayKey) => {
     if (!trainingPlan[dayKey]) return;
@@ -154,14 +156,14 @@ export function useTrainingPlan(storageScope = "guest") {
     const nextPlan = clonePlan(trainingPlan);
     nextPlan[dayKey].exercises.push({
       id: makeExerciseId(),
-      name: `Nuevo ejercicio ${day.exercises.length + 1}`,
+      name: t("plan.exerciseNameTemplate", { n: day.exercises.length + 1 }),
       sets: "",
       reps: "",
       rest: "",
       note: "",
     });
     persist(nextPlan);
-  }, [trainingPlan, persist]);
+  }, [trainingPlan, persist, t]);
 
   const removeExercise = useCallback((dayKey, exerciseId) => {
     const day = trainingPlan[dayKey];
