@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan } from "./hooks";
 import { Header, LoadingScreen, AuthScreen } from "./components/layout";
-import { PlanView, LogView, ProgressView } from "./components/views";
+import { PlanView, LogView, ProgressView, PlanGeneratorWizard } from "./components/views";
 import { colors } from "./theme";
 
 /**
@@ -23,8 +23,10 @@ export default function App() {
     saveDay,
     addDay,
     removeDay,
+    replacePlan,
   } = useTrainingPlan(storageScope);
   const nav = useNavigation(dayKeys);
+  const [showGenerator, setShowGenerator] = useState(false);
 
   useEffect(() => {
     if (!nav.selectedExercise) return;
@@ -40,6 +42,23 @@ export default function App() {
     return <AuthScreen onSignIn={auth.loginWithGoogle} error={auth.error} />;
   }
 
+  if (showGenerator) {
+    return (
+      <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
+        <PlanGeneratorWizard
+          onApply={(plan) => {
+            replacePlan(plan);
+            setShowGenerator(false);
+            nav.setView("plan");
+            const firstDay = Object.keys(plan).sort()[0];
+            if (firstDay) nav.setActiveDay(firstDay);
+          }}
+          onClose={() => setShowGenerator(false)}
+        />
+      </div>
+    );
+  }
+
   /** Map view key → component */
   const viewComponents = {
     plan: (
@@ -53,6 +72,7 @@ export default function App() {
         saveDay={saveDay}
         addDay={addDay}
         removeDay={removeDay}
+        onOpenGenerator={() => setShowGenerator(true)}
       />
     ),
     log: (

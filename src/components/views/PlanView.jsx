@@ -18,6 +18,7 @@ import { useI18n } from "../../i18n";
  *   saveDay: (dayKey: string, nextDay: import("../../data/trainingPlan").TrainingDay) => void,
  *   addDay: () => string,
  *   removeDay: (dayKey: string) => void,
+ *   onOpenGenerator: () => void,
  * }} props
  */
 export function PlanView({
@@ -30,6 +31,7 @@ export function PlanView({
   saveDay,
   addDay,
   removeDay,
+  onOpenGenerator,
 }) {
   const { t } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
@@ -47,7 +49,10 @@ export function PlanView({
       <PageContainer>
         <SectionLabel>{t("plan.title")}</SectionLabel>
         <div style={{ color: colors.textMuted, marginBottom: 12 }}>{t("plan.noDays")}</div>
-        <button onClick={addDay} style={styles.ghostButton}>{t("plan.addDay")}</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={addDay} style={styles.ghostButton}>{t("plan.addDay")}</button>
+          <button onClick={onOpenGenerator} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>✦ {t("generator.title")}</button>
+        </div>
       </PageContainer>
     );
   }
@@ -122,6 +127,12 @@ export function PlanView({
           style={{ ...styles.ghostButton, opacity: dayKeys.length <= 1 ? 0.4 : 1 }}
         >
           {t("plan.removeDayShort")}
+        </button>
+        <button
+          onClick={onOpenGenerator}
+          style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue, marginLeft: "auto" }}
+        >
+          ✦ {t("generator.title")}
         </button>
       </div>
 

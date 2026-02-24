@@ -180,6 +180,10 @@ export function useTrainingPlan(storageScope = "guest") {
     persist(nextPlan);
   }, [trainingPlan, persist]);
 
+  const replacePlan = useCallback((newPlan) => {
+    persist(newPlan);
+  }, [persist]);
+
   const dayKeys = useMemo(
     () => Object.keys(trainingPlan).sort(compareDayKeys),
     [trainingPlan],
@@ -201,5 +205,6 @@ export function useTrainingPlan(storageScope = "guest") {
     removeDay,
     addExercise,
     removeExercise,
+    replacePlan,
   };
 }

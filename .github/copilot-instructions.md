@@ -60,3 +60,15 @@
 - Vite config in `vite.config.js` includes PWA setup (`vite-plugin-pwa`) and Vitest settings.
 - Global CSS (`src/styles/global.css`) handles mobile-safe viewport/safe-area behavior; avoid duplicating these behaviors in components.
 - `src/index.js` is a backward-compatibility re-export of `App`; the real entry point is `src/main.jsx`.
+
+## AI Plan Generator
+- The app supports AI-generated training plans via a multi-step wizard (`PlanGeneratorWizard`).
+- **Firebase AI Logic** (`firebase/ai` with `GoogleAIBackend`) calls **Gemini 2.0 Flash** for authenticated users. The `ai` instance is exported from `src/services/firebaseClient.js`.
+- **Rule-based fallback** (`src/services/ruleBasedPlanGenerator.js`) generates plans offline using curated exercise templates. Used automatically when Firebase AI is unavailable (guest mode, missing config, API failure).
+- Generator config (wizard options, defaults, colors) lives in `src/data/planGeneratorConfig.js`.
+- AI service lives in `src/services/aiPlanGenerator.js`; it exports `isAIAvailable()` and `generateTrainingPlan(form, language)` which returns `{ plan, source: "ai" | "rules" }`.
+- The wizard collects: experience level, goal, limitations (free text), days per week, and minutes per session.
+- `useTrainingPlan` exposes `replacePlan(newPlan)` to swap the entire plan with a generated one.
+- The "✦ Generate" button in `PlanView` opens the wizard as a full-screen overlay managed by `App.jsx` state (`showGenerator`).
+- All generator UI strings use `generator.*` i18n keys; both ES and EN translations are complete.
+- Generator tests live in `src/__tests__/planGenerator.test.js` (16 tests covering shape, volume scaling, day counts, time limits, and translations).
