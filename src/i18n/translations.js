@@ -107,6 +107,7 @@ export const translations = {
       confirmReplace: "Esto reemplazará tu plan actual. ¿Continuar?",
       success: "✓ Plan generado",
       error: "✗ Error al generar plan",
+      addExercise: "+ Ejercicio",
     },
   },
   en: {
@@ -214,6 +215,7 @@ export const translations = {
       confirmReplace: "This will replace your current plan. Continue?",
       success: "✓ Plan generated",
       error: "✗ Error generating plan",
+      addExercise: "+ Exercise",
     },
   },
 };

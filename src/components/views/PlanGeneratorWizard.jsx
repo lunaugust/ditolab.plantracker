@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { colors, fonts } from "../../theme";
 import { SectionLabel, PageContainer, BackButton } from "../ui";
 import { useI18n } from "../../i18n";
 import { generateTrainingPlan, isAIAvailable } from "../../services/aiPlanGenerator";
+import { makeExerciseId } from "../../utils/helpers";
 import {
   EXPERIENCE_OPTIONS,
   GOAL_OPTIONS,
@@ -27,6 +28,95 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
   const [preview, setPreview] = useState(null);
   const [source, setSource] = useState(null);
   const [error, setError] = useState("");
+  const [editingExId, setEditingExId] = useState(null); // "dayKey|||exId"
+  const [editingDayLabel, setEditingDayLabel] = useState(null);
+  const editSnapshot = useRef(null);
+  const dragRef = useRef(null); // { dayKey, fromIdx } while dragging
+  const [dragOver, setDragOver] = useState(null); // { dayKey, toIdx }
+
+  /* ---- Preview mutation helpers ---- */
+  const updatePreviewEx = useCallback((dayKey, exId, field, value) => {
+    setPreview((prev) => ({
+      ...prev,
+      [dayKey]: {
+        ...prev[dayKey],
+        exercises: prev[dayKey].exercises.map((ex) =>
+          ex.id === exId ? { ...ex, [field]: value } : ex
+        ),
+      },
+    }));
+  }, []);
+
+  const removePreviewEx = useCallback((dayKey, exId) => {
+    setPreview((prev) => ({
+      ...prev,
+      [dayKey]: {
+        ...prev[dayKey],
+        exercises: prev[dayKey].exercises.filter((ex) => ex.id !== exId),
+      },
+    }));
+    setEditingExId(null);
+  }, []);
+
+  const addPreviewEx = useCallback((dayKey) => {
+    const newEx = { id: makeExerciseId(), name: "", sets: "3", reps: "10", rest: "60s", note: "" };
+    setPreview((prev) => ({
+      ...prev,
+      [dayKey]: { ...prev[dayKey], exercises: [...prev[dayKey].exercises, newEx] },
+    }));
+    editSnapshot.current = { ...newEx };
+    setEditingExId(`${dayKey}|||${newEx.id}`);
+  }, []);
+
+  const openEditEx = useCallback((dayKey, ex) => {
+    editSnapshot.current = { ...ex };
+    setEditingExId(`${dayKey}|||${ex.id}`);
+  }, []);
+
+  const cancelEditEx = useCallback((dayKey, exId) => {
+    if (editSnapshot.current) {
+      const snap = editSnapshot.current;
+      setPreview((prev) => ({
+        ...prev,
+        [dayKey]: {
+          ...prev[dayKey],
+          exercises: prev[dayKey].exercises.map((ex) =>
+            ex.id === exId ? { ...snap } : ex
+          ),
+        },
+      }));
+      editSnapshot.current = null;
+    }
+    setEditingExId(null);
+  }, []);
+
+  const movePreviewEx = useCallback((dayKey, fromIdx, dir) => {
+    setPreview((prev) => {
+      const exercises = [...prev[dayKey].exercises];
+      const toIdx = fromIdx + dir;
+      if (toIdx < 0 || toIdx >= exercises.length) return prev;
+      const [moved] = exercises.splice(fromIdx, 1);
+      exercises.splice(toIdx, 0, moved);
+      return { ...prev, [dayKey]: { ...prev[dayKey], exercises } };
+    });
+  }, []);
+
+  const moveExToIndex = useCallback((dayKey, fromIdx, toIdx) => {
+    if (fromIdx === toIdx) return;
+    setPreview((prev) => {
+      const exercises = [...prev[dayKey].exercises];
+      const [moved] = exercises.splice(fromIdx, 1);
+      exercises.splice(toIdx, 0, moved);
+      return { ...prev, [dayKey]: { ...prev[dayKey], exercises } };
+    });
+  }, []);
+
+  const updateDayLabelPreview = useCallback((dayKey, value) => {
+    setPreview((prev) => ({
+      ...prev,
+      [dayKey]: { ...prev[dayKey], label: value },
+    }));
+  }, []);
 
   const update = useCallback((field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -56,6 +146,8 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
   const handleRegenerate = useCallback(() => {
     setPreview(null);
     setSource(null);
+    setEditingExId(null);
+    setEditingDayLabel(null);
     setStep(3); // back to schedule step
   }, []);
 
@@ -167,7 +259,7 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
       </>
     ),
 
-    /* 4: Preview */
+    /* 4: Preview (editable) */
     () => (
       <>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
@@ -177,27 +269,173 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
           {preview && Object.entries(preview).map(([dayKey, day]) => (
             <div key={dayKey} style={styles.previewDay}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              {/* Day header */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <div style={{ width: 10, height: 10, borderRadius: 5, background: day.color, flexShrink: 0 }} />
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{dayKey}</div>
-                <div style={{ fontSize: 11, color: colors.textMuted, flex: 1 }}>{day.label}</div>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {day.exercises.map((ex, i) => (
-                  <div key={ex.id} style={styles.previewExercise}>
-                    <span style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textGhost, minWidth: 22 }}>
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span style={{ flex: 1, fontSize: 13 }}>{ex.name}</span>
-                    <span style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textDim }}>
-                      {ex.sets}×{ex.reps}
-                    </span>
+                {editingDayLabel === dayKey ? (
+                  <input
+                    autoFocus
+                    value={day.label}
+                    onChange={(e) => updateDayLabelPreview(dayKey, e.target.value)}
+                    onBlur={() => setEditingDayLabel(null)}
+                    onKeyDown={(e) => e.key === "Enter" && setEditingDayLabel(null)}
+                    style={styles.inlineInput}
+                  />
+                ) : (
+                  <div
+                    onClick={() => setEditingDayLabel(dayKey)}
+                    style={{ fontSize: 11, color: colors.textMuted, flex: 1, cursor: "text", padding: "2px 4px", borderRadius: 4, border: `1px dashed ${colors.borderDim}` }}
+                  >
+                    {day.label || "—"}
                   </div>
-                ))}
+                )}
               </div>
+
+              {/* Exercise list */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {day.exercises.map((ex, i) => {
+                  const compositeId = `${dayKey}|||${ex.id}`;
+                  const isEditing = editingExId === compositeId;
+                  return (
+                    <div key={ex.id} style={{ ...styles.previewExercise, flexDirection: "column", alignItems: "stretch", padding: "8px 0", gap: 0 }}>
+                      {isEditing ? (
+                        /* Expanded edit form */
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          <input
+                            autoFocus
+                            value={ex.name}
+                            onChange={(e) => updatePreviewEx(dayKey, ex.id, "name", e.target.value)}
+                            placeholder={t("plan.exerciseNameTemplate", { n: i + 1 })}
+                            style={styles.editInput}
+                          />
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <input
+                              value={ex.sets}
+                              onChange={(e) => updatePreviewEx(dayKey, ex.id, "sets", e.target.value)}
+                              placeholder={t("plan.setsPlaceholder")}
+                              style={{ ...styles.editInput, flex: 1 }}
+                            />
+                            <input
+                              value={ex.reps}
+                              onChange={(e) => updatePreviewEx(dayKey, ex.id, "reps", e.target.value)}
+                              placeholder={t("plan.repsPlaceholder")}
+                              style={{ ...styles.editInput, flex: 2 }}
+                            />
+                            <input
+                              value={ex.rest}
+                              onChange={(e) => updatePreviewEx(dayKey, ex.id, "rest", e.target.value)}
+                              placeholder={t("plan.restPlaceholder")}
+                              style={{ ...styles.editInput, flex: 1 }}
+                            />
+                          </div>
+                          <input
+                            value={ex.note}
+                            onChange={(e) => updatePreviewEx(dayKey, ex.id, "note", e.target.value)}
+                            placeholder={t("plan.notePlaceholder")}
+                            style={styles.editInput}
+                          />
+                          <div style={{ display: "flex", gap: 6, marginTop: 2 }}>
+                            <button
+                              onClick={() => cancelEditEx(dayKey, ex.id)}
+                              style={styles.editActionBtn}
+                            >
+                              {t("common.cancel")}
+                            </button>
+                            <button
+                              onClick={() => { editSnapshot.current = null; setEditingExId(null); }}
+                              style={{ ...styles.editActionBtn, color: colors.accent.orange, borderColor: colors.accent.orange }}
+                            >
+                              {t("common.save")}
+                            </button>
+                            <button
+                              onClick={() => removePreviewEx(dayKey, ex.id)}
+                              disabled={day.exercises.length <= 1}
+                              style={{ ...styles.editActionBtn, marginLeft: "auto", color: colors.warning, borderColor: colors.warning, opacity: day.exercises.length <= 1 ? 0.35 : 1 }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Collapsed row */
+                        <div
+                          data-exidx={i}
+                          data-daykey={dayKey}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            borderRadius: 8,
+                            background: dragOver?.dayKey === dayKey && dragOver?.toIdx === i
+                              ? `${colors.accent.orange}20`
+                              : "transparent",
+                            transition: "background 0.12s",
+                          }}
+                        >
+                          {/* Drag handle — large touch target, pointer-event based */}
+                          <button
+                            aria-label="Drag to reorder"
+                            style={styles.dragHandle}
+                            onPointerDown={(e) => {
+                              e.currentTarget.setPointerCapture(e.pointerId);
+                              dragRef.current = { dayKey, fromIdx: i };
+                            }}
+                            onPointerMove={(e) => {
+                              if (!dragRef.current || dragRef.current.dayKey !== dayKey) return;
+                              const el = document.elementFromPoint(e.clientX, e.clientY);
+                              const row = el?.closest("[data-exidx]");
+                              if (row && row.dataset.daykey === dayKey) {
+                                const toIdx = parseInt(row.dataset.exidx, 10);
+                                if (!isNaN(toIdx)) setDragOver({ dayKey, toIdx });
+                              }
+                            }}
+                            onPointerUp={() => {
+                              if (dragRef.current?.dayKey === dayKey && dragOver?.dayKey === dayKey) {
+                                moveExToIndex(dayKey, dragRef.current.fromIdx, dragOver.toIdx);
+                              }
+                              dragRef.current = null;
+                              setDragOver(null);
+                            }}
+                            onPointerCancel={() => { dragRef.current = null; setDragOver(null); }}
+                          >
+                            ⠿
+                          </button>
+                          <span style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textGhost, minWidth: 20 }}>
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <span
+                            onClick={() => openEditEx(dayKey, ex)}
+                            style={{ flex: 1, fontSize: 13, cursor: "pointer" }}
+                          >
+                            {ex.name || <span style={{ color: colors.textMuted, fontStyle: "italic" }}>—</span>}
+                          </span>
+                          <span style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textDim }}>
+                            {ex.sets}×{ex.reps}
+                          </span>
+                          <button
+                            onClick={() => openEditEx(dayKey, ex)}
+                            style={styles.editIconBtn}
+                          >
+                            ✏
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Add exercise */}
+              <button
+                onClick={() => addPreviewEx(dayKey)}
+                style={{ ...styles.editActionBtn, marginTop: 8, width: "100%", justifyContent: "center" }}
+              >
+                {t("generator.addExercise")}
+              </button>
             </div>
           ))}
         </div>
@@ -381,5 +619,68 @@ const styles = {
     gap: 8,
     padding: "6px 0",
     borderBottom: `1px solid ${colors.borderDim}`,
+  },
+  editInput: {
+    background: colors.bg,
+    border: `1px solid ${colors.border}`,
+    borderRadius: 8,
+    padding: "8px 10px",
+    color: colors.textPrimary,
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    width: "100%",
+    boxSizing: "border-box",
+  },
+  inlineInput: {
+    background: "transparent",
+    border: `1px solid ${colors.border}`,
+    borderRadius: 6,
+    padding: "2px 6px",
+    color: colors.textSecondary,
+    fontFamily: fonts.sans,
+    fontSize: 11,
+    flex: 1,
+    minWidth: 0,
+  },
+  editActionBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    background: "transparent",
+    border: `1px solid ${colors.border}`,
+    borderRadius: 8,
+    padding: "6px 12px",
+    color: colors.textSecondary,
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+  },
+  editIconBtn: {
+    background: "transparent",
+    border: "none",
+    color: colors.textDim,
+    fontSize: 12,
+    cursor: "pointer",
+    padding: "4px 6px",
+    WebkitTapHighlightColor: "transparent",
+  },
+  dragHandle: {
+    background: "transparent",
+    border: "none",
+    color: colors.textDim,
+    fontSize: 20,
+    lineHeight: 1,
+    cursor: "grab",
+    padding: "4px 4px",
+    touchAction: "none",      // prevents scroll hijacking the drag gesture
+    userSelect: "none",
+    WebkitUserSelect: "none",
+    WebkitTapHighlightColor: "transparent",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 36,
+    minHeight: 44,             // 44 px minimum touch target
   },
 };
