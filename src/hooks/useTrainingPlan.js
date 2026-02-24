@@ -68,23 +68,32 @@ function normalizePlan(inputPlan) {
 
 /**
  * Encapsulates editable training-plan state and persistence.
+ *
+ * @param {string} storageScope - User uid or "guest".
+ * @param {boolean} authLoading - Pass auth.loading so the hook waits for the
+ *   final scope before fetching. Prevents a transient "guest" empty-plan from
+ *   falsely triggering the first-visit wizard for authenticated users.
  */
-export function useTrainingPlan(storageScope = "guest") {
+export function useTrainingPlan(storageScope = "guest", authLoading = false) {
   const { t } = useI18n();
   const [trainingPlan, setTrainingPlan] = useState(() => normalizePlan(TRAINING_PLAN));
   const [loading, setLoading] = useState(true);
   const [saveMsg, setSaveMsg] = useState("");
-  const [isFirstVisit, setIsFirstVisit] = useState(false);
+  /** True when a saved plan was found in storage; false when falling back to static defaults. */
+  const [hasPlan, setHasPlan] = useState(false);
 
   useEffect(() => {
+    // Wait until auth has resolved so we always load with the correct scope.
+    if (authLoading) return;
+
     let cancelled = false;
     setLoading(true);
 
     (async () => {
       const data = await loadTrainingPlan(storageScope);
       if (!cancelled) {
-        const hasStoredPlan = data && typeof data === "object" && Object.keys(data).length > 0;
-        setIsFirstVisit(!hasStoredPlan);
+        const planFound = data !== null && typeof data === "object" && Object.keys(data).length > 0;
+        setHasPlan(planFound);
         setTrainingPlan(normalizePlan(data));
         setLoading(false);
       }
@@ -93,7 +102,7 @@ export function useTrainingPlan(storageScope = "guest") {
     return () => {
       cancelled = true;
     };
-  }, [storageScope]);
+  }, [storageScope, authLoading]);
 
   const saveMsgTimerRef = useRef(null);
 
@@ -203,12 +212,12 @@ export function useTrainingPlan(storageScope = "guest") {
     dayColors,
     loading,
     saveMsg,
+    hasPlan,
     saveDay,
     addDay,
     removeDay,
     addExercise,
     removeExercise,
     replacePlan,
-    isFirstVisit,
   };
 }

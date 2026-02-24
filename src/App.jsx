@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan } from "./hooks";
 import { Header, LoadingScreen, AuthScreen, FeedbackModal } from "./components/layout";
 import { PlanView, LogView, ProgressView, PlanGeneratorWizard } from "./components/views";
@@ -20,22 +20,57 @@ export default function App() {
     dayColors,
     loading: planLoading,
     saveMsg: planSaveMsg,
+    hasPlan,
     saveDay,
     addDay,
     removeDay,
     replacePlan,
-    isFirstVisit,
-  } = useTrainingPlan(storageScope);
+  } = useTrainingPlan(storageScope, auth.loading);
   const nav = useNavigation(dayKeys);
   const [showGenerator, setShowGenerator] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
-  // Auto-open wizard on very first login (no stored plan)
+  // --- Login-redirect logic ---
+  // Tracks whether the first auth resolution has been recorded.
+  // On initial app load (user already signed in), we skip the redirect;
+  // only a sign-in that happens *during* this session triggers it.
+  const authInitializedRef = useRef(false);
+  const prevUserUidRef = useRef(null);
+  const [pendingLoginRedirect, setPendingLoginRedirect] = useState(false);
+
+  // Detect a new login (null → user) that happens after the first auth settlement.
   useEffect(() => {
-    if (!planLoading && isFirstVisit) {
-      setShowGenerator(true);
+    if (auth.loading) return;
+
+    const currUid = auth.user?.uid ?? null;
+
+    if (!authInitializedRef.current) {
+      // First auth resolution: just record the baseline, no redirect.
+      authInitializedRef.current = true;
+      prevUserUidRef.current = currUid;
+      return;
     }
-  }, [planLoading, isFirstVisit]);
+
+    const prevUid = prevUserUidRef.current;
+    prevUserUidRef.current = currUid;
+
+    if (prevUid === null && currUid !== null) {
+      // User signed in during this session.
+      setPendingLoginRedirect(true);
+    }
+  }, [auth.user, auth.loading]);
+
+  // Once the plan finishes loading after login, redirect accordingly.
+  useEffect(() => {
+    if (!pendingLoginRedirect || planLoading) return;
+    setPendingLoginRedirect(false);
+    if (!hasPlan) {
+      setShowGenerator(true);
+    } else {
+      nav.setView("plan");
+    }
+  }, [pendingLoginRedirect, planLoading, hasPlan]);
+  // --- End login-redirect logic ---
 
   // Clear selected exercise if it no longer exists in the plan
   useEffect(() => {
@@ -56,7 +91,6 @@ export default function App() {
     return (
       <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
         <PlanGeneratorWizard
-          isFirstVisit={isFirstVisit}
           onApply={(plan) => {
             replacePlan(plan);
             setShowGenerator(false);

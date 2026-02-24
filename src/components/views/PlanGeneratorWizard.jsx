@@ -20,7 +20,7 @@ import {
  *   onClose: () => void,
  * }} props
  */
-export function PlanGeneratorWizard({ onApply, onClose, isFirstVisit = false }) {
+export function PlanGeneratorWizard({ onApply, onClose }) {
   const { t, language } = useI18n();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(DEFAULT_GENERATOR_FORM);
@@ -468,7 +468,7 @@ export function PlanGeneratorWizard({ onApply, onClose, isFirstVisit = false }) 
           <div />
         )}
         <button onClick={onClose} style={styles.ghostBtn}>
-          {isFirstVisit ? t("generator.skip") : t("generator.discard")}
+          {t("generator.discard")}
         </button>
       </div>
 
