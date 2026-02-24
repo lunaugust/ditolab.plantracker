@@ -1,4 +1,5 @@
-import { useTrainingLogs, useNavigation, useAuth } from "./hooks";
+import { useEffect } from "react";
+import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan } from "./hooks";
 import { Header, LoadingScreen, AuthScreen } from "./components/layout";
 import { PlanView, LogView, ProgressView } from "./components/views";
 import { colors } from "./theme";
@@ -11,10 +12,30 @@ import { colors } from "./theme";
  */
 export default function App() {
   const auth = useAuth();
-  const { logs, loading, saveMsg, addLog, deleteLog } = useTrainingLogs(auth.user?.uid || "guest");
-  const nav = useNavigation();
+  const storageScope = auth.user?.uid || "guest";
+  const { logs, loading: logsLoading, saveMsg: logSaveMsg, addLog, deleteLog } = useTrainingLogs(storageScope);
+  const {
+    trainingPlan,
+    dayKeys,
+    dayColors,
+    loading: planLoading,
+    saveMsg: planSaveMsg,
+    saveDay,
+    addDay,
+    removeDay,
+  } = useTrainingPlan(storageScope);
+  const nav = useNavigation(dayKeys);
 
-  if (auth.loading || loading) return <LoadingScreen />;
+  useEffect(() => {
+    if (!nav.selectedExercise) return;
+
+    const exists = Object.values(trainingPlan)
+      .some((day) => day.exercises.some((exercise) => exercise.id === nav.selectedExercise.id));
+
+    if (!exists) nav.clearExercise();
+  }, [trainingPlan, nav.selectedExercise, nav.clearExercise]);
+
+  if (auth.loading || logsLoading || planLoading) return <LoadingScreen />;
   if (auth.enabled && !auth.user) {
     return <AuthScreen onSignIn={auth.loginWithGoogle} error={auth.error} />;
   }
@@ -25,13 +46,22 @@ export default function App() {
       <PlanView
         activeDay={nav.activeDay}
         setActiveDay={nav.setActiveDay}
+        trainingPlan={trainingPlan}
+        dayKeys={dayKeys}
+        dayColors={dayColors}
         logs={logs}
+        saveDay={saveDay}
+        addDay={addDay}
+        removeDay={removeDay}
       />
     ),
     log: (
       <LogView
         activeDay={nav.activeDay}
         setActiveDay={nav.setActiveDay}
+        trainingPlan={trainingPlan}
+        dayKeys={dayKeys}
+        dayColors={dayColors}
         selectedExercise={nav.selectedExercise}
         selectExercise={nav.selectExercise}
         clearExercise={nav.clearExercise}
@@ -44,6 +74,9 @@ export default function App() {
       <ProgressView
         activeDay={nav.activeDay}
         setActiveDay={nav.setActiveDay}
+        trainingPlan={trainingPlan}
+        dayKeys={dayKeys}
+        dayColors={dayColors}
         selectedExercise={nav.selectedExercise}
         selectExercise={nav.selectExercise}
         clearExercise={nav.clearExercise}
@@ -57,7 +90,7 @@ export default function App() {
       <Header
         view={nav.view}
         onViewChange={nav.setView}
-        saveMsg={saveMsg}
+        saveMsg={planSaveMsg || logSaveMsg}
         authUserName={auth.user?.displayName}
         onSignOut={auth.enabled ? auth.logout : null}
       />

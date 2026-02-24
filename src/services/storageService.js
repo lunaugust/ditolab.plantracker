@@ -9,6 +9,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebaseClient";
 
 const STORAGE_KEY = "augusto_logs";
+const PLAN_STORAGE_KEY = "augusto_plan";
 
 function getStorageKey(scope = "guest") {
   return scope === "guest" ? STORAGE_KEY : `${STORAGE_KEY}:${scope}`;
@@ -20,6 +21,14 @@ function isRemoteScope(scope) {
 
 function getUserLogsDoc(scope) {
   return doc(db, "users", scope, "appData", "trainingLogs");
+}
+
+function getUserPlanDoc(scope) {
+  return doc(db, "users", scope, "appData", "trainingPlan");
+}
+
+function getPlanStorageKey(scope = "guest") {
+  return scope === "guest" ? PLAN_STORAGE_KEY : `${PLAN_STORAGE_KEY}:${scope}`;
 }
 
 /**
@@ -60,11 +69,7 @@ export async function loadLogs(scope = "guest") {
 export async function persistLogs(logs, scope = "guest") {
   if (isRemoteScope(scope)) {
     try {
-      await setDoc(
-        getUserLogsDoc(scope),
-        { logs, updatedAt: serverTimestamp() },
-        { merge: true },
-      );
+      await setDoc(getUserLogsDoc(scope), { logs, updatedAt: serverTimestamp() });
     } catch (error) {
       console.error("[StorageService] Failed to persist Firestore logs:", error);
       throw error;
@@ -75,6 +80,59 @@ export async function persistLogs(logs, scope = "guest") {
     localStorage.setItem(getStorageKey(scope), JSON.stringify(logs));
   } catch (error) {
     console.error("[StorageService] Failed to persist logs:", error);
+    throw error;
+  }
+}
+
+/**
+ * Load full training plan object from storage.
+ * @param {string} [scope="guest"]
+ * @returns {Promise<Record<string, { label: string, color: string, exercises: any[] }>>}
+ */
+export async function loadTrainingPlan(scope = "guest") {
+  if (isRemoteScope(scope)) {
+    try {
+      const snap = await getDoc(getUserPlanDoc(scope));
+      const remotePlan = snap.exists() ? snap.data()?.plan : null;
+      if (remotePlan && typeof remotePlan === "object") {
+        localStorage.setItem(getPlanStorageKey(scope), JSON.stringify(remotePlan));
+        return remotePlan;
+      }
+      return {};
+    } catch (error) {
+      console.error("[StorageService] Failed to load Firestore plan:", error);
+    }
+  }
+
+  try {
+    const raw = localStorage.getItem(getPlanStorageKey(scope));
+    return raw ? JSON.parse(raw) : {};
+  } catch (error) {
+    console.error("[StorageService] Failed to load plan:", error);
+    return {};
+  }
+}
+
+/**
+ * Persist full training plan object.
+ * @param {Record<string, { label: string, color: string, exercises: any[] }>} plan
+ * @param {string} [scope="guest"]
+ * @returns {Promise<void>}
+ */
+export async function persistTrainingPlan(plan, scope = "guest") {
+  if (isRemoteScope(scope)) {
+    try {
+      await setDoc(getUserPlanDoc(scope), { plan, updatedAt: serverTimestamp() });
+    } catch (error) {
+      console.error("[StorageService] Failed to persist Firestore plan:", error);
+      throw error;
+    }
+  }
+
+  try {
+    localStorage.setItem(getPlanStorageKey(scope), JSON.stringify(plan));
+  } catch (error) {
+    console.error("[StorageService] Failed to persist plan:", error);
     throw error;
   }
 }

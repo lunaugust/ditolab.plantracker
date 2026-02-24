@@ -2,12 +2,21 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
 
+vi.mock("../services/authService", () => ({
+  isAuthEnabled: vi.fn(() => false),
+  subscribeToAuthState: vi.fn(() => () => {}),
+  signInWithGoogle: vi.fn(),
+  signOutUser: vi.fn(),
+}));
+
 /* ================================================================
  * Mock storageService — always resolve with empty logs by default
  * ================================================================ */
 vi.mock("../services/storageService", () => ({
   loadLogs: vi.fn().mockResolvedValue({}),
   persistLogs: vi.fn().mockResolvedValue(undefined),
+  loadTrainingPlan: vi.fn().mockResolvedValue({}),
+  persistTrainingPlan: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { loadLogs, persistLogs } from "../services/storageService";

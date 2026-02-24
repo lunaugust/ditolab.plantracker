@@ -25,12 +25,8 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
 }
 
-html {
-  /* Prevent iOS rubber-band overscroll showing white */
-  overflow: hidden;
-}
-
 body {
+  overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;

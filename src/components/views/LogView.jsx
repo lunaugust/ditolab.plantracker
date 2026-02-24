@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { TRAINING_PLAN, DAY_KEYS, DAY_COLORS } from "../../data/trainingPlan";
 import { getLastLog, formatDate } from "../../utils/helpers";
 import { DayTabs, SectionLabel, BackButton, PageContainer } from "../ui";
 import { ExerciseRow } from "../exercises";
@@ -11,6 +10,9 @@ import { colors, fonts } from "../../theme";
  * @param {{
  *   activeDay: string,
  *   setActiveDay: (d: string) => void,
+ *   trainingPlan: Record<string, import("../../data/trainingPlan").TrainingDay>,
+ *   dayKeys: string[],
+ *   dayColors: Record<string, string>,
  *   selectedExercise: import("../../data/trainingPlan").Exercise | null,
  *   selectExercise: (ex: import("../../data/trainingPlan").Exercise) => void,
  *   clearExercise: () => void,
@@ -22,6 +24,9 @@ import { colors, fonts } from "../../theme";
 export function LogView({
   activeDay,
   setActiveDay,
+  trainingPlan,
+  dayKeys,
+  dayColors,
   selectedExercise,
   selectExercise,
   clearExercise,
@@ -29,6 +34,8 @@ export function LogView({
   addLog,
   deleteLog,
 }) {
+  const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
+  const day = safeActiveDay ? trainingPlan[safeActiveDay] : { exercises: [] };
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
 
   useEffect(() => {
@@ -63,14 +70,14 @@ export function LogView({
         <SectionLabel>SELECCIONÁ UN EJERCICIO</SectionLabel>
 
         <DayTabs
-          days={DAY_KEYS}
-          activeDay={activeDay}
-          dayColors={DAY_COLORS}
+          days={dayKeys}
+          activeDay={safeActiveDay}
+          dayColors={dayColors}
           onSelect={setActiveDay}
         />
 
         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          {TRAINING_PLAN[activeDay].exercises.map((ex, i) => {
+          {day.exercises.map((ex, i) => {
             const exLogs = logs[ex.id] || [];
             const last = getLastLog(logs, ex.id);
             return (
@@ -78,7 +85,7 @@ export function LogView({
                 key={ex.id}
                 exercise={ex}
                 index={i}
-                accentColor={DAY_COLORS[activeDay]}
+                accentColor={dayColors[safeActiveDay]}
                 lastLog={last}
                 totalLogs={exLogs.length}
                 showDetails={true}
@@ -94,7 +101,7 @@ export function LogView({
 
   /* ---- Log form + history ---- */
   const entries = logs[selectedExercise.id] || [];
-  const accentColor = DAY_COLORS[activeDay];
+  const accentColor = dayColors[safeActiveDay];
 
   return (
     <PageContainer>

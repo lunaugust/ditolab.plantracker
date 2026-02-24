@@ -6,7 +6,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { TRAINING_PLAN, DAY_KEYS, DAY_COLORS } from "../../data/trainingPlan";
 import { getLastLog, buildChartData, computeWeightStats } from "../../utils/helpers";
 import { DayTabs, SectionLabel, BackButton, PageContainer, StatCard } from "../ui";
 import { ExerciseRow } from "../exercises";
@@ -18,6 +17,9 @@ import { colors, fonts } from "../../theme";
  * @param {{
  *   activeDay: string,
  *   setActiveDay: (d: string) => void,
+ *   trainingPlan: Record<string, import("../../data/trainingPlan").TrainingDay>,
+ *   dayKeys: string[],
+ *   dayColors: Record<string, string>,
  *   selectedExercise: import("../../data/trainingPlan").Exercise | null,
  *   selectExercise: (ex: import("../../data/trainingPlan").Exercise) => void,
  *   clearExercise: () => void,
@@ -27,12 +29,17 @@ import { colors, fonts } from "../../theme";
 export function ProgressView({
   activeDay,
   setActiveDay,
+  trainingPlan,
+  dayKeys,
+  dayColors,
   selectedExercise,
   selectExercise,
   clearExercise,
   logs,
 }) {
-  const accentColor = DAY_COLORS[activeDay];
+  const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
+  const day = safeActiveDay ? trainingPlan[safeActiveDay] : { exercises: [] };
+  const accentColor = dayColors[safeActiveDay];
 
   /* ---- Exercise picker ---- */
   if (!selectedExercise) {
@@ -41,14 +48,14 @@ export function ProgressView({
         <SectionLabel>PROGRESIÓN DE PESO</SectionLabel>
 
         <DayTabs
-          days={DAY_KEYS}
-          activeDay={activeDay}
-          dayColors={DAY_COLORS}
+          days={dayKeys}
+          activeDay={safeActiveDay}
+          dayColors={dayColors}
           onSelect={setActiveDay}
         />
 
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          {TRAINING_PLAN[activeDay].exercises.map((ex, i) => {
+          {day.exercises.map((ex, i) => {
             const exLogs = logs[ex.id] || [];
             const hasWeight = exLogs.some((e) => e.weight);
 
