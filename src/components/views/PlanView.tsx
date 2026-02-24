@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getLastLog, makeExerciseId } from "../../utils/helpers";
 import { DayTabs, SectionLabel, PageContainer } from "../ui";
 import { ExerciseRow } from "../exercises";
+import { ExerciseDetailModal } from "../layout";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
 
@@ -40,6 +41,7 @@ export function PlanView({
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : null;
   const [isEditing, setIsEditing] = useState(false);
   const [draftDay, setDraftDay] = useState(null);
+  const [detailExercise, setDetailExercise] = useState(null);
 
   useEffect(() => {
     if (!isEditing || !day) return;
@@ -219,6 +221,8 @@ export function PlanView({
             index={i}
             accentColor={dayColors[safeActiveDay]}
             lastLog={getLastLog(logs, ex.id)}
+            onClick={() => setDetailExercise(ex)}
+            showChevron
           />
         ))}
 
@@ -279,6 +283,13 @@ export function PlanView({
           </div>
         ))}
       </div>
+      {detailExercise && (
+        <ExerciseDetailModal
+          exercise={detailExercise}
+          accentColor={dayColors[safeActiveDay]}
+          onClose={() => setDetailExercise(null)}
+        />
+      )}
     </PageContainer>
   );
 }

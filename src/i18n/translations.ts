@@ -135,6 +135,14 @@ export const translations = {
       errorGeneric: "✗ Error al importar el archivo",
       guestNote: "Esta función requiere cuenta de usuario.",
     },
+    exerciseDetail: {
+      sets: "Series",
+      reps: "Reps",
+      rest: "Descanso",
+      noPreview: "Sin vista previa disponible",
+      watchYoutube: "Ver en YouTube",
+      imageSource: "Imagen vía",
+    },
     whatsNew: {
       title: "NOVEDADES",
       version: "Versión",
@@ -292,6 +300,14 @@ export const translations = {
       errorEmpty: "No training plan found in the file.",
       errorGeneric: "✗ Error importing file",
       guestNote: "This feature requires a user account.",
+    },
+    exerciseDetail: {
+      sets: "Sets",
+      reps: "Reps",
+      rest: "Rest",
+      noPreview: "No preview available",
+      watchYoutube: "Watch on YouTube",
+      imageSource: "Image via",
     },
     whatsNew: {
       title: "WHAT'S NEW",
