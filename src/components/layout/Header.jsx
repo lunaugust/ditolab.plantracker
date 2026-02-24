@@ -26,7 +26,7 @@ const NAV_ICONS = {
  * Top header with branding + save feedback.
  * Bottom sticky navigation bar (mobile-friendly).
  */
-export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut }) {
+export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut, onOpenFeedback }) {
   const { language, setLanguage, t } = useI18n();
 
   return (
@@ -57,6 +57,13 @@ export function Header({ view, onViewChange, saveMsg, authUserName, onSignOut })
             ))}
           </div>
           {saveMsg && <div style={styles.saveMsg}>{saveMsg}</div>}
+          <button
+            onClick={onOpenFeedback}
+            title={t("feedback.title")}
+            style={styles.feedbackBtn}
+          >
+            💬
+          </button>
           {onSignOut && (
             <button onClick={onSignOut} style={styles.signOutBtn}>
               {t("header.signOut")}
@@ -160,6 +167,20 @@ const styles = {
     fontSize: 11,
     fontFamily: fonts.mono,
     cursor: "pointer",
+  },
+  feedbackBtn: {
+    background: "transparent",
+    border: "none",
+    fontSize: 18,
+    cursor: "pointer",
+    padding: "4px 6px",
+    lineHeight: 1,
+    WebkitTapHighlightColor: "transparent",
+    minWidth: 36,
+    minHeight: 36,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   bottomNav: {
     position: "fixed",

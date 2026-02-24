@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan } from "./hooks";
-import { Header, LoadingScreen, AuthScreen } from "./components/layout";
+import { Header, LoadingScreen, AuthScreen, FeedbackModal } from "./components/layout";
 import { PlanView, LogView, ProgressView, PlanGeneratorWizard } from "./components/views";
 import { colors } from "./theme";
 
@@ -27,6 +27,7 @@ export default function App() {
   } = useTrainingPlan(storageScope);
   const nav = useNavigation(dayKeys);
   const [showGenerator, setShowGenerator] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   useEffect(() => {
     if (!nav.selectedExercise) return;
@@ -113,8 +114,16 @@ export default function App() {
         saveMsg={planSaveMsg || logSaveMsg}
         authUserName={auth.user?.displayName}
         onSignOut={auth.enabled ? auth.logout : null}
+        onOpenFeedback={() => setShowFeedback(true)}
       />
       {viewComponents[nav.view]}
+      {showFeedback && (
+        <FeedbackModal
+          scope={storageScope}
+          currentView={nav.view}
+          onClose={() => setShowFeedback(false)}
+        />
+      )}
     </div>
   );
 }
