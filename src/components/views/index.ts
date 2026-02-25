@@ -1,4 +1,8 @@
 export { PlanView } from "./PlanView";
+export { PlanViewA } from "./PlanViewA";
+export { PlanViewB } from "./PlanViewB";
+export { PlanViewC } from "./PlanViewC";
+export { PrototypeSwitcher } from "./PrototypeSwitcher";
 export { LogView } from "./LogView";
 export { ProgressView } from "./ProgressView";
 export { PlanGeneratorWizard } from "./PlanGeneratorWizard";

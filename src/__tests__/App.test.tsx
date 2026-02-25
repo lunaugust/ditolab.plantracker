@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
 
@@ -40,6 +40,8 @@ vi.mock("recharts", async () => {
 beforeEach(() => {
   vi.clearAllMocks();
   loadLogs.mockResolvedValue({});
+  // Prototype A (inline accordion) is the default
+  localStorage.setItem("gymbuddy_proto", "A");
 });
 
 /* ================================================================
@@ -57,25 +59,24 @@ describe("App", () => {
     expect(screen.getByText("GymBuddy")).toBeTruthy();
   });
 
-  it("renders both navigation tabs", async () => {
+  it("renders only the Plan navigation tab", async () => {
     render(<App />);
     await screen.findByText("Sentadilla Hack (calentamiento)");
 
     expect(screen.getByText("Plan")).toBeTruthy();
-    expect(screen.getByText("Registrar")).toBeTruthy();
+    expect(screen.queryByText("Registrar")).toBeNull();
     expect(screen.queryByText("Progresión")).toBeNull();
   });
 
-  it("switches to log view when clicking Registrar", async () => {
-    const user = userEvent.setup();
+  it("renders the prototype switcher with A/B/C options", async () => {
     render(<App />);
     await screen.findByText("Sentadilla Hack (calentamiento)");
 
-    await user.click(screen.getByText("Registrar"));
-
-    expect(screen.getByText("SELECCIONÁ UN EJERCICIO")).toBeTruthy();
+    expect(screen.getByText("PROTOTYPE")).toBeTruthy();
+    expect(screen.getByText("Inline")).toBeTruthy();
+    expect(screen.getByText("Sheet")).toBeTruthy();
+    expect(screen.getByText("Detail")).toBeTruthy();
   });
-
 
   it("switches between day tabs", async () => {
     const user = userEvent.setup();
@@ -93,68 +94,75 @@ describe("App", () => {
 });
 
 /* ================================================================
- * Log View — exercise selection and form
+ * Prototype A — Inline Accordion
  * ================================================================ */
-describe("Log View", () => {
-  it("opens exercise detail and shows the form", async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await screen.findByText("Sentadilla Hack (calentamiento)");
-
-    // Go to log view
-    await user.click(screen.getByText("Registrar"));
-    await screen.findByText("SELECCIONÁ UN EJERCICIO");
-
-    // Click on the first exercise
-    await user.click(screen.getByText("Sentadilla Hack (calentamiento)"));
-
-    // Form should appear
-    expect(screen.getByText("REGISTRAR")).toBeTruthy();
-    expect(screen.getByText("Guardar registro")).toBeTruthy();
-    expect(screen.getByPlaceholderText("Ej: técnica mejorada, RPE 8...")).toBeTruthy();
+describe("Prototype A (inline accordion)", () => {
+  beforeEach(() => {
+    localStorage.setItem("gymbuddy_proto", "A");
   });
 
-  it("saves a log entry when submitting the form", async () => {
+  it("expands an exercise row on click and shows the log form", async () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("Sentadilla Hack (calentamiento)");
 
-    await user.click(screen.getByText("Registrar"));
-    await screen.findByText("SELECCIONÁ UN EJERCICIO");
     await user.click(screen.getByText("Sentadilla Hack (calentamiento)"));
 
-    // Fill form
-    const [weightInput, repsInput] = screen.getAllByRole("spinbutton");
-    await user.type(weightInput, "100");
-    await user.type(repsInput, "8");
-    await user.type(
-      screen.getByPlaceholderText("Ej: técnica mejorada, RPE 8..."),
-      "Felt great",
-    );
+    expect(screen.getByText("Guardar registro")).toBeTruthy();
+  });
 
-    // Submit
+  it("saves a log entry via the inline form", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("Sentadilla Hack (calentamiento)");
+
+    await user.click(screen.getByText("Sentadilla Hack (calentamiento)"));
+
+    // Fill weight and reps
+    const [weightInput, repsInput] = screen.getAllByRole("spinbutton");
+    await user.clear(weightInput);
+    await user.type(weightInput, "80");
+    await user.clear(repsInput);
+    await user.type(repsInput, "10");
+
     await user.click(screen.getByText("Guardar registro"));
 
-    // Verify persistLogs was called
     expect(persistLogs).toHaveBeenCalledTimes(1);
     const persisted = persistLogs.mock.calls[0][0];
     expect(persisted["d1_hack_warmup"]).toBeDefined();
-    expect(persisted["d1_hack_warmup"][0].weight).toBe("100");
-    expect(persisted["d1_hack_warmup"][0].reps).toBe("8");
+    expect(persisted["d1_hack_warmup"][0].weight).toBe("80");
+    expect(persisted["d1_hack_warmup"][0].reps).toBe("10");
+  });
+});
+
+/* ================================================================
+ * Prototype C — Full-Screen Push
+ * ================================================================ */
+describe("Prototype C (full-screen detail)", () => {
+  beforeEach(() => {
+    localStorage.setItem("gymbuddy_proto", "C");
   });
 
-  it("back button returns to exercise list", async () => {
+  it("opens exercise detail on click and shows back button + Log tab", async () => {
     const user = userEvent.setup();
     render(<App />);
     await screen.findByText("Sentadilla Hack (calentamiento)");
 
-    await user.click(screen.getByText("Registrar"));
-    await screen.findByText("SELECCIONÁ UN EJERCICIO");
     await user.click(screen.getByText("Sentadilla Hack (calentamiento)"));
 
-    expect(screen.getByText("REGISTRAR")).toBeTruthy();
+    expect(screen.getByText("← volver")).toBeTruthy();
+    expect(screen.getByText("Guardar registro")).toBeTruthy();
+  });
+
+  it("back button returns to the plan list", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("Sentadilla Hack (calentamiento)");
+
+    await user.click(screen.getByText("Sentadilla Hack (calentamiento)"));
+    expect(screen.getByText("← volver")).toBeTruthy();
 
     await user.click(screen.getByText("← volver"));
-    expect(screen.getByText("SELECCIONÁ UN EJERCICIO")).toBeTruthy();
+    expect(screen.getByText("Sentadilla Hack (calentamiento)")).toBeTruthy();
   });
 });

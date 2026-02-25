@@ -67,5 +67,4 @@ export const SAVE_MSG_DURATION_MS = 2000;
 /* ---- Navigation tabs ---- */
 export const NAV_ITEMS = [
   { key: "plan", labelKey: "nav.plan" },
-  { key: "log",  labelKey: "nav.log" },
 ];

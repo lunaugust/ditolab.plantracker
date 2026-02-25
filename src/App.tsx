@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan, useInstallPWA } from "./hooks";
 import { Header, LoadingScreen, AuthScreen, FeedbackModal, WhatsNewModal } from "./components/layout";
 import { APP_VERSION, WHATS_NEW_STORAGE_KEY } from "./data/changelog";
-import { PlanView, LogView, PlanGeneratorWizard, PlanImportWizard } from "./components/views";
+import { PlanView, PlanGeneratorWizard, PlanImportWizard } from "./components/views";
 import { colors } from "./theme";
 
 /**
@@ -154,19 +154,6 @@ export default function App() {
         removeDay={removeDay}
         onOpenGenerator={() => setShowGenerator(true)}
         onOpenImporter={() => setShowImporter(true)}
-      />
-    ),
-    log: (
-      <LogView
-        activeDay={nav.activeDay}
-        setActiveDay={nav.setActiveDay}
-        trainingPlan={trainingPlan}
-        dayKeys={dayKeys}
-        dayColors={dayColors}
-        selectedExercise={nav.selectedExercise}
-        selectExercise={nav.selectExercise}
-        clearExercise={nav.clearExercise}
-        logs={logs}
         addLog={addLog}
         deleteLog={deleteLog}
       />
