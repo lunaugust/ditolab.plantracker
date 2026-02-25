@@ -62,6 +62,9 @@ export const translations = {
       noRecords: "Sin registros aún",
       saveSuccess: "✓ Guardado",
       saveError: "✗ Error al guardar",
+      gifLoading: "Cargando demostración...",
+      gifError: "No se pudo cargar el GIF",
+      exerciseIdLabel: "ID ExerciseDB: {id}",
     },
     progress: {
       titleWeight: "PROGRESIÓN DE PESO",
@@ -220,6 +223,9 @@ export const translations = {
       noRecords: "No logs yet",
       saveSuccess: "✓ Saved",
       saveError: "✗ Error saving",
+      gifLoading: "Loading demo...",
+      gifError: "Could not load GIF",
+      exerciseIdLabel: "ExerciseDB ID: {id}",
     },
     progress: {
       titleWeight: "WEIGHT PROGRESS",

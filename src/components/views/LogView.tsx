@@ -39,6 +39,8 @@ export function LogView({
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : { exercises: [] };
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
+  const [gifUrl, setGifUrl] = useState("");
+  const [gifStatus, setGifStatus] = useState("idle"); // idle | loading | error | success
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -52,6 +54,38 @@ export function LogView({
       notes: "",
     });
   }, [selectedExercise, logs]);
+
+  useEffect(() => {
+    setGifUrl("");
+    setGifStatus("idle");
+    if (!selectedExercise?.exerciseDbId && !selectedExercise?.name) return;
+
+    const query = (selectedExercise.exerciseDbId || selectedExercise.name || "").replace(/-/g, " ");
+    if (!query.trim()) return;
+
+    let cancelled = false;
+    setGifStatus("loading");
+
+    fetch(`https://exercisedbapi.vercel.app/api/exercises/name/${encodeURIComponent(query)}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("bad status"))))
+      .then((data) => {
+        if (cancelled) return;
+        const url = Array.isArray(data) && data[0]?.gifUrl;
+        if (url) {
+          setGifUrl(url);
+          setGifStatus("success");
+        } else {
+          setGifStatus("error");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setGifStatus("error");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedExercise?.exerciseDbId, selectedExercise?.name, selectedExercise?.id]);
 
   const handleSubmit = () => {
     addLog(selectedExercise.id, form);
@@ -119,6 +153,43 @@ export function LogView({
         {selectedExercise.note && (
           <div style={{ fontSize: 11, color: colors.warning, marginTop: 6, fontStyle: "italic" }}>
             ⚠ {selectedExercise.note}
+          </div>
+        )}
+        {selectedExercise.exerciseDbId && (
+          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textDim }}>
+              {t("log.exerciseIdLabel", { id: selectedExercise.exerciseDbId })}
+            </div>
+            <div
+              style={{
+                border: `1px solid ${colors.borderLight}`,
+                borderRadius: 12,
+                overflow: "hidden",
+                background: colors.surfaceAlt,
+                minHeight: 120,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {gifStatus === "loading" && (
+                <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textMuted }}>
+                  {t("log.gifLoading")}
+                </div>
+              )}
+              {gifStatus === "error" && (
+                <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.warning }}>
+                  {t("log.gifError")}
+                </div>
+              )}
+              {gifUrl && (
+                <img
+                  src={gifUrl}
+                  alt={selectedExercise.name}
+                  style={{ width: "100%", maxHeight: 240, objectFit: "contain", display: "block", background: colors.bg }}
+                />
+              )}
+            </div>
           </div>
         )}
       </div>
