@@ -28,6 +28,7 @@ export const translations = {
       sessions: "sesiones",
       records: "registros",
       noData: "sin datos",
+      details: "Detalles",
     },
     plan: {
       title: "PLAN",
@@ -49,6 +50,10 @@ export const translations = {
       notePlaceholder: "Nota opcional",
       saveSuccess: "✓ Plan guardado",
       saveError: "✗ Error al guardar plan",
+      exerciseName: "Nombre del ejercicio",
+      structure: "Estructura",
+      rest: "Descanso",
+      note: "Nota",
     },
     log: {
       selectExercise: "SELECCIONÁ UN EJERCICIO",
@@ -62,6 +67,8 @@ export const translations = {
       noRecords: "Sin registros aún",
       saveSuccess: "✓ Guardado",
       saveError: "✗ Error al guardar",
+      totalSessions: "Total de sesiones",
+      lastSession: "Última sesión",
     },
     progress: {
       titleWeight: "PROGRESIÓN DE PESO",
@@ -186,6 +193,7 @@ export const translations = {
       sessions: "sessions",
       records: "records",
       noData: "no data",
+      details: "Details",
     },
     plan: {
       title: "PLAN",
@@ -207,6 +215,10 @@ export const translations = {
       notePlaceholder: "Optional note",
       saveSuccess: "✓ Plan saved",
       saveError: "✗ Error saving plan",
+      exerciseName: "Exercise name",
+      structure: "Structure",
+      rest: "Rest",
+      note: "Note",
     },
     log: {
       selectExercise: "SELECT AN EXERCISE",
@@ -220,6 +232,8 @@ export const translations = {
       noRecords: "No logs yet",
       saveSuccess: "✓ Saved",
       saveError: "✗ Error saving",
+      totalSessions: "Total sessions",
+      lastSession: "Last session",
     },
     progress: {
       titleWeight: "WEIGHT PROGRESS",
