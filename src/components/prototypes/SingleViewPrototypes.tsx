@@ -17,6 +17,9 @@ const prototypeModes = [
   { key: "drawer", labelKey: "prototype.drawer" },
   { key: "split", labelKey: "prototype.split" },
   { key: "modal", labelKey: "prototype.modal" },
+  { key: "sheet", labelKey: "prototype.sheet" },
+  { key: "tabs", labelKey: "prototype.tabs" },
+  { key: "feed", labelKey: "prototype.feed" },
 ];
 
 export function SingleViewPrototypes({ trainingPlan, dayKeys, dayColors, logs, onExit }: Props) {
@@ -25,6 +28,7 @@ export function SingleViewPrototypes({ trainingPlan, dayKeys, dayColors, logs, o
   const [activeDay, setActiveDay] = useState(dayKeys[0]);
   const [selectedExercise, setSelectedExercise] = useState<import("../../data/trainingPlan").Exercise | null>(null);
   const [panelTab, setPanelTab] = useState<"log" | "progress">("log");
+  const [mobileTab, setMobileTab] = useState<"plan" | "insights">("plan");
   const accent = dayColors[activeDay] || colors.accent.blue;
   const day = trainingPlan[activeDay] || { exercises: [] };
 
@@ -32,6 +36,12 @@ export function SingleViewPrototypes({ trainingPlan, dayKeys, dayColors, logs, o
     if (dayKeys.length === 0) return;
     if (!dayKeys.includes(activeDay)) setActiveDay(dayKeys[0]);
   }, [dayKeys, activeDay]);
+
+  useEffect(() => {
+    if (mobileTab !== "insights" || selectedExercise) return;
+    const first = trainingPlan[activeDay]?.exercises?.[0];
+    if (first) setSelectedExercise(first);
+  }, [mobileTab, activeDay, trainingPlan, selectedExercise]);
 
   const lastLog = selectedExercise ? getLastLog(logs, selectedExercise.id) : null;
   const entries = selectedExercise ? logs[selectedExercise.id] || [] : [];
@@ -191,6 +201,111 @@ export function SingleViewPrototypes({ trainingPlan, dayKeys, dayColors, logs, o
                 </button>
                 {detailPanel}
               </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {mode === "sheet" && (
+        <div style={{ position: "relative" }}>
+          {exerciseList}
+          {selectedExercise && (
+            <>
+              <div style={styles.sheetScrim} onClick={() => setSelectedExercise(null)} />
+              <div style={{ ...styles.sheetCard, borderColor: accent }}>{detailPanel}</div>
+            </>
+          )}
+        </div>
+      )}
+
+      {mode === "tabs" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={styles.tabSwitcher}>
+            {(["plan", "insights"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setMobileTab(tab)}
+                style={{
+                  ...styles.tabBtn,
+                  background: mobileTab === tab ? accent : colors.surface,
+                  color: mobileTab === tab ? colors.bg : colors.textSecondary,
+                  borderColor: mobileTab === tab ? accent : colors.border,
+                }}
+              >
+                {t(tab === "plan" ? "prototype.tabPlan" : "prototype.tabInsights")}
+              </button>
+            ))}
+          </div>
+
+          {mobileTab === "plan" && exerciseList}
+
+          {mobileTab === "insights" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={styles.chipRow}>
+                {day.exercises.map((ex) => (
+                  <button
+                    key={ex.id}
+                    onClick={() => setSelectedExercise(ex)}
+                    style={{
+                      ...styles.chip,
+                      borderColor: selectedExercise?.id === ex.id ? accent : colors.border,
+                      color: selectedExercise?.id === ex.id ? accent : colors.textSecondary,
+                    }}
+                  >
+                    {ex.name}
+                  </button>
+                ))}
+              </div>
+              {detailPanel}
+            </div>
+          )}
+        </div>
+      )}
+
+      {mode === "feed" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <DayTabs days={dayKeys} activeDay={activeDay} dayColors={dayColors} onSelect={(d) => setActiveDay(d)} />
+          <div style={styles.feedColumn}>
+            {day.exercises.map((ex, i) => {
+              const exLogs = logs[ex.id] || [];
+              const last = getLastLog(logs, ex.id);
+              const first = parseFloat(exLogs.find((e) => e.weight)?.weight) || 0;
+              const lastEntry = [...exLogs].reverse().find((e) => e.weight);
+              const diff = (parseFloat(lastEntry?.weight) || 0) - first;
+              return (
+                <div key={ex.id} style={{ ...styles.feedCard, borderColor: accent }}>
+                  <div style={styles.feedHeader}>
+                    <div>
+                      <div style={styles.feedLabel}>{`#${i + 1} ${ex.name}`}</div>
+                      <div style={styles.exMeta}>
+                        {ex.sets} {t("common.series")} · {ex.reps} {t("common.reps")} · {ex.rest}
+                      </div>
+                    </div>
+                    <div style={{ ...styles.badge, background: accent }}>{t("prototype.quick")}</div>
+                  </div>
+                  <div style={styles.feedRow}>
+                    <div style={styles.feedStat}>
+                      <div style={styles.feedStatLabel}>{t("prototype.lastLog")}</div>
+                      <div style={styles.feedStatValue}>{last?.weight ? `${last.weight} kg` : t("common.noData")}</div>
+                    </div>
+                    <div style={styles.feedStat}>
+                      <div style={styles.feedStatLabel}>{t("progress.title")}</div>
+                      <div style={styles.feedStatValue}>{diff ? `${diff > 0 ? "+" : ""}${diff} kg` : t("common.noData")}</div>
+                    </div>
+                    <button style={{ ...styles.feedAction, borderColor: accent, color: accent }} onClick={() => setSelectedExercise(ex)}>
+                      {t("prototype.view")}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {selectedExercise && (
+            <div style={{ ...styles.feedDrawer, borderColor: accent }}>
+              <button style={styles.closeBtn} onClick={() => setSelectedExercise(null)}>
+                ×
+              </button>
+              {detailPanel}
             </div>
           )}
         </div>
@@ -355,5 +470,126 @@ const styles: Record<string, CSSProperties> = {
     cursor: "pointer",
     color: colors.textSecondary,
     fontSize: 16,
+  },
+  sheetScrim: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.35)",
+    zIndex: 8,
+  },
+  sheetCard: {
+    position: "fixed",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: 12,
+    background: colors.surface,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    border: `1px solid ${colors.border}`,
+    boxShadow: "0 -8px 24px rgba(0,0,0,0.25)",
+    zIndex: 9,
+  },
+  tabSwitcher: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 8,
+  },
+  tabBtn: {
+    borderRadius: 12,
+    border: `1px solid ${colors.border}`,
+    padding: "10px 12px",
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    cursor: "pointer",
+  },
+  chipRow: {
+    display: "flex",
+    gap: 6,
+    flexWrap: "wrap",
+  },
+  chip: {
+    borderRadius: 14,
+    border: `1px solid ${colors.border}`,
+    padding: "6px 10px",
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    background: colors.surface,
+    cursor: "pointer",
+  },
+  feedColumn: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  feedCard: {
+    background: colors.surface,
+    borderRadius: 12,
+    border: `1px solid ${colors.border}`,
+    padding: 12,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  feedHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+  },
+  feedLabel: {
+    fontSize: 15,
+    fontWeight: 700,
+  },
+  badge: {
+    padding: "6px 10px",
+    borderRadius: 12,
+    color: colors.bg,
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  feedRow: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr auto",
+    gap: 8,
+    alignItems: "center",
+  },
+  feedStat: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+  },
+  feedStatLabel: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.textMuted,
+  },
+  feedStatValue: {
+    fontFamily: fonts.mono,
+    fontSize: 16,
+    color: colors.textPrimary,
+  },
+  feedAction: {
+    borderRadius: 12,
+    border: `1px solid ${colors.border}`,
+    padding: "10px 12px",
+    background: colors.bg,
+    fontFamily: fonts.mono,
+    fontSize: 12,
+    cursor: "pointer",
+  },
+  feedDrawer: {
+    position: "fixed",
+    bottom: 20,
+    left: 12,
+    right: 12,
+    background: colors.surface,
+    borderRadius: 14,
+    border: `1px solid ${colors.border}`,
+    boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
+    padding: 12,
+    zIndex: 7,
   },
 };
