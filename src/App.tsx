@@ -2,14 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan, useInstallPWA } from "./hooks";
 import { Header, LoadingScreen, AuthScreen, FeedbackModal, WhatsNewModal } from "./components/layout";
 import { APP_VERSION, WHATS_NEW_STORAGE_KEY } from "./data/changelog";
-import { PlanView, PlanGeneratorWizard, PlanImportWizard } from "./components/views";
-import { SlideOutPanel, ExerciseDetailPanel } from "./components/ui";
+import { PlanView, PlanGeneratorWizard, PlanImportWizard, ExerciseDetailView } from "./components/views";
 import { colors } from "./theme";
 
 /**
  * Root application component.
  *
- * Orchestrates the hooks and renders a unified workout view with slide-out panel.
+ * Orchestrates the hooks and renders a unified workout view with full-screen exercise detail navigation.
  */
 export default function App() {
   const auth = useAuth();
@@ -139,34 +138,32 @@ export default function App() {
         onInstall={install}
       />
 
-      {/* Unified workout view */}
-      <PlanView
-        activeDay={nav.activeDay}
-        setActiveDay={nav.setActiveDay}
-        trainingPlan={trainingPlan}
-        dayKeys={dayKeys}
-        dayColors={dayColors}
-        logs={logs}
-        saveDay={saveDay}
-        addDay={addDay}
-        removeDay={removeDay}
-        onOpenGenerator={() => setShowGenerator(true)}
-        onOpenImporter={() => setShowImporter(true)}
-        onExerciseClick={nav.selectExercise}
-      />
-
-      {/* Slide-out panel for exercise details */}
-      <SlideOutPanel isOpen={nav.isPanelOpen} onClose={nav.clearExercise}>
-        {nav.selectedExercise && (
-          <ExerciseDetailPanel
-            exercise={nav.selectedExercise}
-            accentColor={dayColors[nav.activeDay]}
-            logs={logs}
-            addLog={addLog}
-            deleteLog={deleteLog}
-          />
-        )}
-      </SlideOutPanel>
+      {/* Conditional rendering: Exercise detail view or workout plan view */}
+      {nav.selectedExercise ? (
+        <ExerciseDetailView
+          exercise={nav.selectedExercise}
+          accentColor={dayColors[nav.activeDay]}
+          logs={logs}
+          addLog={addLog}
+          deleteLog={deleteLog}
+          onBack={nav.clearExercise}
+        />
+      ) : (
+        <PlanView
+          activeDay={nav.activeDay}
+          setActiveDay={nav.setActiveDay}
+          trainingPlan={trainingPlan}
+          dayKeys={dayKeys}
+          dayColors={dayColors}
+          logs={logs}
+          saveDay={saveDay}
+          addDay={addDay}
+          removeDay={removeDay}
+          onOpenGenerator={() => setShowGenerator(true)}
+          onOpenImporter={() => setShowImporter(true)}
+          onExerciseClick={nav.selectExercise}
+        />
+      )}
 
       {showFeedback && (
         <FeedbackModal
