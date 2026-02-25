@@ -12,6 +12,7 @@
  * @property {string} reps      — Rep scheme description
  * @property {string} rest      — Rest period between sets
  * @property {string} [note]    — Optional coaching cue / safety note
+ * @property {string} [exerciseDbId] — Optional ExerciseDB identifier for GIF lookup
  */
 
 /** @typedef {Object} TrainingDay

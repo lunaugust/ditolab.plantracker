@@ -10,6 +10,7 @@ import { ai } from "./firebaseClient";
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
 import { generateRuleBasedPlan } from "./ruleBasedPlanGenerator";
+import { findExerciseCatalogEntry, getExerciseNameOptions } from "../data/exerciseCatalog";
 
 /**
  * Whether the Firebase AI backend is available.
@@ -26,6 +27,7 @@ export function isAIAvailable() {
  */
 function buildSystemPrompt(language) {
   const lang = language === "en" ? "English" : "Spanish";
+  const allowed = getExerciseNameOptions(language).join(", ");
   return [
     `You are an expert certified personal trainer and exercise physiologist.`,
     `Generate a training plan in ${lang}.`,
@@ -39,7 +41,8 @@ function buildSystemPrompt(language) {
     `        "sets": "<number>",`,
     `        "reps": "<rep scheme, e.g. 12·10·8·6 or 15>",`,
     `        "rest": "<rest period, e.g. 90s>",`,
-    `        "note": "<optional coaching cue or safety note, empty string if none>"`,
+    `        "note": "<optional coaching cue or safety note, empty string if none>",`,
+    `        "exerciseDbId": "<ExerciseDB id matching the name>"`,
     `      }`,
     `    ]`,
     `  }`,
@@ -50,6 +53,8 @@ function buildSystemPrompt(language) {
     `- Include appropriate warm-up sets where relevant.`,
     `- Include 2-3 core/abs exercises at the end of each day.`,
     `- All string values, no numbers.`,
+    `- Only use exercise names from this allowed list: ${allowed}.`,
+    `- The "exerciseDbId" must match the chosen exercise name.`,
     `- Respect injury/limitation constraints strictly — substitute exercises that avoid the affected area.`,
     `- Adjust volume and intensity to the experience level.`,
     `- Match the number of training days requested.`,
@@ -90,9 +95,10 @@ function buildUserPrompt(form, language) {
  * Strips markdown fences, parses JSON, normalizes IDs & colors.
  *
  * @param {string} rawText
+ * @param {string} language
  * @returns {Record<string, import("../data/trainingPlan").TrainingDay>}
  */
-function parseAIResponse(rawText) {
+function parseAIResponse(rawText, language) {
   // Strip markdown code fences if Gemini wraps the response
   let cleaned = rawText.trim();
   if (cleaned.startsWith("```")) {
@@ -119,14 +125,23 @@ function parseAIResponse(rawText) {
     plan[dayKey] = {
       label: String(rawDay?.label || ""),
       color: GENERATED_DAY_COLORS[dayIndex % GENERATED_DAY_COLORS.length],
-      exercises: exercises.map((ex) => ({
-        id: makeExerciseId(),
-        name: String(ex?.name || ""),
-        sets: String(ex?.sets || ""),
-        reps: String(ex?.reps || ""),
-        rest: String(ex?.rest || ""),
-        note: String(ex?.note || ""),
-      })),
+      exercises: exercises.map((ex) => {
+        const match = findExerciseCatalogEntry((ex as any)?.name || (ex as any)?.exerciseDbId);
+        const displayName = match
+          ? (language === "en" ? match.name.en : match.name.es)
+          : String((ex as any)?.name || "");
+
+        return {
+          id: makeExerciseId(),
+          name: displayName,
+          sets: String((ex as any)?.sets || ""),
+          reps: String((ex as any)?.reps || ""),
+          rest: String((ex as any)?.rest || ""),
+          note: String((ex as any)?.note || ""),
+          exerciseDbId: String((ex as any)?.exerciseDbId || match?.exerciseDbId || ""),
+          catalogSlug: match?.slug || "",
+        };
+      }),
     };
   });
 
@@ -160,7 +175,7 @@ export async function generateTrainingPlan(form, language = "es") {
     });
 
     const text = result.response.text();
-    const plan = parseAIResponse(text);
+    const plan = parseAIResponse(text, language);
     return { plan, source: "ai" };
   } catch (error) {
     console.warn("[AIGenerator] Gemini unavailable, using rule-based fallback.", error.message || error);

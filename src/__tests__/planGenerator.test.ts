@@ -57,6 +57,16 @@ describe("generateRuleBasedPlan", () => {
     }
   });
 
+  it("attaches an exerciseDbId from the catalog", () => {
+    const plan = generateRuleBasedPlan(baseForm, "es");
+    for (const day of Object.values(plan)) {
+      for (const ex of day.exercises) {
+        expect(typeof ex.exerciseDbId).toBe("string");
+        expect(ex.exerciseDbId).not.toBe("");
+      }
+    }
+  });
+
   it("assigns colors from GENERATED_DAY_COLORS", () => {
     const plan = generateRuleBasedPlan(baseForm, "es");
     Object.values(plan).forEach((day, i) => {

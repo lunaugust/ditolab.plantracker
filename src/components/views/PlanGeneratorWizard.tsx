@@ -4,6 +4,7 @@ import { SectionLabel, PageContainer, BackButton } from "../ui";
 import { useI18n } from "../../i18n";
 import { generateTrainingPlan, isAIAvailable } from "../../services/aiPlanGenerator";
 import { makeExerciseId } from "../../utils/helpers";
+import { DEFAULT_EXERCISE_ENTRY, findExerciseCatalogEntry, getExerciseNameOptions } from "../../data/exerciseCatalog";
 import {
   EXPERIENCE_OPTIONS,
   GOAL_OPTIONS,
@@ -33,6 +34,7 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
   const editSnapshot = useRef(null);
   const dragRef = useRef(null); // { dayKey, fromIdx } while dragging
   const [dragOver, setDragOver] = useState(null); // { dayKey, toIdx }
+  const exerciseNameOptions = getExerciseNameOptions(language);
 
   /* ---- Preview mutation helpers ---- */
   const updatePreviewEx = useCallback((dayKey, exId, field, value) => {
@@ -41,11 +43,30 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
       [dayKey]: {
         ...prev[dayKey],
         exercises: prev[dayKey].exercises.map((ex) =>
-          ex.id === exId ? { ...ex, [field]: value } : ex
+          ex.id === exId
+            ? {
+                ...ex,
+                [field]: (() => {
+                  if (field !== "name") return value;
+                  const match = findExerciseCatalogEntry(value);
+                  if (match) return language === "en" ? match.name.en : match.name.es;
+                  return value;
+                })(),
+                ...(field === "name"
+                  ? (() => {
+                      const match = findExerciseCatalogEntry(value);
+                      return {
+                        exerciseDbId: match?.exerciseDbId || "",
+                        catalogSlug: match?.slug || "",
+                      };
+                    })()
+                  : {}),
+              }
+            : ex
         ),
       },
     }));
-  }, []);
+  }, [language]);
 
   const removePreviewEx = useCallback((dayKey, exId) => {
     setPreview((prev) => ({
@@ -59,14 +80,24 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
   }, []);
 
   const addPreviewEx = useCallback((dayKey) => {
-    const newEx = { id: makeExerciseId(), name: "", sets: "3", reps: "10", rest: "60s", note: "" };
+    const defaultName = language === "en" ? DEFAULT_EXERCISE_ENTRY.name.en : DEFAULT_EXERCISE_ENTRY.name.es;
+    const newEx = {
+      id: makeExerciseId(),
+      name: defaultName,
+      sets: "3",
+      reps: "10",
+      rest: "60s",
+      note: "",
+      exerciseDbId: DEFAULT_EXERCISE_ENTRY.exerciseDbId,
+      catalogSlug: DEFAULT_EXERCISE_ENTRY.slug,
+    };
     setPreview((prev) => ({
       ...prev,
       [dayKey]: { ...prev[dayKey], exercises: [...prev[dayKey].exercises, newEx] },
     }));
     editSnapshot.current = { ...newEx };
     setEditingExId(`${dayKey}|||${newEx.id}`);
-  }, []);
+  }, [language]);
 
   const openEditEx = useCallback((dayKey, ex) => {
     editSnapshot.current = { ...ex };
@@ -311,6 +342,7 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
                             onChange={(e) => updatePreviewEx(dayKey, ex.id, "name", e.target.value)}
                             placeholder={t("plan.exerciseNameTemplate", { n: i + 1 })}
                             style={styles.editInput}
+                            list="generator-exercise-catalog-options"
                           />
                           <div style={{ display: "flex", gap: 6 }}>
                             <input
@@ -496,6 +528,14 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
           />
         ))}
       </div>
+
+      {step === 4 && (
+        <datalist id="generator-exercise-catalog-options">
+          {exerciseNameOptions.map((opt) => (
+            <option key={opt} value={opt} />
+          ))}
+        </datalist>
+      )}
 
       {steps[step]()}
     </PageContainer>

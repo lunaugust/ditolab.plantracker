@@ -8,6 +8,7 @@
 
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
+import { findExerciseCatalogEntry } from "../data/exerciseCatalog";
 
 /* ================================================================
  * Exercise library — grouped by muscle region
@@ -311,14 +312,19 @@ export function generateRuleBasedPlan(form, language = "es") {
     exercises = exercises.map((ex) => translateExercise(ex, language));
 
     // Add unique IDs
-    exercises = exercises.map((ex) => ({
-      id: makeExerciseId(),
-      name: ex.name,
-      sets: ex.sets,
-      reps: ex.reps,
-      rest: ex.rest,
-      note: ex.note || "",
-    }));
+    exercises = exercises.map((ex) => {
+      const match = findExerciseCatalogEntry(ex.name);
+      return {
+        id: makeExerciseId(),
+        name: match ? (language === "en" ? match.name.en : match.name.es) : ex.name,
+        sets: ex.sets,
+        reps: ex.reps,
+        rest: ex.rest,
+        note: ex.note || "",
+        exerciseDbId: match?.exerciseDbId || "",
+        catalogSlug: match?.slug || "",
+      };
+    });
 
     plan[dayKey] = {
       label: dayTemplate.label,

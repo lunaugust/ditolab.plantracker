@@ -4,6 +4,7 @@ import { DayTabs, SectionLabel, PageContainer } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
+import { DEFAULT_EXERCISE_ENTRY, findExerciseCatalogEntry, getExerciseNameOptions } from "../../data/exerciseCatalog";
 
 /**
  * "Plan" screen — shows the structured training plan per day.
@@ -35,11 +36,12 @@ export function PlanView({
   onOpenGenerator,
   onOpenImporter,
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : null;
   const [isEditing, setIsEditing] = useState(false);
   const [draftDay, setDraftDay] = useState(null);
+  const exerciseNameOptions = getExerciseNameOptions(language);
 
   useEffect(() => {
     if (!isEditing || !day) return;
@@ -83,7 +85,26 @@ export function PlanView({
     setDraftDay((prev) => ({
       ...prev,
       exercises: prev.exercises.map((exercise) => (
-        exercise.id === exerciseId ? { ...exercise, [field]: value } : exercise
+        exercise.id === exerciseId
+          ? {
+              ...exercise,
+              [field]: (() => {
+                if (field !== "name") return value;
+                const match = findExerciseCatalogEntry(value);
+                if (match) return language === "en" ? match.name.en : match.name.es;
+                return value;
+              })(),
+              ...(field === "name"
+                ? (() => {
+                    const match = findExerciseCatalogEntry(value);
+                    return {
+                      exerciseDbId: match?.exerciseDbId || "",
+                      catalogSlug: match?.slug || "",
+                    };
+                  })()
+                : {}),
+            }
+          : exercise
       )),
     }));
   };
@@ -187,16 +208,19 @@ export function PlanView({
             onClick={() => {
               setDraftDay((prev) => {
                 if (!prev) return prev;
+                const defaultName = language === "en" ? DEFAULT_EXERCISE_ENTRY.name.en : DEFAULT_EXERCISE_ENTRY.name.es;
                 return {
                   ...prev,
                   exercises: [
                     {
                       id: makeExerciseId(),
-                      name: t("plan.exerciseNameTemplate", { n: prev.exercises.length + 1 }),
+                      name: defaultName,
                       sets: "",
                       reps: "",
                       rest: "",
                       note: "",
+                      exerciseDbId: DEFAULT_EXERCISE_ENTRY.exerciseDbId,
+                      catalogSlug: DEFAULT_EXERCISE_ENTRY.slug,
                     },
                     ...prev.exercises,
                   ],
@@ -230,6 +254,7 @@ export function PlanView({
                 value={ex.name}
                 onChange={(e) => updateExerciseField(ex.id, "name", e.target.value)}
                 style={styles.nameInput}
+                list="exercise-catalog-options"
               />
 
               <div style={styles.metaGrid}>
@@ -279,6 +304,13 @@ export function PlanView({
           </div>
         ))}
       </div>
+      {isEditing && (
+        <datalist id="exercise-catalog-options">
+          {exerciseNameOptions.map((opt) => (
+            <option key={opt} value={opt} />
+          ))}
+        </datalist>
+      )}
     </PageContainer>
   );
 }

@@ -13,6 +13,7 @@ import { ai } from "./firebaseClient";
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
 import type { TrainingPlan } from "./types";
+import { findExerciseCatalogEntry, getExerciseNameOptions } from "../data/exerciseCatalog";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -68,6 +69,7 @@ export function isImportAvailable(): boolean {
 function buildImportSystemPrompt(language: string): string {
   const lang = language === "en" ? "English" : "Spanish";
   const dayWord = language === "en" ? "Day" : "Día";
+  const allowed = getExerciseNameOptions(language).join(", ");
   return [
     `You are an expert fitness data extractor.`,
     `The user will provide a document (PDF or plain-text / CSV) containing a training plan.`,
@@ -93,6 +95,7 @@ function buildImportSystemPrompt(language: string): string {
     `- All field values must be strings — never raw numbers.`,
     `- If a field is missing in the source, use an empty string "".`,
     `- Do NOT invent exercises that are not present in the document.`,
+    `- Prefer exercise names from this allowed list: ${allowed}.`,
     `- If the document is not a training plan, or is unreadable, return an empty JSON object: {}`,
   ].join("\n");
 }
@@ -107,7 +110,7 @@ function buildImportUserPrompt(language: string): string {
 // Response parsing (same normalisation as aiPlanGenerator.ts)
 // ---------------------------------------------------------------------------
 
-function parseImportResponse(rawText: string): TrainingPlan {
+function parseImportResponse(rawText: string, language: string): TrainingPlan {
   let cleaned = rawText.trim();
   // Strip markdown code fences if Gemini wraps the response
   if (cleaned.startsWith("```")) {
@@ -133,14 +136,23 @@ function parseImportResponse(rawText: string): TrainingPlan {
     plan[dayKey] = {
       label: String(rawDay?.label ?? ""),
       color: GENERATED_DAY_COLORS[dayIndex % GENERATED_DAY_COLORS.length],
-      exercises: (exercises as Record<string, unknown>[]).map((ex) => ({
-        id: makeExerciseId(),
-        name: String(ex?.name ?? ""),
-        sets: String(ex?.sets ?? ""),
-        reps: String(ex?.reps ?? ""),
-        rest: String(ex?.rest ?? ""),
-        note: String(ex?.note ?? ""),
-      })),
+      exercises: (exercises as Record<string, unknown>[]).map((ex) => {
+        const match = findExerciseCatalogEntry((ex as any)?.name || (ex as any)?.exerciseDbId);
+        const displayName = match
+          ? (language === "en" ? match.name.en : match.name.es)
+          : String((ex as any)?.name ?? "");
+
+        return {
+          id: makeExerciseId(),
+          name: displayName,
+          sets: String((ex as any)?.sets ?? ""),
+          reps: String((ex as any)?.reps ?? ""),
+          rest: String((ex as any)?.rest ?? ""),
+          note: String((ex as any)?.note ?? ""),
+          exerciseDbId: String((ex as any)?.exerciseDbId ?? match?.exerciseDbId ?? ""),
+          catalogSlug: match?.slug ?? "",
+        };
+      }),
     };
   });
 
@@ -218,6 +230,6 @@ export async function importPlanFromFile(
   });
 
   const text = result.response.text();
-  const plan = parseImportResponse(text);
+  const plan = parseImportResponse(text, language);
   return { plan, source: "ai" };
 }

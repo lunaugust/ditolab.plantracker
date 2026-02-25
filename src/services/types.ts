@@ -7,6 +7,10 @@ export type Exercise = {
 	name: string;
 	sets: string;
 	reps: string;
+	rest?: string;
+	note?: string;
+	exerciseDbId?: string;
+	catalogSlug?: string;
 };
 
 export type TrainingDay = {

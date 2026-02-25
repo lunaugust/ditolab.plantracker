@@ -4,6 +4,7 @@ import { loadTrainingPlan, persistTrainingPlan } from "../services/storageServic
 import { SAVE_MSG_DURATION_MS } from "../theme";
 import { useI18n } from "../i18n";
 import { makeExerciseId } from "../utils/helpers";
+import { DEFAULT_EXERCISE_ENTRY, findExerciseCatalogEntry } from "../data/exerciseCatalog";
 
 function normalizeString(value, fallback = "") {
   return typeof value === "string" ? value : fallback;
@@ -25,16 +26,21 @@ function getNextDayName(existingKeys, template) {
   return candidate;
 }
 
-function normalizeExercise(rawExercise, index) {
+function normalizeExercise(rawExercise, index, language) {
   const exercise = rawExercise && typeof rawExercise === "object" ? rawExercise : {};
+  const match = findExerciseCatalogEntry(exercise.name || exercise.exerciseDbId);
+  const defaultName = language === "en" ? DEFAULT_EXERCISE_ENTRY.name.en : DEFAULT_EXERCISE_ENTRY.name.es;
+  const displayName = normalizeString(exercise.name, defaultName);
 
   return {
     id: normalizeString(exercise.id, `${makeExerciseId()}_${index}`),
-    name: normalizeString(exercise.name, `Ejercicio ${index + 1}`),
+    name: displayName,
     sets: normalizeString(exercise.sets, ""),
     reps: normalizeString(exercise.reps, ""),
     rest: normalizeString(exercise.rest, ""),
     note: normalizeString(exercise.note, ""),
+    exerciseDbId: normalizeString(exercise.exerciseDbId, match?.exerciseDbId || ""),
+    catalogSlug: normalizeString(exercise.catalogSlug, match?.slug || ""),
   };
 }
 
@@ -42,7 +48,7 @@ function compareDayKeys(a, b) {
   return a.localeCompare(b, "es", { numeric: true, sensitivity: "base" });
 }
 
-function normalizePlan(inputPlan) {
+function normalizePlan(inputPlan, language) {
   const source = inputPlan && typeof inputPlan === "object" ? inputPlan : null;
   const sourceKeys = source ? Object.keys(source) : [];
   const basePlan = sourceKeys.length > 0 ? source : TRAINING_PLAN;
@@ -59,7 +65,7 @@ function normalizePlan(inputPlan) {
         {
           label: normalizeString(rawDay.label, ""),
           color: normalizeString(rawDay.color, defaultColor),
-          exercises: rawExercises.map((exercise, exIndex) => normalizeExercise(exercise, exIndex)),
+          exercises: rawExercises.map((exercise, exIndex) => normalizeExercise(exercise, exIndex, language)),
         },
       ];
     }),
@@ -75,8 +81,8 @@ function normalizePlan(inputPlan) {
  *   falsely triggering the first-visit wizard for authenticated users.
  */
 export function useTrainingPlan(storageScope = "guest", authLoading = false) {
-  const { t } = useI18n();
-  const [trainingPlan, setTrainingPlan] = useState(() => normalizePlan(TRAINING_PLAN));
+  const { t, language } = useI18n();
+  const [trainingPlan, setTrainingPlan] = useState(() => normalizePlan(TRAINING_PLAN, language));
   const [loading, setLoading] = useState(true);
   const [saveMsg, setSaveMsg] = useState("");
   /** True when a saved plan was found in storage; false when falling back to static defaults. */
@@ -94,7 +100,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
       if (!cancelled) {
         const planFound = data !== null && typeof data === "object" && Object.keys(data).length > 0;
         setHasPlan(planFound);
-        setTrainingPlan(normalizePlan(data));
+        setTrainingPlan(normalizePlan(data, language));
         setLoading(false);
       }
     })();
@@ -114,7 +120,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
   }, []);
 
   const persist = useCallback(async (nextPlan) => {
-    const normalized = normalizePlan(nextPlan);
+    const normalized = normalizePlan(nextPlan, language);
     setTrainingPlan(normalized);
 
     try {
@@ -125,7 +131,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     }
     if (saveMsgTimerRef.current) clearTimeout(saveMsgTimerRef.current);
     saveMsgTimerRef.current = setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
-  }, [storageScope, t]);
+  }, [storageScope, t, language]);
 
   const saveDay = useCallback((dayKey, nextDay) => {
     if (!trainingPlan[dayKey]) return;
@@ -174,14 +180,16 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     const nextPlan = clonePlan(trainingPlan);
     nextPlan[dayKey].exercises.push({
       id: makeExerciseId(),
-      name: t("plan.exerciseNameTemplate", { n: day.exercises.length + 1 }),
+      name: language === "en" ? DEFAULT_EXERCISE_ENTRY.name.en : DEFAULT_EXERCISE_ENTRY.name.es,
       sets: "",
       reps: "",
       rest: "",
       note: "",
+      exerciseDbId: DEFAULT_EXERCISE_ENTRY.exerciseDbId,
+      catalogSlug: DEFAULT_EXERCISE_ENTRY.slug,
     });
     persist(nextPlan);
-  }, [trainingPlan, persist, t]);
+  }, [trainingPlan, persist, language]);
 
   const removeExercise = useCallback((dayKey, exerciseId) => {
     const day = trainingPlan[dayKey];
