@@ -57,13 +57,13 @@ describe("App", () => {
     expect(screen.getByText("GymBuddy")).toBeTruthy();
   });
 
-  it("renders all three navigation tabs", async () => {
+  it("renders both navigation tabs", async () => {
     render(<App />);
     await screen.findByText("Sentadilla Hack (calentamiento)");
 
     expect(screen.getByText("Plan")).toBeTruthy();
     expect(screen.getByText("Registrar")).toBeTruthy();
-    expect(screen.getByText("Progresión")).toBeTruthy();
+    expect(screen.queryByText("Progresión")).toBeNull();
   });
 
   it("switches to log view when clicking Registrar", async () => {
@@ -76,15 +76,6 @@ describe("App", () => {
     expect(screen.getByText("SELECCIONÁ UN EJERCICIO")).toBeTruthy();
   });
 
-  it("switches to progress view when clicking Progresión", async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await screen.findByText("Sentadilla Hack (calentamiento)");
-
-    await user.click(screen.getByText("Progresión"));
-
-    expect(screen.getByText("PROGRESIÓN DE PESO")).toBeTruthy();
-  });
 
   it("switches between day tabs", async () => {
     const user = userEvent.setup();

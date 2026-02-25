@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
-import { getLastLog, formatDate } from "../../utils/helpers";
-import { DayTabs, SectionLabel, BackButton, PageContainer } from "../ui";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { getLastLog, formatDate, buildChartData, computeWeightStats } from "../../utils/helpers";
+import { DayTabs, SectionLabel, BackButton, PageContainer, StatCard } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
@@ -218,6 +226,62 @@ export function LogView({
           })}
         </div>
       )}
+
+      {/* Progress chart */}
+      {(() => {
+        const chartData = buildChartData(entries).filter((d) => d.peso > 0);
+        const stats = computeWeightStats(entries);
+        if (chartData.length < 2) return null;
+        return (
+          <>
+            <SectionLabel style={{ marginTop: 24 }}>{t("progress.title")}</SectionLabel>
+            <div style={styles.chartCard}>
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={chartData}>
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontFamily: "DM Mono", fontSize: 10, fill: colors.textDim }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontFamily: "DM Mono", fontSize: 10, fill: colors.textDim }}
+                    axisLine={false}
+                    tickLine={false}
+                    unit=" kg"
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: colors.surface,
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: 8,
+                      fontFamily: "DM Mono",
+                      fontSize: 12,
+                    }}
+                    labelStyle={{ color: colors.textDim }}
+                    itemStyle={{ color: accentColor }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="peso"
+                    stroke={accentColor}
+                    strokeWidth={2}
+                    dot={{ fill: accentColor, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            {stats && (
+              <div style={styles.statsGrid}>
+                <StatCard label={t("progress.current")} value={`${stats.current} kg`} color={accentColor} />
+                <StatCard label={t("progress.max")} value={`${stats.max} kg`} color={colors.textPrimary} />
+                <StatCard label={t("progress.min")} value={`${stats.min} kg`} color={colors.textMuted} />
+              </div>
+            )}
+          </>
+        );
+      })()}
     </PageContainer>
   );
 }
@@ -331,5 +395,17 @@ const styles = {
     opacity: 0.6,
     transition: "opacity 0.15s",
     WebkitTapHighlightColor: "transparent",
+  },
+  chartCard: {
+    background: colors.surface,
+    borderRadius: 12,
+    padding: 20,
+    border: `1px solid ${colors.border}`,
+    marginBottom: 20,
+  },
+  statsGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: 10,
   },
 };
