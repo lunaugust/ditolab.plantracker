@@ -17,6 +17,7 @@ import { getExerciseMedia } from "../../services/exerciseMediaService";
 export function ExerciseDetailModal({ exercise, accentColor, onClose }) {
   const { t } = useI18n();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [wgerExerciseId, setWgerExerciseId] = useState<number | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
@@ -24,10 +25,12 @@ export function ExerciseDetailModal({ exercise, accentColor, onClose }) {
     let cancelled = false;
     setLoading(true);
     setImageUrl(null);
+    setWgerExerciseId(null);
 
     getExerciseMedia(exercise.name, exercise.id).then((media) => {
       if (cancelled) return;
       setImageUrl(media.imageUrl);
+      setWgerExerciseId(media.wgerExerciseId);
       setYoutubeUrl(media.youtubeUrl);
       setLoading(false);
     });
@@ -106,7 +109,7 @@ export function ExerciseDetailModal({ exercise, accentColor, onClose }) {
         </div>
 
         {/* Attribution when image shown */}
-        {!loading && imageUrl && (
+        {!loading && imageUrl && wgerExerciseId && (
           <div style={styles.attribution}>
             {t("exerciseDetail.imageSource")}{" "}
             <a

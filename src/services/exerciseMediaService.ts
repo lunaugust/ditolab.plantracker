@@ -1,8 +1,9 @@
 /**
  * Exercise media service — fetches GIF animations and images for exercises.
  *
- * Primary source: wger.de REST API (free, no key required)
- * Fallback: YouTube search URL
+ * Primary source: ExerciseDB API (GIFs)
+ * Fallback source: wger.de REST API (images)
+ * Extra fallback: YouTube search URL
  *
  * For the built-in training plan exercises, a curated English keyword map
  * is used to improve search accuracy against the wger database.
@@ -60,6 +61,29 @@ export interface ExerciseMedia {
 }
 
 /**
+ * Searches ExerciseDB for a GIF/image preview.
+ * Returns null when unavailable and lets callers fallback.
+ */
+async function fetchExerciseDbMedia(searchTerm: string): Promise<string | null> {
+  try {
+    const searchUrl = `https://exercisedb-api.vercel.app/api/v1/exercises/name/${encodeURIComponent(searchTerm)}?offset=0&limit=1`;
+    const res = await fetch(searchUrl, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const results =
+      (Array.isArray(data) && data) ||
+      (Array.isArray(data?.data) && data.data) ||
+      (Array.isArray(data?.results) && data.results) ||
+      [];
+    const first = results[0];
+    return first?.gifUrl ?? first?.gif_url ?? first?.imageUrl ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Searches the public wger.de API for an exercise image.
  * Returns null imageUrl if the request fails or no image is found.
  */
@@ -101,7 +125,10 @@ export async function getExerciseMedia(
 ): Promise<ExerciseMedia> {
   const searchTerm = (exerciseId && EXERCISE_KEYWORDS[exerciseId]) ?? exerciseName;
   const youtubeUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + " ejercicio técnica")}`;
-
+  const exerciseDbImageUrl = await fetchExerciseDbMedia(searchTerm);
+  if (exerciseDbImageUrl) {
+    return { imageUrl: exerciseDbImageUrl, wgerExerciseId: null, youtubeUrl };
+  }
   const { imageUrl, wgerExerciseId } = await fetchWgerMedia(searchTerm);
 
   return { imageUrl, wgerExerciseId, youtubeUrl };
