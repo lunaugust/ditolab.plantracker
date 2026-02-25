@@ -29,6 +29,9 @@ export const translations = {
       records: "registros",
       noData: "sin datos",
     },
+    exercise: {
+      viewGif: "Ver animación",
+    },
     plan: {
       title: "PLAN",
       noDays: "No hay días cargados",
@@ -186,6 +189,9 @@ export const translations = {
       sessions: "sessions",
       records: "records",
       noData: "no data",
+    },
+    exercise: {
+      viewGif: "View animation",
     },
     plan: {
       title: "PLAN",

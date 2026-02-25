@@ -7,6 +7,7 @@
  */
 
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
+import { lookupExerciseDbName } from "../data/exerciseCatalog";
 import { makeExerciseId } from "../utils/helpers";
 
 /* ================================================================
@@ -310,7 +311,7 @@ export function generateRuleBasedPlan(form, language = "es") {
     // Translate if needed
     exercises = exercises.map((ex) => translateExercise(ex, language));
 
-    // Add unique IDs
+    // Add unique IDs and ExerciseDB name
     exercises = exercises.map((ex) => ({
       id: makeExerciseId(),
       name: ex.name,
@@ -318,6 +319,7 @@ export function generateRuleBasedPlan(form, language = "es") {
       reps: ex.reps,
       rest: ex.rest,
       note: ex.note || "",
+      exerciseDbName: lookupExerciseDbName(ex.name),
     }));
 
     plan[dayKey] = {

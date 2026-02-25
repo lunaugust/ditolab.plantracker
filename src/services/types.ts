@@ -7,6 +7,14 @@ export type Exercise = {
 	name: string;
 	sets: string;
 	reps: string;
+	rest?: string;
+	note?: string;
+	/**
+	 * Lowercase English name for ExerciseDB API lookup.
+	 * Populated automatically by the rule-based generator and AI/import prompts.
+	 * Used by ExerciseRow to fetch the exercise GIF.
+	 */
+	exerciseDbName?: string;
 };
 
 export type TrainingDay = {

@@ -10,6 +10,7 @@ import { ai } from "./firebaseClient";
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
 import { generateRuleBasedPlan } from "./ruleBasedPlanGenerator";
+import { buildExerciseCatalogPromptSection } from "../data/exerciseCatalog";
 
 /**
  * Whether the Firebase AI backend is available.
@@ -39,7 +40,8 @@ function buildSystemPrompt(language) {
     `        "sets": "<number>",`,
     `        "reps": "<rep scheme, e.g. 12·10·8·6 or 15>",`,
     `        "rest": "<rest period, e.g. 90s>",`,
-    `        "note": "<optional coaching cue or safety note, empty string if none>"`,
+    `        "note": "<optional coaching cue or safety note, empty string if none>",`,
+    `        "exerciseDbName": "<lowercase English ExerciseDB name from the catalog below, or empty string if not in catalog>"`,
     `      }`,
     `    ]`,
     `  }`,
@@ -54,6 +56,10 @@ function buildSystemPrompt(language) {
     `- Adjust volume and intensity to the experience level.`,
     `- Match the number of training days requested.`,
     `- Keep each session within the requested time (adjust exercise count accordingly).`,
+    `- Prefer exercises from the catalog below and use their exact exerciseDbName value.`,
+    ``,
+    `Exercise catalog (name → exerciseDbName):`,
+    buildExerciseCatalogPromptSection(),
   ].join("\n");
 }
 
@@ -126,6 +132,7 @@ function parseAIResponse(rawText) {
         reps: String(ex?.reps || ""),
         rest: String(ex?.rest || ""),
         note: String(ex?.note || ""),
+        exerciseDbName: String(ex?.exerciseDbName || "") || undefined,
       })),
     };
   });

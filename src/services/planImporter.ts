@@ -12,6 +12,7 @@ import { getGenerativeModel } from "firebase/ai";
 import { ai } from "./firebaseClient";
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
+import { buildExerciseCatalogPromptSection, lookupExerciseDbName } from "../data/exerciseCatalog";
 import type { TrainingPlan } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -81,7 +82,8 @@ function buildImportSystemPrompt(language: string): string {
     `        "sets": "<number of sets as a string>",`,
     `        "reps": "<rep scheme, e.g. 12·10·8·6 or 15>",`,
     `        "rest": "<rest period, e.g. 90s>",`,
-    `        "note": "<optional coaching cue, empty string if none>"`,
+    `        "note": "<optional coaching cue, empty string if none>",`,
+    `        "exerciseDbName": "<lowercase English ExerciseDB name from the catalog below, or empty string if not in catalog>"`,
     `      }`,
     `    ]`,
     `  }`,
@@ -94,6 +96,10 @@ function buildImportSystemPrompt(language: string): string {
     `- If a field is missing in the source, use an empty string "".`,
     `- Do NOT invent exercises that are not present in the document.`,
     `- If the document is not a training plan, or is unreadable, return an empty JSON object: {}`,
+    `- For exerciseDbName: match the exercise to the catalog below and use the exact value shown. If no match exists, use an empty string.`,
+    ``,
+    `Exercise catalog (name → exerciseDbName):`,
+    buildExerciseCatalogPromptSection(),
   ].join("\n");
 }
 
@@ -133,14 +139,21 @@ function parseImportResponse(rawText: string): TrainingPlan {
     plan[dayKey] = {
       label: String(rawDay?.label ?? ""),
       color: GENERATED_DAY_COLORS[dayIndex % GENERATED_DAY_COLORS.length],
-      exercises: (exercises as Record<string, unknown>[]).map((ex) => ({
-        id: makeExerciseId(),
-        name: String(ex?.name ?? ""),
-        sets: String(ex?.sets ?? ""),
-        reps: String(ex?.reps ?? ""),
-        rest: String(ex?.rest ?? ""),
-        note: String(ex?.note ?? ""),
-      })),
+      exercises: (exercises as Record<string, unknown>[]).map((ex) => {
+        const name = String(ex?.name ?? "");
+        // Use AI-provided exerciseDbName, or fall back to catalog lookup by name
+        const exerciseDbName =
+          String(ex?.exerciseDbName ?? "") || lookupExerciseDbName(name) || undefined;
+        return {
+          id: makeExerciseId(),
+          name,
+          sets: String(ex?.sets ?? ""),
+          reps: String(ex?.reps ?? ""),
+          rest: String(ex?.rest ?? ""),
+          note: String(ex?.note ?? ""),
+          exerciseDbName,
+        };
+      }),
     };
   });
 
