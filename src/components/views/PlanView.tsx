@@ -2,8 +2,11 @@ import { useState, useEffect } from "react";
 import { getLastLog, makeExerciseId } from "../../utils/helpers";
 import { DayTabs, SectionLabel, PageContainer } from "../ui";
 import { ExerciseRow } from "../exercises";
+import { ExerciseDetailsModal } from "../exercises/ExerciseDetailsModal";
+import { ExerciseAutocomplete } from "../ui/ExerciseAutocomplete";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
+import { enrichExerciseWithDbId } from "../../utils/exerciseMatching";
 
 /**
  * "Plan" screen — shows the structured training plan per day.
@@ -35,11 +38,12 @@ export function PlanView({
   onOpenGenerator,
   onOpenImporter,
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : null;
   const [isEditing, setIsEditing] = useState(false);
   const [draftDay, setDraftDay] = useState(null);
+  const [selectedExerciseForDetails, setSelectedExerciseForDetails] = useState(null);
 
   useEffect(() => {
     if (!isEditing || !day) return;
@@ -82,9 +86,17 @@ export function PlanView({
     if (!draftDay) return;
     setDraftDay((prev) => ({
       ...prev,
-      exercises: prev.exercises.map((exercise) => (
-        exercise.id === exerciseId ? { ...exercise, [field]: value } : exercise
-      )),
+      exercises: prev.exercises.map((exercise) => {
+        if (exercise.id === exerciseId) {
+          const updated = { ...exercise, [field]: value };
+          // If name changed, try to enrich with ExerciseDB ID
+          if (field === "name") {
+            return enrichExerciseWithDbId(updated, language);
+          }
+          return updated;
+        }
+        return exercise;
+      }),
     }));
   };
 
@@ -219,6 +231,7 @@ export function PlanView({
             index={i}
             accentColor={dayColors[safeActiveDay]}
             lastLog={getLastLog(logs, ex.id)}
+            onViewDetails={ex.exerciseDbId ? () => setSelectedExerciseForDetails(ex) : undefined}
           />
         ))}
 
@@ -226,9 +239,11 @@ export function PlanView({
           <div key={ex.id} style={styles.editCard}>
             <div style={styles.editIndex}>{String(i + 1).padStart(2, "0")}</div>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-              <input
+              <ExerciseAutocomplete
                 value={ex.name}
-                onChange={(e) => updateExerciseField(ex.id, "name", e.target.value)}
+                onChange={(value) => updateExerciseField(ex.id, "name", value)}
+                placeholder={t("plan.exerciseNameTemplate", { n: i + 1 })}
+                language={language}
                 style={styles.nameInput}
               />
 
@@ -279,6 +294,14 @@ export function PlanView({
           </div>
         ))}
       </div>
+
+      {/* Exercise Details Modal */}
+      {selectedExerciseForDetails && (
+        <ExerciseDetailsModal
+          exercise={selectedExerciseForDetails}
+          onClose={() => setSelectedExerciseForDetails(null)}
+        />
+      )}
     </PageContainer>
   );
 }

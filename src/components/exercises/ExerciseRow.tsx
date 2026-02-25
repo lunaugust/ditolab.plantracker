@@ -16,6 +16,7 @@ import { useI18n } from "../../i18n";
  *   totalLogs?: number,
  *   progressDiff?: number | null,
  *   disabled?: boolean,
+ *   onViewDetails?: () => void,
  * }} props
  */
 export function ExerciseRow({
@@ -29,9 +30,11 @@ export function ExerciseRow({
   totalLogs = 0,
   progressDiff = null,
   disabled = false,
+  onViewDetails,
 }) {
   const { t } = useI18n();
   const interactive = !!onClick && !disabled;
+  const hasExerciseDbId = !!exercise.exerciseDbId;
 
   return (
     <div
@@ -64,8 +67,25 @@ export function ExerciseRow({
 
       {/* Name + meta */}
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: showDetails ? 3 : 0, color: disabled ? colors.textDim : colors.textPrimary }}>
-          {exercise.name}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: showDetails ? 3 : 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 500, color: disabled ? colors.textDim : colors.textPrimary }}>
+            {exercise.name}
+          </div>
+          {hasExerciseDbId && (
+            <span
+              style={{
+                fontSize: 10,
+                color: colors.accent.blue,
+                backgroundColor: colors.surfaceAlt,
+                padding: "2px 6px",
+                borderRadius: 4,
+                fontFamily: fonts.mono,
+              }}
+              title={t("plan.fromLibrary")}
+            >
+              📚
+            </span>
+          )}
         </div>
 
         {showDetails && (
@@ -84,6 +104,29 @@ export function ExerciseRow({
           <div style={{ fontSize: 11, color: colors.warning, marginTop: 4, fontStyle: "italic" }}>
             ⚠ {exercise.note}
           </div>
+        )}
+
+        {/* View details button for exercises with ExerciseDB ID */}
+        {hasExerciseDbId && onViewDetails && showDetails && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails();
+            }}
+            style={{
+              marginTop: 6,
+              fontSize: 11,
+              color: colors.accent.blue,
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              fontFamily: fonts.sans,
+              textDecoration: "underline",
+            }}
+          >
+            {t("plan.viewDetails")}
+          </button>
         )}
       </div>
 
