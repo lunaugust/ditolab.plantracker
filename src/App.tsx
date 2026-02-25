@@ -3,6 +3,7 @@ import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan, useInstallPWA
 import { Header, LoadingScreen, AuthScreen, FeedbackModal, WhatsNewModal } from "./components/layout";
 import { APP_VERSION, WHATS_NEW_STORAGE_KEY } from "./data/changelog";
 import { PlanView, LogView, ProgressView, PlanGeneratorWizard, PlanImportWizard } from "./components/views";
+import { SingleViewPrototypes } from "./components/prototypes/SingleViewPrototypes";
 import { colors } from "./theme";
 
 /**
@@ -103,6 +104,25 @@ export default function App() {
   if (auth.loading || logsLoading || planLoading) return <LoadingScreen />;
   if (auth.enabled && !auth.user) {
     return <AuthScreen onSignIn={auth.loginWithGoogle} error={auth.error} />;
+  }
+
+  const isPrototypeMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("prototype") === "single";
+  if (isPrototypeMode) {
+    return (
+      <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
+        <SingleViewPrototypes
+          trainingPlan={trainingPlan}
+          dayKeys={dayKeys}
+          dayColors={dayColors}
+          logs={logs}
+          onExit={() => {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("prototype");
+            window.location.href = url.toString();
+          }}
+        />
+      </div>
+    );
   }
 
   if (showGenerator) {

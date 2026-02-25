@@ -159,6 +159,17 @@ export const translations = {
       success: "✓ ¡Gracias por tu comentario!",
       error: "✗ Error al enviar",
     },
+    prototype: {
+      title: "PROTOTIPOS DE VISTA ÚNICA",
+      drawer: "Opción 1: Drawer lateral",
+      split: "Opción 2: Panel dual",
+      modal: "Opción 3: Modal fullscreen",
+      exit: "Volver a la app",
+      pickExercise: "Elegí un ejercicio para ver el panel",
+      lastLog: "Último registro",
+      noLog: "Sin registros aún",
+      stats: "Estadísticas",
+    },
   },
   en: {
     nav: {
@@ -316,6 +327,17 @@ export const translations = {
       sending: "Sending...",
       success: "✓ Thanks for your feedback!",
       error: "✗ Failed to send",
+    },
+    prototype: {
+      title: "UNIFIED VIEW PROTOTYPES",
+      drawer: "Option 1: Side drawer",
+      split: "Option 2: Dual panel",
+      modal: "Option 3: Fullscreen modal",
+      exit: "Back to app",
+      pickExercise: "Pick an exercise to preview the panel",
+      lastLog: "Last log",
+      noLog: "No logs yet",
+      stats: "Stats",
     },
   },
 };
