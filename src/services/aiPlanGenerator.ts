@@ -10,6 +10,7 @@ import { ai } from "./firebaseClient";
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
 import { generateRuleBasedPlan } from "./ruleBasedPlanGenerator";
+import { enrichPlanWithDbIds } from "../utils/exerciseMatching";
 
 /**
  * Whether the Firebase AI backend is available.
@@ -160,7 +161,9 @@ export async function generateTrainingPlan(form, language = "es") {
     });
 
     const text = result.response.text();
-    const plan = parseAIResponse(text);
+    let plan = parseAIResponse(text);
+    // Enrich exercises with ExerciseDB IDs by matching names to library
+    plan = enrichPlanWithDbIds(plan, language);
     return { plan, source: "ai" };
   } catch (error) {
     console.warn("[AIGenerator] Gemini unavailable, using rule-based fallback.", error.message || error);

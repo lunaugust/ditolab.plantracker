@@ -12,6 +12,7 @@ import { getGenerativeModel } from "firebase/ai";
 import { ai } from "./firebaseClient";
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
+import { enrichPlanWithDbIds } from "../utils/exerciseMatching";
 import type { TrainingPlan } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -218,6 +219,8 @@ export async function importPlanFromFile(
   });
 
   const text = result.response.text();
-  const plan = parseImportResponse(text);
+  let plan = parseImportResponse(text);
+  // Enrich exercises with ExerciseDB IDs by matching names to library
+  plan = enrichPlanWithDbIds(plan, language);
   return { plan, source: "ai" };
 }

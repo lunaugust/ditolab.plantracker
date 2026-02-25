@@ -7,6 +7,8 @@ export type Exercise = {
 	name: string;
 	sets: string;
 	reps: string;
+	/** Optional ExerciseDB API identifier for fetching GIFs and metadata */
+	exerciseDbId?: string;
 };
 
 export type TrainingDay = {
