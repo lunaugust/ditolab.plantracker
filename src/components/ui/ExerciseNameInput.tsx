@@ -16,12 +16,19 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
   const { t, language } = useI18n();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [hasTypedDuringEdit, setHasTypedDuringEdit] = useState(false);
   const [results, setResults] = useState<{ exerciseId: string; name: string; nameEs?: string; bodyParts: string[] }[]>([]);
   const [highlighted, setHighlighted] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const localizedValue = useLocalizedExerciseName(value);
+  const inputDisplayValue =
+    language === "es" && editing && !hasTypedDuringEdit
+      ? localizedValue
+      : editing
+        ? value
+        : localizedValue;
 
   const doSearch = useCallback((query: string) => {
     if (query.length < 2) {
@@ -55,6 +62,7 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
     onChange(name, exerciseId);
     setOpen(false);
     setEditing(false);
+    setHasTypedDuringEdit(false);
     inputRef.current?.blur();
   };
 
@@ -74,6 +82,7 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
     } else if (e.key === "Escape") {
       setOpen(false);
       setEditing(false);
+      setHasTypedDuringEdit(false);
     }
   };
 
@@ -87,9 +96,9 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
       <input
         ref={inputRef}
         autoFocus={autoFocus}
-        value={editing ? value : localizedValue}
-        onChange={(e) => { setEditing(true); onChange(e.target.value); }}
-        onFocus={() => { setEditing(true); if (value.length >= 2) doSearch(value); }}
+        value={inputDisplayValue}
+        onChange={(e) => { setEditing(true); setHasTypedDuringEdit(true); onChange(e.target.value); }}
+        onFocus={() => { setEditing(true); setHasTypedDuringEdit(false); if (value.length >= 2) doSearch(value); }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder || t("common.searchExercise")}
         style={{ ...defaultInputStyle, ...style }}
