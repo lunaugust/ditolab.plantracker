@@ -4,9 +4,14 @@ export type Language = "es" | "en";
 
 export type Exercise = {
 	id: string;
+	exerciseId?: string;
 	name: string;
 	sets: string;
 	reps: string;
+	rest?: string;
+	note?: string;
+	noteSource?: "catalog" | "custom";
+	noteCatalogId?: string;
 };
 
 export type TrainingDay = {

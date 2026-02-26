@@ -1,6 +1,7 @@
 import { colors, fonts } from "../../theme";
 import { padIndex } from "../../utils/helpers";
 import { useI18n } from "../../i18n";
+import { useLocalizedExerciseName } from "../../hooks";
 
 /**
  * A single exercise row used across Plan, Log-picker and Progress screens.
@@ -31,6 +32,7 @@ export function ExerciseRow({
   disabled = false,
 }) {
   const { t } = useI18n();
+  const localizedName = useLocalizedExerciseName(exercise.name);
   const interactive = !!onClick && !disabled;
 
   return (
@@ -65,7 +67,7 @@ export function ExerciseRow({
       {/* Name + meta */}
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 14, fontWeight: 500, marginBottom: showDetails ? 3 : 0, color: disabled ? colors.textDim : colors.textPrimary }}>
-          {exercise.name}
+          {localizedName}
         </div>
 
         {showDetails && (

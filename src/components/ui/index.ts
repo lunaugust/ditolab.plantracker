@@ -5,3 +5,4 @@ export { PageContainer } from "./PageContainer";
 export { StatCard } from "./StatCard";
 export { SlideOutPanel } from "./SlideOutPanel";
 export { ExerciseDetailPanel } from "./ExerciseDetailPanel";
+export { ExerciseNameInput } from "./ExerciseNameInput";

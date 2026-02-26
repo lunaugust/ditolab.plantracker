@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
 
@@ -42,6 +42,27 @@ beforeEach(() => {
   loadLogs.mockResolvedValue({});
 });
 
+/** Wait for the plan to load by looking for exercise metadata (sets/reps are never localized). */
+async function waitForPlanLoad() {
+  // First exercise is "sled hack squat", sets: "2", reps: "15-20", rest: "60s"
+  await screen.findByText(/15-20 reps/, {}, { timeout: 3000 });
+}
+
+/**
+ * Click the first exercise row.
+ * ExerciseRow's onClick is on the outermost div. We find the exercise metadata
+ * text, then walk up to the clickable row wrapper.
+ */
+async function clickFirstExercise(user) {
+  const metaEl = await screen.findByText(/15-20 reps/, {}, { timeout: 3000 });
+  // Walk up from the meta <div> to the ExerciseRow root <div> with onClick
+  let el = metaEl.parentElement;
+  while (el && !el.onclick) {
+    el = el.parentElement;
+  }
+  await user.click(el || metaEl);
+}
+
 /* ================================================================
  * App rendering
  * ================================================================ */
@@ -52,73 +73,51 @@ describe("App", () => {
     // Loading initially
     expect(screen.getByText("GymBuddy AI")).toBeTruthy();
 
-    // After load, plan view shows first day exercises
-    expect(await screen.findByText("Sentadilla Hack (calentamiento)")).toBeTruthy();
+    // After load, plan view shows day tabs
+    await waitForPlanLoad();
     expect(screen.getByText("GymBuddy")).toBeTruthy();
   });
 
-  it("renders all three navigation tabs", async () => {
+  it("shows day tabs for each training day", async () => {
     render(<App />);
-    await screen.findByText("Sentadilla Hack (calentamiento)");
+    await waitForPlanLoad();
 
-    expect(screen.getByText("Plan")).toBeTruthy();
-    expect(screen.getByText("Registrar")).toBeTruthy();
-    expect(screen.getByText("Progresión")).toBeTruthy();
-  });
-
-  it("switches to log view when clicking Registrar", async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await screen.findByText("Sentadilla Hack (calentamiento)");
-
-    await user.click(screen.getByText("Registrar"));
-
-    expect(screen.getByText("SELECCIONÁ UN EJERCICIO")).toBeTruthy();
-  });
-
-  it("switches to progress view when clicking Progresión", async () => {
-    const user = userEvent.setup();
-    render(<App />);
-    await screen.findByText("Sentadilla Hack (calentamiento)");
-
-    await user.click(screen.getByText("Progresión"));
-
-    expect(screen.getByText("PROGRESIÓN DE PESO")).toBeTruthy();
+    expect(screen.getAllByText("Día 1").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Día 2").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Día 3").length).toBeGreaterThan(0);
   });
 
   it("switches between day tabs", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Sentadilla Hack (calentamiento)");
+    await waitForPlanLoad();
 
     // Day 2 tab
     await user.click(screen.getByText("Día 2"));
-    expect(screen.getByText("Face Pulls en Polea Alta")).toBeTruthy();
-
-    // Day 3 tab
-    await user.click(screen.getByText("Día 3"));
-    expect(screen.getByText("Press Banco Plano con Barra")).toBeTruthy();
+    // Day 2 has "cable pulldown" / "Jalón en polea" as an exercise
+    await screen.findByText(
+      (text) => text.includes("cable pulldown") || text.includes("Jal\u00f3n en polea"),
+      {},
+      { timeout: 3000 },
+    );
   });
 });
 
 /* ================================================================
- * Log View — exercise selection and form
+ * Exercise Detail — full-screen navigation on exercise click
  * ================================================================ */
-describe("Log View", () => {
-  it("opens exercise detail and shows the form", async () => {
+describe("Exercise Detail", () => {
+  it("clicks an exercise and shows the detail view with log form", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Sentadilla Hack (calentamiento)");
+    await waitForPlanLoad();
 
-    // Go to log view
-    await user.click(screen.getByText("Registrar"));
-    await screen.findByText("SELECCIONÁ UN EJERCICIO");
+    // Click the first exercise
+    await clickFirstExercise(user);
 
-    // Click on the first exercise
-    await user.click(screen.getByText("Sentadilla Hack (calentamiento)"));
-
-    // Form should appear
-    expect(screen.getByText("REGISTRAR")).toBeTruthy();
+    // ExerciseDetailView should show tabs and the form
+    expect(screen.getByText("Registrar")).toBeTruthy();
+    expect(screen.getByText("Progresión")).toBeTruthy();
     expect(screen.getByText("Guardar registro")).toBeTruthy();
     expect(screen.getByPlaceholderText("Ej: técnica mejorada, RPE 8...")).toBeTruthy();
   });
@@ -126,11 +125,9 @@ describe("Log View", () => {
   it("saves a log entry when submitting the form", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Sentadilla Hack (calentamiento)");
+    await waitForPlanLoad();
 
-    await user.click(screen.getByText("Registrar"));
-    await screen.findByText("SELECCIONÁ UN EJERCICIO");
-    await user.click(screen.getByText("Sentadilla Hack (calentamiento)"));
+    await clickFirstExercise(user);
 
     // Fill form
     const [weightInput, repsInput] = screen.getAllByRole("spinbutton");
@@ -152,18 +149,39 @@ describe("Log View", () => {
     expect(persisted["d1_hack_warmup"][0].reps).toBe("8");
   });
 
-  it("back button returns to exercise list", async () => {
+  it("back button returns to plan view", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByText("Sentadilla Hack (calentamiento)");
+    await waitForPlanLoad();
 
-    await user.click(screen.getByText("Registrar"));
-    await screen.findByText("SELECCIONÁ UN EJERCICIO");
-    await user.click(screen.getByText("Sentadilla Hack (calentamiento)"));
+    await clickFirstExercise(user);
+    expect(screen.getByText("Guardar registro")).toBeTruthy();
 
-    expect(screen.getByText("REGISTRAR")).toBeTruthy();
-
+    // Click back button
     await user.click(screen.getByText("← volver"));
-    expect(screen.getByText("SELECCIONÁ UN EJERCICIO")).toBeTruthy();
+
+    // Should be back on the plan view with day tabs
+    expect(screen.getAllByText("Día 1").length).toBeGreaterThan(0);
+  });
+
+  it("weight adjustment buttons change weight by ±2.5", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForPlanLoad();
+
+    await clickFirstExercise(user);
+
+    // Click +2.5 button
+    await user.click(screen.getByText("+2.5"));
+    const [weightInput] = screen.getAllByRole("spinbutton");
+    expect(weightInput.value).toBe("2.5");
+
+    // Click +2.5 again
+    await user.click(screen.getByText("+2.5"));
+    expect(weightInput.value).toBe("5");
+
+    // Click -2.5
+    await user.click(screen.getByText("-2.5"));
+    expect(weightInput.value).toBe("2.5");
   });
 });

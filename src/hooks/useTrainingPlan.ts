@@ -27,14 +27,22 @@ function getNextDayName(existingKeys, template) {
 
 function normalizeExercise(rawExercise, index) {
   const exercise = rawExercise && typeof rawExercise === "object" ? rawExercise : {};
+  const normalizedExerciseId = normalizeString(exercise.exerciseId, "");
+  const normalizedNote = normalizeString(exercise.note, "");
+  const rawNoteSource = normalizeString(exercise.noteSource, "");
+  const normalizedNoteSource = rawNoteSource === "catalog" ? "catalog" : "custom";
+  const normalizedNoteCatalogId = normalizeString(exercise.noteCatalogId, normalizedExerciseId);
 
   return {
     id: normalizeString(exercise.id, `${makeExerciseId()}_${index}`),
+    exerciseId: normalizedExerciseId,
     name: normalizeString(exercise.name, `Ejercicio ${index + 1}`),
     sets: normalizeString(exercise.sets, ""),
     reps: normalizeString(exercise.reps, ""),
     rest: normalizeString(exercise.rest, ""),
-    note: normalizeString(exercise.note, ""),
+    note: normalizedNote,
+    noteSource: normalizedNoteSource,
+    noteCatalogId: normalizedNoteCatalogId,
   };
 }
 
@@ -174,11 +182,14 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     const nextPlan = clonePlan(trainingPlan);
     nextPlan[dayKey].exercises.push({
       id: makeExerciseId(),
+      exerciseId: "",
       name: t("plan.exerciseNameTemplate", { n: day.exercises.length + 1 }),
       sets: "",
       reps: "",
       rest: "",
       note: "",
+      noteSource: "custom",
+      noteCatalogId: "",
     });
     persist(nextPlan);
   }, [trainingPlan, persist, t]);

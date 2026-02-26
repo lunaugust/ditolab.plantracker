@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
+import { useExerciseGif, useLocalizedExerciseName, useLocalizedExerciseNote } from "../../hooks";
 import { formatDate, buildChartData, computeWeightStats } from "../../utils/helpers";
 import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
 
@@ -27,6 +28,9 @@ import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
  */
 export function ExerciseDetailView({ exercise, accentColor, logs, addLog, deleteLog, onBack }) {
   const { t } = useI18n();
+  const gifUrl = useExerciseGif(exercise.exerciseId, exercise.name);
+  const localizedName = useLocalizedExerciseName(exercise.name);
+  const localizedNote = useLocalizedExerciseNote(exercise);
   const [activeTab, setActiveTab] = useState("log");
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
 
@@ -61,17 +65,29 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
       {/* Exercise header */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6, color: colors.textPrimary }}>
-          {exercise.name}
+          {localizedName}
         </div>
         <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textMuted }}>
           {exercise.sets} {t("common.series")} · {exercise.reps} {t("common.reps")} · {exercise.rest}
         </div>
-        {exercise.note && (
+        {localizedNote && (
           <div style={{ fontSize: 11, color: colors.warning, marginTop: 6, fontStyle: "italic" }}>
-            ⚠ {exercise.note}
+            ⚠ {localizedNote}
           </div>
         )}
       </div>
+
+      {/* Exercise GIF demonstration */}
+      {gifUrl && (
+        <div style={gifStyles.card}>
+          <div style={gifStyles.label}>{t("common.demonstration")}</div>
+          <img
+            src={gifUrl}
+            alt={exercise.name}
+            style={gifStyles.img}
+          />
+        </div>
+      )}
 
       {/* Tabs */}
       <div style={styles.tabs}>
@@ -127,40 +143,37 @@ function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog,
     <>
       {/* Form */}
       <div style={formStyles.card}>
-        <div style={formStyles.grid}>
-          {[
-            ["weight", t("log.weightLabel"), "0"],
-            ["reps", t("log.repsDoneLabel"), "0"],
-          ].map(([field, label, placeholder]) => (
-            <div key={field}>
-              <div style={formStyles.fieldLabel}>{label.toUpperCase()}</div>
-              {field === "weight" ? (
-                <div style={formStyles.weightControls}>
-                  <button type="button" onClick={() => adjustWeight(-5)} style={formStyles.adjustBtn}>
-                    -5
-                  </button>
-                  <input
-                    value={form[field]}
-                    onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-                    placeholder={placeholder}
-                    type="number"
-                    style={formStyles.numberInput}
-                  />
-                  <button type="button" onClick={() => adjustWeight(5)} style={formStyles.adjustBtn}>
-                    +5
-                  </button>
-                </div>
-              ) : (
-                <input
-                  value={form[field]}
-                  onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-                  placeholder={placeholder}
-                  type="number"
-                  style={formStyles.numberInput}
-                />
-              )}
-            </div>
-          ))}
+        {/* Weight row — full width */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={formStyles.fieldLabel}>{t("log.weightLabel").toUpperCase()}</div>
+          <div style={formStyles.weightControls}>
+            <button type="button" onClick={() => adjustWeight(-2.5)} style={formStyles.adjustBtn}>
+              -2.5
+            </button>
+            <input
+              value={form.weight}
+              onChange={(e) => setForm((f) => ({ ...f, weight: e.target.value }))}
+              placeholder="0"
+              type="number"
+              step="0.5"
+              style={formStyles.numberInput}
+            />
+            <button type="button" onClick={() => adjustWeight(2.5)} style={formStyles.adjustBtn}>
+              +2.5
+            </button>
+          </div>
+        </div>
+
+        {/* Reps row */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={formStyles.fieldLabel}>{t("log.repsDoneLabel").toUpperCase()}</div>
+          <input
+            value={form.reps}
+            onChange={(e) => setForm((f) => ({ ...f, reps: e.target.value }))}
+            placeholder="0"
+            type="number"
+            style={formStyles.numberInput}
+          />
         </div>
 
         <div style={{ marginBottom: 14 }}>
@@ -318,7 +331,7 @@ const formStyles = {
   },
   grid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    gridTemplateColumns: "3fr 2fr",
     gap: 12,
     marginBottom: 14,
   },
@@ -342,7 +355,7 @@ const formStyles = {
   },
   weightControls: {
     display: "grid",
-    gridTemplateColumns: "48px 1fr 48px",
+    gridTemplateColumns: "56px 1fr 56px",
     gap: 8,
     alignItems: "center",
   },
@@ -353,7 +366,7 @@ const formStyles = {
     borderRadius: 10,
     minHeight: 48,
     fontFamily: fonts.mono,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
@@ -416,6 +429,31 @@ const historyStyles = {
     opacity: 0.6,
     transition: "opacity 0.15s",
     WebkitTapHighlightColor: "transparent",
+  },
+};
+
+const gifStyles = {
+  card: {
+    background: colors.surface,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 20,
+    border: `1px solid ${colors.border}`,
+    textAlign: "center" as const,
+  },
+  label: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.textMuted,
+    letterSpacing: 1,
+    marginBottom: 10,
+    textTransform: "uppercase" as const,
+  },
+  img: {
+    width: "100%",
+    maxHeight: 240,
+    objectFit: "contain" as const,
+    borderRadius: 10,
   },
 };
 
