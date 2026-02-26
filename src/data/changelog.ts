@@ -8,7 +8,7 @@
  *     whose stored "gymbuddy_seen_version" differs from APP_VERSION.
  */
 
-export const APP_VERSION = "1.4.1";
+export const APP_VERSION = "1.4.0";
 
 /** localStorage key that tracks the last version the user dismissed. */
 export const WHATS_NEW_STORAGE_KEY = "gymbuddy_seen_version";
@@ -34,17 +34,6 @@ export type ChangelogEntry = {
  * The modal only shows the FIRST (latest) entry.
  */
 export const CHANGELOG: ChangelogEntry[] = [
-  {
-    version: "1.4.1",
-    date: "2026-02-26",
-    features: [
-      {
-        icon: "🌐",
-        es: "Corrección: el campo de nombre de ejercicio ahora muestra correctamente el nombre en español al editar.",
-        en: "Fix: exercise name input now correctly displays the Spanish name when editing.",
-      },
-    ],
-  },
   {
     version: "1.4.0",
     date: "2026-02-26",
