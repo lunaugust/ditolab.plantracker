@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
-import { useExerciseGif } from "../../hooks";
+import { useExerciseGif, useLocalizedExerciseName } from "../../hooks";
 import { formatDate, buildChartData, computeWeightStats } from "../../utils/helpers";
 import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
 
@@ -28,7 +28,8 @@ import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
  */
 export function ExerciseDetailView({ exercise, accentColor, logs, addLog, deleteLog, onBack }) {
   const { t } = useI18n();
-  const gifUrl = useExerciseGif(exercise.name);
+  const gifUrl = useExerciseGif(exercise.exerciseId, exercise.name);
+  const localizedName = useLocalizedExerciseName(exercise.name);
   const [activeTab, setActiveTab] = useState("log");
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
 
@@ -63,7 +64,7 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
       {/* Exercise header */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6, color: colors.textPrimary }}>
-          {exercise.name}
+          {localizedName}
         </div>
         <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textMuted }}>
           {exercise.sets} {t("common.series")} · {exercise.reps} {t("common.reps")} · {exercise.rest}

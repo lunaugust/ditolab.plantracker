@@ -232,7 +232,10 @@ export function PlanView({
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
               <ExerciseNameInput
                 value={ex.name}
-                onChange={(name) => updateExerciseField(ex.id, "name", name)}
+                onChange={(name, catalogId) => {
+                  updateExerciseField(ex.id, "name", name);
+                  if (catalogId) updateExerciseField(ex.id, "exerciseId", catalogId);
+                }}
                 style={styles.nameInput}
               />
 

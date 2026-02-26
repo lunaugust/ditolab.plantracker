@@ -2,22 +2,26 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { colors, fonts } from "../../theme";
 import { searchExercises } from "../../data/exerciseCatalog";
 import { useI18n } from "../../i18n";
+import { useLocalizedExerciseName } from "../../hooks/useLocalizedExerciseName";
 
 type Props = {
   value: string;
-  onChange: (name: string) => void;
+  onChange: (name: string, exerciseId?: string) => void;
   placeholder?: string;
   style?: React.CSSProperties;
   autoFocus?: boolean;
 };
 
 export function ExerciseNameInput({ value, onChange, placeholder, style, autoFocus }: Props) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [open, setOpen] = useState(false);
-  const [results, setResults] = useState<{ name: string; bodyParts: string[] }[]>([]);
+  const [editing, setEditing] = useState(false);
+  const [results, setResults] = useState<{ exerciseId: string; name: string; nameEs?: string; bodyParts: string[] }[]>([]);
   const [highlighted, setHighlighted] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const localizedValue = useLocalizedExerciseName(value);
 
   const doSearch = useCallback((query: string) => {
     if (query.length < 2) {
@@ -33,22 +37,24 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
   }, []);
 
   useEffect(() => {
-    doSearch(value);
-  }, [value, doSearch]);
+    if (editing) doSearch(value);
+  }, [value, doSearch, editing]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
+        setEditing(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const select = (name: string) => {
-    onChange(name);
+  const select = (name: string, exerciseId?: string) => {
+    onChange(name, exerciseId);
     setOpen(false);
+    setEditing(false);
     inputRef.current?.blur();
   };
 
@@ -63,10 +69,17 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
       setHighlighted((prev) => (prev > 0 ? prev - 1 : results.length - 1));
     } else if (e.key === "Enter" && highlighted >= 0) {
       e.preventDefault();
-      select(results[highlighted].name);
+      const r = results[highlighted];
+      select(r.name, r.exerciseId);
     } else if (e.key === "Escape") {
       setOpen(false);
+      setEditing(false);
     }
+  };
+
+  const displayName = (r: { name: string; nameEs?: string }) => {
+    if (language === "es" && r.nameEs) return r.nameEs;
+    return r.name;
   };
 
   return (
@@ -74,9 +87,9 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
       <input
         ref={inputRef}
         autoFocus={autoFocus}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => { if (value.length >= 2) doSearch(value); }}
+        value={editing ? value : localizedValue}
+        onChange={(e) => { setEditing(true); onChange(e.target.value); }}
+        onFocus={() => { setEditing(true); if (value.length >= 2) doSearch(value); }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder || t("common.searchExercise")}
         style={{ ...defaultInputStyle, ...style }}
@@ -85,15 +98,15 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
         <div style={dropdownStyle}>
           {results.map((r, i) => (
             <div
-              key={r.name}
-              onMouseDown={(e) => { e.preventDefault(); select(r.name); }}
+              key={r.exerciseId}
+              onMouseDown={(e) => { e.preventDefault(); select(r.name, r.exerciseId); }}
               onMouseEnter={() => setHighlighted(i)}
               style={{
                 ...itemStyle,
                 background: i === highlighted ? colors.border : "transparent",
               }}
             >
-              <span style={{ color: colors.textPrimary, fontSize: 13 }}>{r.name}</span>
+              <span style={{ color: colors.textPrimary, fontSize: 13 }}>{displayName(r)}</span>
               <span style={{ color: colors.textGhost, fontSize: 10, fontFamily: fonts.mono, marginLeft: 8 }}>
                 {r.bodyParts.join(", ")}
               </span>

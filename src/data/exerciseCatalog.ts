@@ -6,6 +6,7 @@
 export type CatalogEntry = {
   exerciseId: string;
   name: string;
+  nameEs?: string;
   gifUrl: string;
   targetMuscles: string[];
   bodyParts: string[];
@@ -53,15 +54,23 @@ export async function getExerciseNamesForPrompt(): Promise<string> {
 export async function searchExercises(
   query: string,
   limit = 15
-): Promise<{ name: string; bodyParts: string[] }[]> {
+): Promise<{ exerciseId: string; name: string; nameEs?: string; bodyParts: string[] }[]> {
   const entries = await loadExerciseCatalog();
   const q = query.toLowerCase().trim();
   if (!q) return [];
 
-  const results: { name: string; bodyParts: string[] }[] = [];
+  const results: { exerciseId: string; name: string; nameEs?: string; bodyParts: string[] }[] = [];
   for (const entry of entries) {
-    if (entry.name.toLowerCase().includes(q)) {
-      results.push({ name: entry.name, bodyParts: entry.bodyParts });
+    if (
+      entry.name.toLowerCase().includes(q) ||
+      (entry.nameEs && entry.nameEs.toLowerCase().includes(q))
+    ) {
+      results.push({
+        exerciseId: entry.exerciseId,
+        name: entry.name,
+        nameEs: entry.nameEs,
+        bodyParts: entry.bodyParts,
+      });
       if (results.length >= limit) break;
     }
   }
@@ -74,4 +83,66 @@ export async function getGifUrlByName(name: string): Promise<string | null> {
   const normalized = name.toLowerCase().trim();
   const entry = entries.find((e) => e.name.toLowerCase() === normalized);
   return entry?.gifUrl ?? null;
+}
+
+/** Get gif URL by exerciseId. */
+export async function getGifUrlById(exerciseId: string): Promise<string | null> {
+  if (!exerciseId) return null;
+  const entries = await loadExerciseCatalog();
+  const entry = entries.find((e) => e.exerciseId === exerciseId);
+  return entry?.gifUrl ?? null;
+}
+
+/** Look up exerciseId by exact name match (case-insensitive). */
+export async function getExerciseIdByName(name: string): Promise<string | null> {
+  const entries = await loadExerciseCatalog();
+  const normalized = name.toLowerCase().trim();
+  const entry = entries.find((e) => e.name.toLowerCase() === normalized);
+  return entry?.exerciseId ?? null;
+}
+
+/**
+ * Build a synchronous name→nameEs map from the loaded catalog.
+ * Returns null if the catalog hasn't been loaded yet.
+ */
+let nameEsMap: Map<string, string> | null = null;
+
+export async function loadNameEsMap(): Promise<Map<string, string>> {
+  if (nameEsMap) return nameEsMap;
+  const entries = await loadExerciseCatalog();
+  nameEsMap = new Map();
+  for (const entry of entries) {
+    if (entry.nameEs) {
+      nameEsMap.set(entry.name.toLowerCase(), entry.nameEs);
+    }
+  }
+  return nameEsMap;
+}
+
+/** Get the nameEs map synchronously (returns empty map if not yet loaded). */
+export function getNameEsMapSync(): Map<string, string> {
+  return nameEsMap ?? new Map();
+}
+
+/**
+ * Post-process a training plan to attach exerciseId from the catalog.
+ * Looks up each exercise by name (case-insensitive) and sets exerciseId.
+ */
+export async function attachExerciseIds<T extends Record<string, { exercises: { name: string; exerciseId?: string }[] }>>(plan: T): Promise<T> {
+  const entries = await loadExerciseCatalog();
+  const nameToId = new Map<string, string>();
+  for (const entry of entries) {
+    nameToId.set(entry.name.toLowerCase(), entry.exerciseId);
+  }
+
+  for (const dayKey of Object.keys(plan)) {
+    for (const ex of plan[dayKey].exercises) {
+      const catalogId = nameToId.get(ex.name.toLowerCase());
+      if (catalogId) {
+        ex.exerciseId = catalogId;
+      }
+    }
+  }
+
+  return plan;
 }

@@ -308,7 +308,10 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
                           <ExerciseNameInput
                             autoFocus
                             value={ex.name}
-                            onChange={(name) => updatePreviewEx(dayKey, ex.id, "name", name)}
+                            onChange={(name, catalogId) => {
+                              updatePreviewEx(dayKey, ex.id, "name", name);
+                              if (catalogId) updatePreviewEx(dayKey, ex.id, "exerciseId", catalogId);
+                            }}
                             placeholder={t("plan.exerciseNameTemplate", { n: i + 1 })}
                             style={styles.editInput}
                           />

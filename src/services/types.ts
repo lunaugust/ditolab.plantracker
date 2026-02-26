@@ -4,6 +4,7 @@ export type Language = "es" | "en";
 
 export type Exercise = {
 	id: string;
+	exerciseId?: string;
 	name: string;
 	sets: string;
 	reps: string;

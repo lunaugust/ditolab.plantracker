@@ -1,16 +1,24 @@
 import { useState, useEffect } from "react";
-import { getGifUrlByName } from "../data/exerciseCatalog";
+import { getGifUrlById, getGifUrlByName } from "../data/exerciseCatalog";
 
-export function useExerciseGif(exerciseName: string) {
+export function useExerciseGif(exerciseId?: string, exerciseName?: string) {
   const [gifUrl, setGifUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    getGifUrlByName(exerciseName).then((url) => {
+
+    const lookup = exerciseId
+      ? getGifUrlById(exerciseId)
+      : exerciseName
+        ? getGifUrlByName(exerciseName)
+        : Promise.resolve(null);
+
+    lookup.then((url) => {
       if (!cancelled) setGifUrl(url);
     });
+
     return () => { cancelled = true; };
-  }, [exerciseName]);
+  }, [exerciseId, exerciseName]);
 
   return gifUrl;
 }

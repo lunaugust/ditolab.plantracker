@@ -11,6 +11,7 @@
 
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
+import { attachExerciseIds } from "../data/exerciseCatalog";
 
 /* ================================================================
  * Exercise library — grouped by muscle region.
@@ -213,9 +214,9 @@ function addBeginnerNotes(exercise, language) {
  *
  * @param {{ experience: string, goal: string, limitations: string, daysPerWeek: number, minutesPerSession: number }} form
  * @param {string} language — "es" | "en"
- * @returns {Record<string, import("../data/trainingPlan").TrainingDay>}
+ * @returns {Promise<Record<string, import("../data/trainingPlan").TrainingDay>>}
  */
-export function generateRuleBasedPlan(form, language = "es") {
+export async function generateRuleBasedPlan(form, language = "es") {
   const days = form.daysPerWeek;
   const splitSource = language === "en" ? SPLITS_EN : SPLITS;
   const split = splitSource[days] || splitSource[3];
@@ -269,5 +270,5 @@ export function generateRuleBasedPlan(form, language = "es") {
     };
   });
 
-  return plan;
+  return attachExerciseIds(plan);
 }

@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
+import { useLocalizedExerciseName } from "../../hooks";
 import { formatDate, buildChartData, computeWeightStats } from "../../utils/helpers";
 import { SectionLabel, StatCard } from "./index";
 
@@ -25,6 +26,7 @@ import { SectionLabel, StatCard } from "./index";
  */
 export function ExerciseDetailPanel({ exercise, accentColor, logs, addLog, deleteLog }) {
   const { t } = useI18n();
+  const localizedName = useLocalizedExerciseName(exercise.name);
   const [activeTab, setActiveTab] = useState("log");
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
 
@@ -57,7 +59,7 @@ export function ExerciseDetailPanel({ exercise, accentColor, logs, addLog, delet
       {/* Exercise header */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6, color: colors.textPrimary }}>
-          {exercise.name}
+          {localizedName}
         </div>
         <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textMuted }}>
           {exercise.sets} {t("common.series")} · {exercise.reps} {t("common.reps")} · {exercise.rest}
@@ -117,6 +119,7 @@ export function ExerciseDetailPanel({ exercise, accentColor, logs, addLog, delet
         {activeTab === "details" && (
           <DetailsTab
             exercise={exercise}
+            localizedName={localizedName}
             entries={entries}
             t={t}
           />
@@ -292,7 +295,7 @@ function ProgressTab({ entries, accentColor, t }) {
 }
 
 /** Details tab content */
-function DetailsTab({ exercise, entries, t }) {
+function DetailsTab({ exercise, localizedName, entries, t }) {
   const totalSessions = entries.length;
   const lastLog = entries[entries.length - 1];
 
@@ -300,7 +303,7 @@ function DetailsTab({ exercise, entries, t }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={detailsStyles.card}>
         <div style={detailsStyles.label}>{t("plan.exerciseName")}</div>
-        <div style={detailsStyles.value}>{exercise.name}</div>
+        <div style={detailsStyles.value}>{localizedName}</div>
       </div>
 
       <div style={detailsStyles.card}>

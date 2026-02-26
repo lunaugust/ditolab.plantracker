@@ -30,6 +30,7 @@ function normalizeExercise(rawExercise, index) {
 
   return {
     id: normalizeString(exercise.id, `${makeExerciseId()}_${index}`),
+    exerciseId: normalizeString(exercise.exerciseId, ""),
     name: normalizeString(exercise.name, `Ejercicio ${index + 1}`),
     sets: normalizeString(exercise.sets, ""),
     reps: normalizeString(exercise.reps, ""),
@@ -174,6 +175,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     const nextPlan = clonePlan(trainingPlan);
     nextPlan[dayKey].exercises.push({
       id: makeExerciseId(),
+      exerciseId: "",
       name: t("plan.exerciseNameTemplate", { n: day.exercises.length + 1 }),
       sets: "",
       reps: "",
