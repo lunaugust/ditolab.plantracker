@@ -2,14 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan, useInstallPWA } from "./hooks";
 import { Header, LoadingScreen, AuthScreen, FeedbackModal, WhatsNewModal } from "./components/layout";
 import { APP_VERSION, WHATS_NEW_STORAGE_KEY } from "./data/changelog";
-import { PlanView, LogView, ProgressView, PlanGeneratorWizard, PlanImportWizard } from "./components/views";
+import { PlanView, PlanGeneratorWizard, PlanImportWizard, ExerciseDetailView } from "./components/views";
 import { colors } from "./theme";
 
 /**
  * Root application component.
  *
- * Orchestrates the two custom hooks and delegates
- * rendering to the appropriate view component.
+ * Orchestrates the hooks and renders a unified workout view with full-screen exercise detail navigation.
  */
 export default function App() {
   const auth = useAuth();
@@ -49,21 +48,16 @@ export default function App() {
   };
 
   // --- Login-redirect logic ---
-  // Tracks whether the first auth resolution has been recorded.
-  // On initial app load (user already signed in), we skip the redirect;
-  // only a sign-in that happens *during* this session triggers it.
   const authInitializedRef = useRef(false);
   const prevUserUidRef = useRef(null);
   const [pendingLoginRedirect, setPendingLoginRedirect] = useState(false);
 
-  // Detect a new login (null → user) that happens after the first auth settlement.
   useEffect(() => {
     if (auth.loading) return;
 
     const currUid = auth.user?.uid ?? null;
 
     if (!authInitializedRef.current) {
-      // First auth resolution: just record the baseline, no redirect.
       authInitializedRef.current = true;
       prevUserUidRef.current = currUid;
       return;
@@ -73,19 +67,15 @@ export default function App() {
     prevUserUidRef.current = currUid;
 
     if (prevUid === null && currUid !== null) {
-      // User signed in during this session.
       setPendingLoginRedirect(true);
     }
   }, [auth.user, auth.loading]);
 
-  // Once the plan finishes loading after login, redirect accordingly.
   useEffect(() => {
     if (!pendingLoginRedirect || planLoading) return;
     setPendingLoginRedirect(false);
     if (!hasPlan) {
       setShowGenerator(true);
-    } else {
-      nav.setView("plan");
     }
   }, [pendingLoginRedirect, planLoading, hasPlan]);
   // --- End login-redirect logic ---
@@ -112,7 +102,6 @@ export default function App() {
           onApply={(plan) => {
             replacePlan(plan);
             setShowGenerator(false);
-            nav.setView("plan");
             const firstDay = Object.keys(plan).sort()[0];
             if (firstDay) nav.setActiveDay(firstDay);
           }}
@@ -129,7 +118,6 @@ export default function App() {
           onApply={(plan) => {
             replacePlan(plan);
             setShowImporter(false);
-            nav.setView("plan");
             const firstDay = Object.keys(plan).sort()[0];
             if (firstDay) nav.setActiveDay(firstDay);
           }}
@@ -139,58 +127,9 @@ export default function App() {
     );
   }
 
-  /** Map view key → component */
-  const viewComponents = {
-    plan: (
-      <PlanView
-        activeDay={nav.activeDay}
-        setActiveDay={nav.setActiveDay}
-        trainingPlan={trainingPlan}
-        dayKeys={dayKeys}
-        dayColors={dayColors}
-        logs={logs}
-        saveDay={saveDay}
-        addDay={addDay}
-        removeDay={removeDay}
-        onOpenGenerator={() => setShowGenerator(true)}
-        onOpenImporter={() => setShowImporter(true)}
-      />
-    ),
-    log: (
-      <LogView
-        activeDay={nav.activeDay}
-        setActiveDay={nav.setActiveDay}
-        trainingPlan={trainingPlan}
-        dayKeys={dayKeys}
-        dayColors={dayColors}
-        selectedExercise={nav.selectedExercise}
-        selectExercise={nav.selectExercise}
-        clearExercise={nav.clearExercise}
-        logs={logs}
-        addLog={addLog}
-        deleteLog={deleteLog}
-      />
-    ),
-    progress: (
-      <ProgressView
-        activeDay={nav.activeDay}
-        setActiveDay={nav.setActiveDay}
-        trainingPlan={trainingPlan}
-        dayKeys={dayKeys}
-        dayColors={dayColors}
-        selectedExercise={nav.selectedExercise}
-        selectExercise={nav.selectExercise}
-        clearExercise={nav.clearExercise}
-        logs={logs}
-      />
-    ),
-  };
-
   return (
-    <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary, paddingBottom: 72 }}>
+    <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary, paddingBottom: 24 }}>
       <Header
-        view={nav.view}
-        onViewChange={nav.setView}
         saveMsg={planSaveMsg || logSaveMsg}
         authUserName={auth.user?.displayName}
         onSignOut={auth.enabled ? auth.logout : null}
@@ -198,11 +137,38 @@ export default function App() {
         canInstall={canInstall}
         onInstall={install}
       />
-      {viewComponents[nav.view]}
+
+      {/* Conditional rendering: Exercise detail view or workout plan view */}
+      {nav.selectedExercise ? (
+        <ExerciseDetailView
+          exercise={nav.selectedExercise}
+          accentColor={dayColors[nav.activeDay]}
+          logs={logs}
+          addLog={addLog}
+          deleteLog={deleteLog}
+          onBack={nav.clearExercise}
+        />
+      ) : (
+        <PlanView
+          activeDay={nav.activeDay}
+          setActiveDay={nav.setActiveDay}
+          trainingPlan={trainingPlan}
+          dayKeys={dayKeys}
+          dayColors={dayColors}
+          logs={logs}
+          saveDay={saveDay}
+          addDay={addDay}
+          removeDay={removeDay}
+          onOpenGenerator={() => setShowGenerator(true)}
+          onOpenImporter={() => setShowImporter(true)}
+          onExerciseClick={nav.selectExercise}
+        />
+      )}
+
       {showFeedback && (
         <FeedbackModal
           scope={storageScope}
-          currentView={nav.view}
+          currentView="plan"
           onClose={() => setShowFeedback(false)}
         />
       )}

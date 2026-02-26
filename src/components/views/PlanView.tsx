@@ -20,6 +20,7 @@ import { useI18n } from "../../i18n";
  *   removeDay: (dayKey: string) => void,
  *   onOpenGenerator: () => void,
  *   onOpenImporter: () => void,
+ *   onExerciseClick?: (exercise: import("../../data/trainingPlan").Exercise) => void,
  * }} props
  */
 export function PlanView({
@@ -34,6 +35,7 @@ export function PlanView({
   removeDay,
   onOpenGenerator,
   onOpenImporter,
+  onExerciseClick,
 }) {
   const { t } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
@@ -219,6 +221,8 @@ export function PlanView({
             index={i}
             accentColor={dayColors[safeActiveDay]}
             lastLog={getLastLog(logs, ex.id)}
+            showChevron={!!onExerciseClick}
+            onClick={onExerciseClick ? () => onExerciseClick(ex) : undefined}
           />
         ))}
 
