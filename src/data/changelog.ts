@@ -8,7 +8,7 @@
  *     whose stored "gymbuddy_seen_version" differs from APP_VERSION.
  */
 
-export const APP_VERSION = "1.4.0";
+export const APP_VERSION = "1.5.0";
 
 /** localStorage key that tracks the last version the user dismissed. */
 export const WHATS_NEW_STORAGE_KEY = "gymbuddy_seen_version";
@@ -34,6 +34,27 @@ export type ChangelogEntry = {
  * The modal only shows the FIRST (latest) entry.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.5.0",
+    date: "2026-02-26",
+    features: [
+      {
+        icon: "🔢",
+        es: "Registrá reps con botones −1 / +1: sin teclado, más rápido en el gym.",
+        en: "Log reps with −1 / +1 buttons: no keyboard, faster in the gym.",
+      },
+      {
+        icon: "📋",
+        es: "Referencia de última sesión: tu peso y reps anteriores aparecen al inicio del formulario.",
+        en: "Last session reference: your previous weight and reps are shown at the top of the form.",
+      },
+      {
+        icon: "✅",
+        es: "Confirmación visual al guardar: el botón se pone verde por un momento para que sepas que quedó guardado.",
+        en: "Visual save confirmation: the button turns green briefly so you know the log was saved.",
+      },
+    ],
+  },
   {
     version: "1.4.0",
     date: "2026-02-26",

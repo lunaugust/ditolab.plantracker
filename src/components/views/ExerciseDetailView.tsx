@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -139,10 +139,43 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
 
 /** Log tab content */
 function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog, exerciseId, accentColor, t }) {
+  const [justSaved, setJustSaved] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); }, []);
+
+  const adjustReps = (delta: number) => {
+    setForm((f) => {
+      const next = Math.max(0, (Number.isFinite(Number(f.reps)) ? Number(f.reps) : 0) + delta);
+      return { ...f, reps: String(next) };
+    });
+  };
+
+  const onSave = () => {
+    handleSubmit();
+    setJustSaved(true);
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => setJustSaved(false), 1500);
+  };
+
+  const lastEntry = entries.length > 0 ? entries[entries.length - 1] : null;
+
   return (
     <>
       {/* Form */}
       <div style={formStyles.card}>
+        {/* Last session reference */}
+        {lastEntry && (
+          <div style={formStyles.lastSessionBanner}>
+            <span style={formStyles.lastSessionLabel}>{t("log.lastSession")}</span>
+            <span style={formStyles.lastSessionValues}>
+              {lastEntry.weight ? `${lastEntry.weight} kg` : ""}
+              {lastEntry.weight && lastEntry.reps ? " × " : ""}
+              {lastEntry.reps ? `${lastEntry.reps} ${t("common.reps")}` : ""}
+            </span>
+          </div>
+        )}
+
         {/* Weight row — full width */}
         <div style={{ marginBottom: 14 }}>
           <div style={formStyles.fieldLabel}>{t("log.weightLabel").toUpperCase()}</div>
@@ -164,16 +197,24 @@ function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog,
           </div>
         </div>
 
-        {/* Reps row */}
+        {/* Reps row — stepper */}
         <div style={{ marginBottom: 14 }}>
           <div style={formStyles.fieldLabel}>{t("log.repsDoneLabel").toUpperCase()}</div>
-          <input
-            value={form.reps}
-            onChange={(e) => setForm((f) => ({ ...f, reps: e.target.value }))}
-            placeholder="0"
-            type="number"
-            style={formStyles.numberInput}
-          />
+          <div style={formStyles.repsControls}>
+            <button type="button" onClick={() => adjustReps(-1)} style={formStyles.adjustBtn}>
+              -1
+            </button>
+            <input
+              value={form.reps}
+              onChange={(e) => setForm((f) => ({ ...f, reps: e.target.value }))}
+              placeholder="0"
+              type="number"
+              style={formStyles.numberInput}
+            />
+            <button type="button" onClick={() => adjustReps(1)} style={formStyles.adjustBtn}>
+              +1
+            </button>
+          </div>
         </div>
 
         <div style={{ marginBottom: 14 }}>
@@ -186,8 +227,15 @@ function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog,
           />
         </div>
 
-        <button onClick={handleSubmit} style={{ ...formStyles.submit, background: accentColor }}>
-          {t("log.saveRecord")}
+        <button
+          onClick={onSave}
+          style={{
+            ...formStyles.submit,
+            background: justSaved ? colors.success : accentColor,
+            transition: "background 0.2s",
+          }}
+        >
+          {justSaved ? "✓" : t("log.saveRecord")}
         </button>
       </div>
 
@@ -358,6 +406,37 @@ const formStyles = {
     gridTemplateColumns: "56px 1fr 56px",
     gap: 8,
     alignItems: "center",
+  },
+  repsControls: {
+    display: "grid",
+    gridTemplateColumns: "56px 1fr 56px",
+    gap: 8,
+    alignItems: "center",
+  },
+  lastSessionBanner: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 16,
+    padding: "8px 12px",
+    background: colors.bg,
+    borderRadius: 8,
+    border: `1px solid ${colors.border}`,
+  },
+  lastSessionLabel: {
+    fontFamily: fonts.mono,
+    fontSize: 9,
+    color: colors.textDim,
+    letterSpacing: 1,
+    textTransform: "uppercase" as const,
+    flexShrink: 0,
+  },
+  lastSessionValues: {
+    fontFamily: fonts.mono,
+    fontSize: 13,
+    color: colors.textMuted,
+    fontWeight: 600,
+    flex: 1,
   },
   adjustBtn: {
     border: `1px solid ${colors.border}`,
