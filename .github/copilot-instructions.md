@@ -76,3 +76,10 @@
 - The "✦ Generate" button in `PlanView` opens the wizard as a full-screen overlay managed by `App.jsx` state (`showGenerator`).
 - All generator UI strings use `generator.*` i18n keys; both ES and EN translations are complete.
 - Generator tests live in `src/__tests__/planGenerator.test.js` (16 tests covering shape, volume scaling, day counts, time limits, and translations).
+
+## Agent Skills
+- Role-specific skill guides live in `.github/skills/`.
+- Start at `.github/skills/README.md` to choose the right role profile for the task:
+	- UX/UI Expert (`.github/skills/ux-ui-expert.md`)
+	- Frontend Engineer Expert (`.github/skills/frontend-engineer-expert.md`)
+	- QA Automation Expert (`.github/skills/qa-automation-expert.md`)
