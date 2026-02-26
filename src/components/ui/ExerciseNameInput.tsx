@@ -16,19 +16,14 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
   const { t, language } = useI18n();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [hasTypedDuringEdit, setHasTypedDuringEdit] = useState(false);
+  const [inputText, setInputText] = useState("");
   const [results, setResults] = useState<{ exerciseId: string; name: string; nameEs?: string; bodyParts: string[] }[]>([]);
   const [highlighted, setHighlighted] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const localizedValue = useLocalizedExerciseName(value);
-  const inputDisplayValue =
-    language === "es" && editing && !hasTypedDuringEdit
-      ? localizedValue
-      : editing
-        ? value
-        : localizedValue;
+  const inputDisplayValue = editing ? inputText : localizedValue;
 
   const doSearch = useCallback((query: string) => {
     if (query.length < 2) {
@@ -44,26 +39,32 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
   }, []);
 
   useEffect(() => {
-    if (editing) doSearch(value);
-  }, [value, doSearch, editing]);
+    if (editing) doSearch(inputText);
+  }, [inputText, doSearch, editing]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
         setEditing(false);
+        setInputText("");
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const select = (name: string, exerciseId?: string) => {
+  const select = (name: string, exerciseId?: string, localizedName?: string) => {
     onChange(name, exerciseId);
+    setInputText(localizedName ?? name);
     setOpen(false);
     setEditing(false);
-    setHasTypedDuringEdit(false);
     inputRef.current?.blur();
+  };
+
+  const displayName = (r: { name: string; nameEs?: string }) => {
+    if (language === "es" && r.nameEs) return r.nameEs;
+    return r.name;
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -78,17 +79,12 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
     } else if (e.key === "Enter" && highlighted >= 0) {
       e.preventDefault();
       const r = results[highlighted];
-      select(r.name, r.exerciseId);
+      select(r.name, r.exerciseId, displayName(r));
     } else if (e.key === "Escape") {
       setOpen(false);
       setEditing(false);
-      setHasTypedDuringEdit(false);
+      setInputText("");
     }
-  };
-
-  const displayName = (r: { name: string; nameEs?: string }) => {
-    if (language === "es" && r.nameEs) return r.nameEs;
-    return r.name;
   };
 
   return (
@@ -97,8 +93,8 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
         ref={inputRef}
         autoFocus={autoFocus}
         value={inputDisplayValue}
-        onChange={(e) => { setEditing(true); setHasTypedDuringEdit(true); onChange(e.target.value); }}
-        onFocus={() => { setEditing(true); setHasTypedDuringEdit(false); if (value.length >= 2) doSearch(value); }}
+        onChange={(e) => { setInputText(e.target.value); onChange(e.target.value); }}
+        onFocus={() => { setEditing(true); setInputText(localizedValue); if (localizedValue.length >= 2) doSearch(localizedValue); }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder || t("common.searchExercise")}
         style={{ ...defaultInputStyle, ...style }}
@@ -108,7 +104,7 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
           {results.map((r, i) => (
             <div
               key={r.exerciseId}
-              onMouseDown={(e) => { e.preventDefault(); select(r.name, r.exerciseId); }}
+              onMouseDown={(e) => { e.preventDefault(); select(r.name, r.exerciseId, displayName(r)); }}
               onMouseEnter={() => setHighlighted(i)}
               style={{
                 ...itemStyle,
