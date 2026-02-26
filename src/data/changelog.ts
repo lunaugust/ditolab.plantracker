@@ -8,7 +8,7 @@
  *     whose stored "gymbuddy_seen_version" differs from APP_VERSION.
  */
 
-export const APP_VERSION = "1.4.0";
+export const APP_VERSION = "1.5.0";
 
 /** localStorage key that tracks the last version the user dismissed. */
 export const WHATS_NEW_STORAGE_KEY = "gymbuddy_seen_version";
@@ -34,6 +34,22 @@ export type ChangelogEntry = {
  * The modal only shows the FIRST (latest) entry.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.5.0",
+    date: "2026-02-26",
+    features: [
+      {
+        icon: "⚡",
+        es: "Nuevo banner de \"Usar último\" en Registrar: reutilizá peso y reps con un toque.",
+        en: "New \"Use last\" banner in Log: reuse weight and reps with one tap.",
+      },
+      {
+        icon: "🎯",
+        es: "Stepper y atajos de repeticiones para cargar sets más rápido desde el móvil.",
+        en: "Reps stepper and quick picks make logging sets faster on mobile.",
+      },
+    ],
+  },
   {
     version: "1.4.0",
     date: "2026-02-26",
