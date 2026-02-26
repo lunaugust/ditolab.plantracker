@@ -58,6 +58,13 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
     setForm((prev) => ({ ...prev, weight: String(next) }));
   };
 
+  const adjustReps = (delta) => {
+    const current = Number(form.reps);
+    const safeCurrent = Number.isFinite(current) ? current : 0;
+    const next = Math.max(0, safeCurrent + delta);
+    setForm((prev) => ({ ...prev, reps: String(next) }));
+  };
+
   return (
     <PageContainer>
       <BackButton onClick={onBack} />
@@ -113,10 +120,12 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
       <div style={{ marginTop: 20 }}>
         {activeTab === "log" && (
           <LogTab
+            exercise={exercise}
             form={form}
             setForm={setForm}
             handleSubmit={handleSubmit}
             adjustWeight={adjustWeight}
+            adjustReps={adjustReps}
             entries={entries}
             deleteLog={deleteLog}
             exerciseId={exercise.id}
@@ -138,7 +147,21 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
 }
 
 /** Log tab content */
-function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog, exerciseId, accentColor, t }) {
+function LogTab({
+  exercise,
+  form,
+  setForm,
+  handleSubmit,
+  adjustWeight,
+  adjustReps,
+  entries,
+  deleteLog,
+  exerciseId,
+  accentColor,
+  t,
+}) {
+  const repTargets = [8, 10, 15, 20];
+
   return (
     <>
       {/* Form */}
@@ -167,13 +190,35 @@ function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog,
         {/* Reps row */}
         <div style={{ marginBottom: 14 }}>
           <div style={formStyles.fieldLabel}>{t("log.repsDoneLabel").toUpperCase()}</div>
-          <input
-            value={form.reps}
-            onChange={(e) => setForm((f) => ({ ...f, reps: e.target.value }))}
-            placeholder="0"
-            type="number"
-            style={formStyles.numberInput}
-          />
+          <div style={formStyles.weightControls}>
+            <button type="button" onClick={() => adjustReps(-1)} style={formStyles.adjustBtn}>
+              -1
+            </button>
+            <input
+              value={form.reps}
+              onChange={(e) => setForm((f) => ({ ...f, reps: e.target.value }))}
+              placeholder="0"
+              type="number"
+              style={formStyles.numberInput}
+            />
+            <button type="button" onClick={() => adjustReps(1)} style={formStyles.adjustBtn}>
+              +1
+            </button>
+          </div>
+          {repTargets.length > 0 && (
+            <div style={formStyles.chipRow}>
+              {repTargets.map((rep) => (
+                <button
+                  key={rep}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, reps: String(rep) }))}
+                  style={formStyles.chip}
+                >
+                  {rep} {t("common.reps")}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div style={{ marginBottom: 14 }}>
@@ -392,6 +437,23 @@ const formStyles = {
     fontWeight: 700,
     cursor: "pointer",
     minHeight: 50,
+    WebkitTapHighlightColor: "transparent",
+  },
+  chipRow: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+    marginTop: 8,
+  },
+  chip: {
+    border: `1px solid ${colors.border}`,
+    background: colors.surface,
+    color: colors.textPrimary,
+    borderRadius: 999,
+    padding: "8px 12px",
+    fontFamily: fonts.mono,
+    fontSize: 12,
+    cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
   },
 };

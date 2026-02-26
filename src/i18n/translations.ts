@@ -72,6 +72,7 @@ export const translations = {
       saveError: "✗ Error al guardar",
       totalSessions: "Total de sesiones",
       lastSession: "Última sesión",
+      fillFromLast: "Usar último",
     },
     progress: {
       titleWeight: "PROGRESIÓN DE PESO",
@@ -240,6 +241,7 @@ export const translations = {
       saveError: "✗ Error saving",
       totalSessions: "Total sessions",
       lastSession: "Last session",
+      fillFromLast: "Use last",
     },
     progress: {
       titleWeight: "WEIGHT PROGRESS",
