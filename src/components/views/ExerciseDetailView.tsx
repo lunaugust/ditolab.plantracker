@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -48,7 +48,8 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
 
   const handleSubmit = () => {
     addLog(exercise.id, form);
-    setForm((prev) => ({ weight: prev.weight, reps: prev.reps, notes: "" }));
+    // Keep all form values including notes for quick multi-set logging
+    // User can use "Repeat last set" button to restore previous values if needed
   };
 
   const adjustWeight = (delta) => {
@@ -56,6 +57,13 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
     const safeCurrent = Number.isFinite(current) ? current : 0;
     const next = Math.max(0, safeCurrent + delta);
     setForm((prev) => ({ ...prev, weight: String(next) }));
+  };
+
+  const adjustReps = (delta) => {
+    const current = Number(form.reps);
+    const safeCurrent = Number.isFinite(current) ? current : 0;
+    const next = Math.max(0, safeCurrent + delta);
+    setForm((prev) => ({ ...prev, reps: String(next) }));
   };
 
   return (
@@ -117,6 +125,7 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
             setForm={setForm}
             handleSubmit={handleSubmit}
             adjustWeight={adjustWeight}
+            adjustReps={adjustReps}
             entries={entries}
             deleteLog={deleteLog}
             exerciseId={exercise.id}
@@ -138,11 +147,73 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
 }
 
 /** Log tab content */
-function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog, exerciseId, accentColor, t }) {
+function LogTab({ form, setForm, handleSubmit, adjustWeight, adjustReps, entries, deleteLog, exerciseId, accentColor, t }) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState(false);
+  const weightInputRef = useRef(null);
+
+  // Auto-focus weight input when form appears or after save
+  useEffect(() => {
+    if (weightInputRef.current && !form.weight) {
+      weightInputRef.current.focus();
+    }
+  }, [form.weight]);
+
+  const handleSaveClick = async () => {
+    if (!form.weight && !form.reps) {
+      setValidationError(true);
+      setTimeout(() => setValidationError(false), 2000);
+      return;
+    }
+    setIsSubmitting(true);
+    handleSubmit();
+    setTimeout(() => {
+      setIsSubmitting(false);
+      // Focus weight input for next set entry
+      if (weightInputRef.current) {
+        weightInputRef.current.focus();
+      }
+    }, 300);
+  };
+
+  const handleDeleteClick = (idx) => {
+    setShowDeleteConfirm(idx);
+  };
+
+  const confirmDelete = () => {
+    if (showDeleteConfirm !== null) {
+      deleteLog(exerciseId, showDeleteConfirm);
+      setShowDeleteConfirm(null);
+    }
+  };
+
+  const fillLastSet = () => {
+    const latest = entries[entries.length - 1];
+    if (latest) {
+      setForm({
+        weight: latest.weight ?? "",
+        reps: latest.reps ?? "",
+        notes: latest.notes ?? "",
+      });
+    }
+  };
+
   return (
     <>
       {/* Form */}
       <div style={formStyles.card}>
+        {/* Quick action: Repeat last set */}
+        {entries.length > 0 && (
+          <button
+            type="button"
+            onClick={fillLastSet}
+            style={formStyles.repeatButton}
+          >
+            🔄 {t("log.repeatLast")}
+          </button>
+        )}
+
         {/* Weight row — full width */}
         <div style={{ marginBottom: 14 }}>
           <div style={formStyles.fieldLabel}>{t("log.weightLabel").toUpperCase()}</div>
@@ -151,10 +222,12 @@ function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog,
               -2.5
             </button>
             <input
+              ref={weightInputRef}
               value={form.weight}
               onChange={(e) => setForm((f) => ({ ...f, weight: e.target.value }))}
               placeholder="0"
               type="number"
+              inputMode="decimal"
               step="0.5"
               style={formStyles.numberInput}
             />
@@ -164,16 +237,25 @@ function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog,
           </div>
         </div>
 
-        {/* Reps row */}
+        {/* Reps row with increment buttons */}
         <div style={{ marginBottom: 14 }}>
           <div style={formStyles.fieldLabel}>{t("log.repsDoneLabel").toUpperCase()}</div>
-          <input
-            value={form.reps}
-            onChange={(e) => setForm((f) => ({ ...f, reps: e.target.value }))}
-            placeholder="0"
-            type="number"
-            style={formStyles.numberInput}
-          />
+          <div style={formStyles.weightControls}>
+            <button type="button" onClick={() => adjustReps(-1)} style={formStyles.adjustBtn}>
+              -1
+            </button>
+            <input
+              value={form.reps}
+              onChange={(e) => setForm((f) => ({ ...f, reps: e.target.value }))}
+              placeholder="0"
+              type="number"
+              inputMode="numeric"
+              style={formStyles.numberInput}
+            />
+            <button type="button" onClick={() => adjustReps(1)} style={formStyles.adjustBtn}>
+              +1
+            </button>
+          </div>
         </div>
 
         <div style={{ marginBottom: 14 }}>
@@ -186,8 +268,22 @@ function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog,
           />
         </div>
 
-        <button onClick={handleSubmit} style={{ ...formStyles.submit, background: accentColor }}>
-          {t("log.saveRecord")}
+        {validationError && (
+          <div style={formStyles.errorMessage}>
+            {t("log.validationError")}
+          </div>
+        )}
+
+        <button
+          onClick={handleSaveClick}
+          disabled={isSubmitting}
+          style={{
+            ...formStyles.submit,
+            background: isSubmitting ? colors.textMuted : accentColor,
+            opacity: isSubmitting ? 0.6 : 1,
+          }}
+        >
+          {isSubmitting ? t("log.saving") : t("log.saveRecord")}
         </button>
       </div>
 
@@ -219,7 +315,7 @@ function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog,
                   )}
                 </div>
                 <button
-                  onClick={() => deleteLog(exerciseId, originalIdx)}
+                  onClick={() => handleDeleteClick(originalIdx)}
                   style={historyStyles.deleteBtn}
                 >
                   ×
@@ -227,6 +323,30 @@ function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog,
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm !== null && (
+        <div style={modalStyles.overlay} onClick={() => setShowDeleteConfirm(null)}>
+          <div style={modalStyles.content} onClick={(e) => e.stopPropagation()}>
+            <div style={modalStyles.title}>{t("log.confirmDelete")}</div>
+            <div style={modalStyles.message}>{t("log.confirmDeleteMessage")}</div>
+            <div style={modalStyles.actions}>
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                style={modalStyles.cancelBtn}
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                onClick={confirmDelete}
+                style={{ ...modalStyles.confirmBtn, background: accentColor }}
+              >
+                {t("log.delete")}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>
@@ -370,6 +490,7 @@ const formStyles = {
     fontWeight: 700,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
+    transition: "all 0.15s",
   },
   textInput: {
     width: "100%",
@@ -393,6 +514,32 @@ const formStyles = {
     cursor: "pointer",
     minHeight: 50,
     WebkitTapHighlightColor: "transparent",
+    transition: "all 0.2s",
+  },
+  repeatButton: {
+    width: "100%",
+    padding: "10px 14px",
+    marginBottom: 16,
+    background: colors.bg,
+    border: `1px solid ${colors.border}`,
+    borderRadius: 10,
+    color: colors.textPrimary,
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+    transition: "all 0.15s",
+  },
+  errorMessage: {
+    color: colors.warning,
+    fontSize: 12,
+    fontFamily: fonts.sans,
+    marginBottom: 12,
+    padding: "8px 12px",
+    background: `${colors.warning}15`,
+    borderRadius: 8,
+    textAlign: "center" as const,
   },
 };
 
@@ -482,5 +629,73 @@ const progressStyles = {
     display: "grid",
     gridTemplateColumns: "1fr 1fr 1fr",
     gap: 10,
+  },
+};
+
+const modalStyles = {
+  overlay: {
+    position: "fixed" as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0, 0, 0, 0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+    padding: 20,
+  },
+  content: {
+    background: colors.surface,
+    borderRadius: 16,
+    padding: 24,
+    maxWidth: 400,
+    width: "100%",
+    border: `1px solid ${colors.border}`,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: colors.textPrimary,
+    marginBottom: 12,
+    fontFamily: fonts.sans,
+  },
+  message: {
+    fontSize: 14,
+    color: colors.textMuted,
+    marginBottom: 24,
+    lineHeight: 1.5,
+    fontFamily: fonts.sans,
+  },
+  actions: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 12,
+  },
+  cancelBtn: {
+    padding: "12px 20px",
+    background: colors.bg,
+    border: `1px solid ${colors.border}`,
+    borderRadius: 10,
+    color: colors.textPrimary,
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: "pointer",
+    minHeight: 44,
+    WebkitTapHighlightColor: "transparent",
+  },
+  confirmBtn: {
+    padding: "12px 20px",
+    border: "none",
+    borderRadius: 10,
+    color: colors.bg,
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: "pointer",
+    minHeight: 44,
+    WebkitTapHighlightColor: "transparent",
   },
 };
