@@ -55,6 +55,10 @@
 - For new features touching logs, update: view usage, hook behavior, and helper/test coverage together.
 - `PlanView` manages its own draft editing state locally; it does **not** receive `addExercise`/`removeExercise` as props.
 
+## Changelog and What's New policy
+- Every time a new feature is introduced or the interface is redesigned, update `src/data/changelog.ts` as part of the same change.
+- Keep the What's New pop-up/modal configured to display exactly the latest changelog entry and the immediately previous entry.
+
 ## Config and integration points
 - Build/dev scripts are defined in `package.json` (`dev`, `build`, `preview`, `test:*`).
 - Vite config in `vite.config.js` includes PWA setup (`vite-plugin-pwa`) and Vitest settings.

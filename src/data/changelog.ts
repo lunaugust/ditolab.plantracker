@@ -8,7 +8,7 @@
  *     whose stored "gymbuddy_seen_version" differs from APP_VERSION.
  */
 
-export const APP_VERSION = "1.2.0";
+export const APP_VERSION = "1.3.0";
 
 /** localStorage key that tracks the last version the user dismissed. */
 export const WHATS_NEW_STORAGE_KEY = "gymbuddy_seen_version";
@@ -34,6 +34,22 @@ export type ChangelogEntry = {
  * The modal only shows the FIRST (latest) entry.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.3.0",
+    date: "2026-02-25",
+    features: [
+      {
+        icon: "🧭",
+        es: "Nuevo flujo unificado: desde Plan tocás un ejercicio y navegás a su vista de detalle en pantalla completa.",
+        en: "New unified flow: from Plan, tap an exercise to navigate to its full-screen detail view.",
+      },
+      {
+        icon: "↩",
+        es: "Navegación simplificada: botón volver para regresar al plan, con una interfaz enfocada en solo dos pestañas (Registrar y Progresión).",
+        en: "Simplified navigation: back button returns to plan, with a focused two-tab interface (Log and Progress).",
+      },
+    ],
+  },
   {
     version: "1.2.0",
     date: "2026-02-24",
