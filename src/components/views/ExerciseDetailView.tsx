@@ -10,6 +10,7 @@ import {
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
 import { formatDate, buildChartData, computeWeightStats } from "../../utils/helpers";
+import { getGifUrl } from "../../utils/exerciseLibrary";
 import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
 
 /**
@@ -31,6 +32,9 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
 
   const entries = logs[exercise.id] || [];
+
+  // Resolve GIF: prefer gifUrl stored on the exercise, fall back to library lookup
+  const gifUrl: string | undefined = exercise.gifUrl || getGifUrl(exercise.name);
 
   // Initialize form with last log values when exercise changes
   useEffect(() => {
@@ -60,6 +64,21 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
 
       {/* Exercise header */}
       <div style={{ marginBottom: 20 }}>
+        {gifUrl && (
+          <div style={{ textAlign: "center", marginBottom: 16 }}>
+            <img
+              src={gifUrl}
+              alt={exercise.name}
+              style={{
+                width: "100%",
+                maxWidth: 320,
+                borderRadius: 12,
+                border: `1px solid ${colors.border}`,
+                background: colors.surface,
+              }}
+            />
+          </div>
+        )}
         <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6, color: colors.textPrimary }}>
           {exercise.name}
         </div>

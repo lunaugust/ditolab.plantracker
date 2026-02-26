@@ -7,6 +7,9 @@ export type Exercise = {
 	name: string;
 	sets: string;
 	reps: string;
+	rest?: string;
+	note?: string;
+	gifUrl?: string;
 };
 
 export type TrainingDay = {

@@ -1,0 +1,328 @@
+[
+  {
+    "id": "hack_squat",
+    "name": "Sentadilla Hack",
+    "nameEn": "Hack Squat",
+    "aliases": ["Sentadilla Hack (calentamiento)"],
+    "gifUrl": "https://v2.exercisedb.io/image/0021",
+    "muscleGroup": "quadriceps"
+  },
+  {
+    "id": "leg_press",
+    "name": "Prensa 45°",
+    "nameEn": "45° Leg Press",
+    "aliases": ["Prensa Pies Arriba"],
+    "gifUrl": "https://v2.exercisedb.io/image/0365",
+    "muscleGroup": "quadriceps"
+  },
+  {
+    "id": "goblet_squat",
+    "name": "Sentadilla Goblet",
+    "nameEn": "Goblet Squat",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0081",
+    "muscleGroup": "quadriceps"
+  },
+  {
+    "id": "leg_extension",
+    "name": "Extensión de Cuádriceps",
+    "nameEn": "Leg Extension",
+    "aliases": ["Sillón de Cuádriceps"],
+    "gifUrl": "https://v2.exercisedb.io/image/0362",
+    "muscleGroup": "quadriceps"
+  },
+  {
+    "id": "bulgarian_split_squat",
+    "name": "Sentadilla Búlgara",
+    "nameEn": "Bulgarian Split Squat",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0057",
+    "muscleGroup": "quadriceps"
+  },
+  {
+    "id": "step_ups",
+    "name": "Step-ups con mancuernas",
+    "nameEn": "Dumbbell Step-ups",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0516",
+    "muscleGroup": "quadriceps"
+  },
+  {
+    "id": "lying_leg_curl",
+    "name": "Curl Femoral Acostado",
+    "nameEn": "Lying Leg Curl",
+    "aliases": ["Camilla Femoral"],
+    "gifUrl": "https://v2.exercisedb.io/image/0363",
+    "muscleGroup": "hamstrings"
+  },
+  {
+    "id": "romanian_deadlift",
+    "name": "Peso Muerto Rumano",
+    "nameEn": "Romanian Deadlift",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0038",
+    "muscleGroup": "hamstrings"
+  },
+  {
+    "id": "seated_leg_curl",
+    "name": "Curl Femoral Sentado",
+    "nameEn": "Seated Leg Curl",
+    "aliases": ["Silla Femoral"],
+    "gifUrl": "https://v2.exercisedb.io/image/0385",
+    "muscleGroup": "hamstrings"
+  },
+  {
+    "id": "hip_thrust",
+    "name": "Hip Thrust",
+    "nameEn": "Hip Thrust",
+    "aliases": ["Elevación de Cadera en Máquina"],
+    "gifUrl": "https://v2.exercisedb.io/image/3543",
+    "muscleGroup": "glutes"
+  },
+  {
+    "id": "glute_bridge",
+    "name": "Elevación de Cadera",
+    "nameEn": "Glute Bridge",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0245",
+    "muscleGroup": "glutes"
+  },
+  {
+    "id": "sumo_squat",
+    "name": "Sentadilla Sumo",
+    "nameEn": "Sumo Squat",
+    "aliases": ["Sentadilla Sumo + Aductor"],
+    "gifUrl": "https://v2.exercisedb.io/image/0048",
+    "muscleGroup": "glutes"
+  },
+  {
+    "id": "bench_press",
+    "name": "Press Banco Plano con Barra",
+    "nameEn": "Barbell Bench Press",
+    "aliases": ["Press Banco Plano — Calentamiento", "Press Banco Plano"],
+    "gifUrl": "https://v2.exercisedb.io/image/0025",
+    "muscleGroup": "chest"
+  },
+  {
+    "id": "incline_dumbbell_press",
+    "name": "Press Inclinado con Mancuernas",
+    "nameEn": "Incline Dumbbell Press",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0100",
+    "muscleGroup": "chest"
+  },
+  {
+    "id": "cable_flye",
+    "name": "Aperturas en Polea",
+    "nameEn": "Cable Flyes",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0155",
+    "muscleGroup": "chest"
+  },
+  {
+    "id": "decline_press",
+    "name": "Press Declinado",
+    "nameEn": "Decline Press",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0026",
+    "muscleGroup": "chest"
+  },
+  {
+    "id": "chest_dips",
+    "name": "Fondos en Paralelas (pecho)",
+    "nameEn": "Chest Dips",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0036",
+    "muscleGroup": "chest"
+  },
+  {
+    "id": "lat_pulldown_wide",
+    "name": "Jalón al Pecho (agarre ancho)",
+    "nameEn": "Wide Grip Lat Pulldown",
+    "aliases": ["Jalón al Pecho"],
+    "gifUrl": "https://v2.exercisedb.io/image/0098",
+    "muscleGroup": "back"
+  },
+  {
+    "id": "seated_cable_row",
+    "name": "Remo en Polea Sentado",
+    "nameEn": "Seated Cable Row",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0259",
+    "muscleGroup": "back"
+  },
+  {
+    "id": "single_arm_row",
+    "name": "Remo con Mancuerna Unilateral",
+    "nameEn": "Single-arm Dumbbell Row",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0307",
+    "muscleGroup": "back"
+  },
+  {
+    "id": "supinated_lat_pulldown",
+    "name": "Jalón Agarre Supino",
+    "nameEn": "Supinated Lat Pulldown",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0332",
+    "muscleGroup": "back"
+  },
+  {
+    "id": "tbar_row",
+    "name": "Remo T",
+    "nameEn": "T-Bar Row",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0308",
+    "muscleGroup": "back"
+  },
+  {
+    "id": "machine_shoulder_press",
+    "name": "Press Militar en Máquina",
+    "nameEn": "Machine Shoulder Press",
+    "aliases": ["Press Militar en Máquina (con respaldo)"],
+    "gifUrl": "https://v2.exercisedb.io/image/0478",
+    "muscleGroup": "shoulders"
+  },
+  {
+    "id": "lateral_raise",
+    "name": "Vuelos Laterales",
+    "nameEn": "Lateral Raises",
+    "aliases": ["Vuelos Laterales con Mancuernas"],
+    "gifUrl": "https://v2.exercisedb.io/image/0090",
+    "muscleGroup": "shoulders"
+  },
+  {
+    "id": "face_pulls",
+    "name": "Face Pulls",
+    "nameEn": "Face Pulls",
+    "aliases": [
+      "Face Pulls en Polea Alta",
+      "Face Pulls / Band Pull-Aparts (activación)"
+    ],
+    "gifUrl": "https://v2.exercisedb.io/image/0079",
+    "muscleGroup": "shoulders"
+  },
+  {
+    "id": "front_raise",
+    "name": "Elevaciones Frontales",
+    "nameEn": "Front Raises",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0082",
+    "muscleGroup": "shoulders"
+  },
+  {
+    "id": "rear_delt_fly",
+    "name": "Elevaciones Posteriores",
+    "nameEn": "Rear Delt Flyes",
+    "aliases": ["Elevaciones Posteriores con Mancuernas"],
+    "gifUrl": "https://v2.exercisedb.io/image/0074",
+    "muscleGroup": "shoulders"
+  },
+  {
+    "id": "dumbbell_shrug",
+    "name": "Encogimiento con Mancuernas (Trapecio)",
+    "nameEn": "Dumbbell Shrug",
+    "aliases": ["Encogimiento con Mancuernas"],
+    "gifUrl": "https://v2.exercisedb.io/image/0089",
+    "muscleGroup": "shoulders"
+  },
+  {
+    "id": "ez_bar_curl",
+    "name": "Curl con Barra W",
+    "nameEn": "EZ-Bar Curl",
+    "aliases": ["Bíceps con Barra W"],
+    "gifUrl": "https://v2.exercisedb.io/image/0032",
+    "muscleGroup": "biceps"
+  },
+  {
+    "id": "hammer_curl",
+    "name": "Curl Martillo",
+    "nameEn": "Hammer Curl",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0053",
+    "muscleGroup": "biceps"
+  },
+  {
+    "id": "preacher_curl",
+    "name": "Curl en Banco Scott",
+    "nameEn": "Preacher Curl",
+    "aliases": ["Bíceps Banco Scott"],
+    "gifUrl": "https://v2.exercisedb.io/image/0071",
+    "muscleGroup": "biceps"
+  },
+  {
+    "id": "cable_pushdown",
+    "name": "Pushdown en Polea",
+    "nameEn": "Cable Pushdown",
+    "aliases": [
+      "Tríceps en Polea con Cuerda (Pushdown)",
+      "Tríceps en Polea con Cuerda"
+    ],
+    "gifUrl": "https://v2.exercisedb.io/image/0190",
+    "muscleGroup": "triceps"
+  },
+  {
+    "id": "overhead_tricep_ext",
+    "name": "Extensión de Tríceps sobre Cabeza",
+    "nameEn": "Overhead Triceps Extension",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0215",
+    "muscleGroup": "triceps"
+  },
+  {
+    "id": "bench_dips",
+    "name": "Fondos en Banco",
+    "nameEn": "Bench Dips",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0073",
+    "muscleGroup": "triceps"
+  },
+  {
+    "id": "standing_calf_raise",
+    "name": "Pantorrillas de Pie",
+    "nameEn": "Standing Calf Raise",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0281",
+    "muscleGroup": "calves"
+  },
+  {
+    "id": "seated_calf_raise",
+    "name": "Pantorrillas Sentado",
+    "nameEn": "Seated Calf Raise",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0268",
+    "muscleGroup": "calves"
+  },
+  {
+    "id": "plank",
+    "name": "Plancha Frontal",
+    "nameEn": "Front Plank",
+    "aliases": ["Plancha con Extensión de Brazos"],
+    "gifUrl": "https://v2.exercisedb.io/image/0535",
+    "muscleGroup": "core"
+  },
+  {
+    "id": "dead_bug",
+    "name": "Dead Bug",
+    "nameEn": "Dead Bug",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/1140",
+    "muscleGroup": "core"
+  },
+  {
+    "id": "bird_dog",
+    "name": "Bird Dog",
+    "nameEn": "Bird Dog",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/1299",
+    "muscleGroup": "core"
+  },
+  {
+    "id": "cable_crunch",
+    "name": "Crunch en Polea Alta",
+    "nameEn": "Cable Crunch",
+    "aliases": [],
+    "gifUrl": "https://v2.exercisedb.io/image/0260",
+    "muscleGroup": "core"
+  }
+]

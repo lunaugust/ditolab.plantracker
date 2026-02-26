@@ -8,6 +8,7 @@
 
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
+import { getGifUrl } from "../utils/exerciseLibrary";
 
 /* ================================================================
  * Exercise library — grouped by muscle region
@@ -318,6 +319,7 @@ export function generateRuleBasedPlan(form, language = "es") {
       reps: ex.reps,
       rest: ex.rest,
       note: ex.note || "",
+      gifUrl: getGifUrl(ex.name),
     }));
 
     plan[dayKey] = {

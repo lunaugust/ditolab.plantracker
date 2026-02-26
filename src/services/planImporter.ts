@@ -12,6 +12,7 @@ import { getGenerativeModel } from "firebase/ai";
 import { ai } from "./firebaseClient";
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
+import { getGifUrl } from "../utils/exerciseLibrary";
 import type { TrainingPlan } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -140,6 +141,7 @@ function parseImportResponse(rawText: string): TrainingPlan {
         reps: String(ex?.reps ?? ""),
         rest: String(ex?.rest ?? ""),
         note: String(ex?.note ?? ""),
+        gifUrl: getGifUrl(String(ex?.name ?? "")),
       })),
     };
   });
