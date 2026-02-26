@@ -14,17 +14,20 @@ export function BackButton({ onClick }) {
     <button
       onClick={onClick}
       style={{
-        background: "none",
-        border: "none",
-        color: colors.textMuted,
+        background: colors.surface,
+        border: `1px solid ${colors.border}`,
+        color: colors.textSecondary,
         cursor: "pointer",
         fontFamily: fonts.mono,
         fontSize: 13,
+        fontWeight: 600,
         marginBottom: 16,
-        padding: "10px 12px 10px 0",
+        padding: "10px 16px",
         minHeight: 44,
-        display: "flex",
+        display: "inline-flex",
         alignItems: "center",
+        gap: 6,
+        borderRadius: 10,
         WebkitTapHighlightColor: "transparent",
       }}
     >

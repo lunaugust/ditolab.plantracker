@@ -143,40 +143,37 @@ function LogTab({ form, setForm, handleSubmit, adjustWeight, entries, deleteLog,
     <>
       {/* Form */}
       <div style={formStyles.card}>
-        <div style={formStyles.grid}>
-          {[
-            ["weight", t("log.weightLabel"), "0"],
-            ["reps", t("log.repsDoneLabel"), "0"],
-          ].map(([field, label, placeholder]) => (
-            <div key={field}>
-              <div style={formStyles.fieldLabel}>{label.toUpperCase()}</div>
-              {field === "weight" ? (
-                <div style={formStyles.weightControls}>
-                  <button type="button" onClick={() => adjustWeight(-5)} style={formStyles.adjustBtn}>
-                    -5
-                  </button>
-                  <input
-                    value={form[field]}
-                    onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-                    placeholder={placeholder}
-                    type="number"
-                    style={formStyles.numberInput}
-                  />
-                  <button type="button" onClick={() => adjustWeight(5)} style={formStyles.adjustBtn}>
-                    +5
-                  </button>
-                </div>
-              ) : (
-                <input
-                  value={form[field]}
-                  onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-                  placeholder={placeholder}
-                  type="number"
-                  style={formStyles.numberInput}
-                />
-              )}
-            </div>
-          ))}
+        {/* Weight row — full width */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={formStyles.fieldLabel}>{t("log.weightLabel").toUpperCase()}</div>
+          <div style={formStyles.weightControls}>
+            <button type="button" onClick={() => adjustWeight(-2.5)} style={formStyles.adjustBtn}>
+              -2.5
+            </button>
+            <input
+              value={form.weight}
+              onChange={(e) => setForm((f) => ({ ...f, weight: e.target.value }))}
+              placeholder="0"
+              type="number"
+              step="0.5"
+              style={formStyles.numberInput}
+            />
+            <button type="button" onClick={() => adjustWeight(2.5)} style={formStyles.adjustBtn}>
+              +2.5
+            </button>
+          </div>
+        </div>
+
+        {/* Reps row */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={formStyles.fieldLabel}>{t("log.repsDoneLabel").toUpperCase()}</div>
+          <input
+            value={form.reps}
+            onChange={(e) => setForm((f) => ({ ...f, reps: e.target.value }))}
+            placeholder="0"
+            type="number"
+            style={formStyles.numberInput}
+          />
         </div>
 
         <div style={{ marginBottom: 14 }}>
@@ -334,7 +331,7 @@ const formStyles = {
   },
   grid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    gridTemplateColumns: "3fr 2fr",
     gap: 12,
     marginBottom: 14,
   },
@@ -358,7 +355,7 @@ const formStyles = {
   },
   weightControls: {
     display: "grid",
-    gridTemplateColumns: "48px 1fr 48px",
+    gridTemplateColumns: "56px 1fr 56px",
     gap: 8,
     alignItems: "center",
   },
@@ -369,7 +366,7 @@ const formStyles = {
     borderRadius: 10,
     minHeight: 48,
     fontFamily: fonts.mono,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
