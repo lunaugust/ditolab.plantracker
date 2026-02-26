@@ -4,81 +4,83 @@
  * Assembles a plan from curated exercise templates based on the
  * user's experience, goal, days-per-week, and limitations.
  * No network call required.
+ *
+ * Exercise names are taken directly from exercises.json so GIFs
+ * always match (names are English regardless of language).
  */
 
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
 
 /* ================================================================
- * Exercise library — grouped by muscle region
- * Each exercise: { name, sets, reps, rest, note? }
- * Values are in Spanish; translated at the end if language==="en".
+ * Exercise library — grouped by muscle region.
+ * Names match exercises.json entries exactly (English, lowercase).
  * ================================================================ */
 const EXERCISES = {
   quadriceps: [
-    { name: "Sentadilla Hack", sets: "4", reps: "12·10·8·6", rest: "90s" },
-    { name: "Prensa 45°", sets: "4", reps: "12", rest: "90s" },
-    { name: "Sentadilla Goblet", sets: "3", reps: "12", rest: "60s" },
-    { name: "Extensión de Cuádriceps", sets: "3", reps: "12", rest: "60s" },
-    { name: "Sentadilla Búlgara", sets: "3", reps: "10 c/pierna", rest: "60s" },
-    { name: "Step-ups con mancuernas", sets: "3", reps: "10 c/pierna", rest: "60s" },
+    { name: "sled hack squat", sets: "4", reps: "12·10·8·6", rest: "90s" },
+    { name: "smith leg press", sets: "4", reps: "12", rest: "90s" },
+    { name: "dumbbell goblet squat", sets: "3", reps: "12", rest: "60s" },
+    { name: "lever leg extension", sets: "3", reps: "12", rest: "60s" },
+    { name: "dumbbell single leg split squat", sets: "3", reps: "10 /leg", rest: "60s" },
+    { name: "dumbbell step-up", sets: "3", reps: "10 /leg", rest: "60s" },
   ],
   hamstrings: [
-    { name: "Curl Femoral Acostado", sets: "4", reps: "12", rest: "90s" },
-    { name: "Peso Muerto Rumano", sets: "4", reps: "10", rest: "90s", note: "Espalda neutra" },
-    { name: "Curl Femoral Sentado", sets: "3", reps: "12", rest: "60s" },
+    { name: "lever lying leg curl", sets: "4", reps: "12", rest: "90s" },
+    { name: "barbell romanian deadlift", sets: "4", reps: "10", rest: "90s", note: "Keep back neutral" },
+    { name: "lever seated leg curl", sets: "3", reps: "12", rest: "60s" },
   ],
   glutes: [
-    { name: "Hip Thrust", sets: "4", reps: "10", rest: "90s" },
-    { name: "Elevación de Cadera", sets: "3", reps: "12", rest: "60s" },
-    { name: "Sentadilla Sumo", sets: "4", reps: "10", rest: "90s" },
+    { name: "barbell glute bridge", sets: "4", reps: "10", rest: "90s" },
+    { name: "cable kickback", sets: "3", reps: "12 /leg", rest: "60s" },
+    { name: "barbell sumo deadlift", sets: "4", reps: "10", rest: "90s" },
   ],
   chest: [
-    { name: "Press Banco Plano con Barra", sets: "4", reps: "10·8·6·6", rest: "120s" },
-    { name: "Press Inclinado con Mancuernas", sets: "4", reps: "10", rest: "90s" },
-    { name: "Aperturas en Polea", sets: "3", reps: "12", rest: "60s" },
-    { name: "Press Declinado", sets: "3", reps: "10", rest: "90s" },
-    { name: "Fondos en Paralelas (pecho)", sets: "3", reps: "10", rest: "90s" },
+    { name: "barbell bench press", sets: "4", reps: "10·8·6·6", rest: "120s" },
+    { name: "dumbbell incline bench press", sets: "4", reps: "10", rest: "90s" },
+    { name: "cable middle fly", sets: "3", reps: "12", rest: "60s" },
+    { name: "barbell decline bench press", sets: "3", reps: "10", rest: "90s" },
+    { name: "chest dip", sets: "3", reps: "10", rest: "90s" },
   ],
   back: [
-    { name: "Jalón al Pecho (agarre ancho)", sets: "4", reps: "12·10·8·6", rest: "90s" },
-    { name: "Remo en Polea Sentado", sets: "4", reps: "10", rest: "90s" },
-    { name: "Remo con Mancuerna Unilateral", sets: "3", reps: "10 c/brazo", rest: "60s" },
-    { name: "Jalón Agarre Supino", sets: "3", reps: "10", rest: "90s" },
-    { name: "Remo T", sets: "3", reps: "10", rest: "90s" },
+    { name: "cable pulldown", sets: "4", reps: "12·10·8·6", rest: "90s" },
+    { name: "cable seated row", sets: "4", reps: "10", rest: "90s" },
+    { name: "dumbbell bent over row", sets: "3", reps: "10 /arm", rest: "60s" },
+    { name: "cable underhand pulldown", sets: "3", reps: "10", rest: "90s" },
+    { name: "lever reverse t-bar row", sets: "3", reps: "10", rest: "90s" },
   ],
   shoulders: [
-    { name: "Press Militar en Máquina", sets: "4", reps: "12·10·8·6", rest: "90s" },
-    { name: "Vuelos Laterales", sets: "4", reps: "12", rest: "60s" },
-    { name: "Face Pulls", sets: "4", reps: "15", rest: "60s", note: "Clave para postura" },
-    { name: "Elevaciones Frontales", sets: "3", reps: "12", rest: "60s" },
-    { name: "Elevaciones Posteriores", sets: "3", reps: "15", rest: "60s" },
+    { name: "lever shoulder press", sets: "4", reps: "12·10·8·6", rest: "90s" },
+    { name: "dumbbell lateral raise", sets: "4", reps: "12", rest: "60s" },
+    { name: "cable supine reverse fly", sets: "4", reps: "15", rest: "60s", note: "Key for posture" },
+    { name: "dumbbell front raise", sets: "3", reps: "12", rest: "60s" },
+    { name: "dumbbell rear fly", sets: "3", reps: "15", rest: "60s" },
   ],
   biceps: [
-    { name: "Curl con Barra W", sets: "4", reps: "12·10·8·6", rest: "90s" },
-    { name: "Curl Martillo", sets: "3", reps: "10", rest: "60s" },
-    { name: "Curl en Banco Scott", sets: "3", reps: "10", rest: "60s" },
+    { name: "ez barbell curl", sets: "4", reps: "12·10·8·6", rest: "90s" },
+    { name: "dumbbell hammer curl", sets: "3", reps: "10", rest: "60s" },
+    { name: "barbell preacher curl", sets: "3", reps: "10", rest: "60s" },
   ],
   triceps: [
-    { name: "Pushdown en Polea", sets: "4", reps: "12", rest: "60s" },
-    { name: "Extensión de Tríceps sobre Cabeza", sets: "3", reps: "10", rest: "60s" },
-    { name: "Fondos en Banco", sets: "3", reps: "12", rest: "60s" },
+    { name: "cable pushdown", sets: "4", reps: "12", rest: "60s" },
+    { name: "cable rope high pulley overhead tricep extension", sets: "3", reps: "10", rest: "60s" },
+    { name: "weighted bench dip", sets: "3", reps: "12", rest: "60s" },
   ],
   calves: [
-    { name: "Pantorrillas de Pie", sets: "4", reps: "15", rest: "60s" },
-    { name: "Pantorrillas Sentado", sets: "3", reps: "15", rest: "60s" },
+    { name: "barbell standing calf raise", sets: "4", reps: "15", rest: "60s" },
+    { name: "dumbbell seated calf raise", sets: "3", reps: "15", rest: "60s" },
   ],
   core: [
-    { name: "Plancha Frontal", sets: "3", reps: "45-60s", rest: "60s" },
-    { name: "Dead Bug", sets: "3", reps: "10 c/lado", rest: "60s" },
-    { name: "Bird Dog", sets: "3", reps: "10 c/lado", rest: "60s" },
-    { name: "Crunch en Polea Alta", sets: "3", reps: "15", rest: "60s" },
+    { name: "weighted front plank", sets: "3", reps: "45-60s", rest: "60s" },
+    { name: "dead bug", sets: "3", reps: "10 /side", rest: "60s" },
+    { name: "cable kneeling crunch", sets: "3", reps: "15", rest: "60s" },
+    { name: "reverse crunch", sets: "3", reps: "15", rest: "60s" },
   ],
 };
 
 /* ================================================================
  * Day split templates by days-per-week
- * Each entry: { labelKey, groups[] }
+ * Each entry: { label, groups[] }
  * ================================================================ */
 const SPLITS = {
   2: [
@@ -187,75 +189,18 @@ function scaleSets(setsStr, multiplier) {
   return String(Math.max(1, Math.round(n * multiplier)));
 }
 
+/** Beginner note translations */
+const BEGINNER_NOTES = {
+  es: { suffix: "Peso liviano", full: "Peso liviano, enfocarse en técnica" },
+  en: { suffix: "Light weight", full: "Light weight, focus on technique" },
+};
+
 /** Add beginner-friendly notes */
-function addBeginnerNotes(exercise) {
+function addBeginnerNotes(exercise, language) {
+  const notes = BEGINNER_NOTES[language] || BEGINNER_NOTES.en;
   return {
     ...exercise,
-    note: exercise.note ? `${exercise.note} · Peso liviano` : "Peso liviano, enfocarse en técnica",
-  };
-}
-
-/* Simple ES→EN exercise name map for rule-based (best effort) */
-const NAME_TRANSLATIONS = {
-  "Sentadilla Hack": "Hack Squat",
-  "Prensa 45°": "45° Leg Press",
-  "Sentadilla Goblet": "Goblet Squat",
-  "Extensión de Cuádriceps": "Leg Extension",
-  "Sentadilla Búlgara": "Bulgarian Split Squat",
-  "Step-ups con mancuernas": "Dumbbell Step-ups",
-  "Curl Femoral Acostado": "Lying Leg Curl",
-  "Peso Muerto Rumano": "Romanian Deadlift",
-  "Curl Femoral Sentado": "Seated Leg Curl",
-  "Hip Thrust": "Hip Thrust",
-  "Elevación de Cadera": "Glute Bridge",
-  "Sentadilla Sumo": "Sumo Squat",
-  "Press Banco Plano con Barra": "Barbell Bench Press",
-  "Press Inclinado con Mancuernas": "Incline Dumbbell Press",
-  "Aperturas en Polea": "Cable Flyes",
-  "Press Declinado": "Decline Press",
-  "Fondos en Paralelas (pecho)": "Chest Dips",
-  "Jalón al Pecho (agarre ancho)": "Wide Grip Lat Pulldown",
-  "Remo en Polea Sentado": "Seated Cable Row",
-  "Remo con Mancuerna Unilateral": "Single-arm Dumbbell Row",
-  "Jalón Agarre Supino": "Supinated Lat Pulldown",
-  "Remo T": "T-Bar Row",
-  "Press Militar en Máquina": "Machine Shoulder Press",
-  "Vuelos Laterales": "Lateral Raises",
-  "Face Pulls": "Face Pulls",
-  "Elevaciones Frontales": "Front Raises",
-  "Elevaciones Posteriores": "Rear Delt Flyes",
-  "Curl con Barra W": "EZ-Bar Curl",
-  "Curl Martillo": "Hammer Curl",
-  "Curl en Banco Scott": "Preacher Curl",
-  "Pushdown en Polea": "Cable Pushdown",
-  "Extensión de Tríceps sobre Cabeza": "Overhead Triceps Extension",
-  "Fondos en Banco": "Bench Dips",
-  "Pantorrillas de Pie": "Standing Calf Raise",
-  "Pantorrillas Sentado": "Seated Calf Raise",
-  "Plancha Frontal": "Front Plank",
-  "Dead Bug": "Dead Bug",
-  "Bird Dog": "Bird Dog",
-  "Crunch en Polea Alta": "Cable Crunch",
-};
-
-const NOTE_TRANSLATIONS = {
-  "Espalda neutra": "Keep back neutral",
-  "Clave para postura": "Key for posture",
-  "Peso liviano, enfocarse en técnica": "Light weight, focus on technique",
-  "Peso liviano": "Light weight",
-};
-
-function translateExercise(ex, language) {
-  if (language !== "en") return ex;
-  let note = ex.note || "";
-  // Translate known note fragments
-  for (const [es, en] of Object.entries(NOTE_TRANSLATIONS)) {
-    note = note.replace(es, en);
-  }
-  return {
-    ...ex,
-    name: NAME_TRANSLATIONS[ex.name] || ex.name,
-    note,
+    note: exercise.note ? `${exercise.note} · ${notes.suffix}` : notes.full,
   };
 }
 
@@ -304,11 +249,8 @@ export function generateRuleBasedPlan(form, language = "es") {
 
     // Beginner adjustments
     if (form.experience === "beginner") {
-      exercises = exercises.map(addBeginnerNotes);
+      exercises = exercises.map((ex) => addBeginnerNotes(ex, language));
     }
-
-    // Translate if needed
-    exercises = exercises.map((ex) => translateExercise(ex, language));
 
     // Add unique IDs
     exercises = exercises.map((ex) => ({

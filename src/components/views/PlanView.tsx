@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getLastLog, makeExerciseId } from "../../utils/helpers";
-import { DayTabs, SectionLabel, PageContainer } from "../ui";
+import { DayTabs, SectionLabel, PageContainer, ExerciseNameInput } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
@@ -230,9 +230,9 @@ export function PlanView({
           <div key={ex.id} style={styles.editCard}>
             <div style={styles.editIndex}>{String(i + 1).padStart(2, "0")}</div>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-              <input
+              <ExerciseNameInput
                 value={ex.name}
-                onChange={(e) => updateExerciseField(ex.id, "name", e.target.value)}
+                onChange={(name) => updateExerciseField(ex.id, "name", name)}
                 style={styles.nameInput}
               />
 

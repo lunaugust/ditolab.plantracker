@@ -12,6 +12,7 @@ import { getGenerativeModel } from "firebase/ai";
 import { ai } from "./firebaseClient";
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
+import { getExerciseNamesForPrompt } from "../data/exerciseCatalog";
 import type { TrainingPlan } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -65,19 +66,21 @@ export function isImportAvailable(): boolean {
 // Prompt builders
 // ---------------------------------------------------------------------------
 
-function buildImportSystemPrompt(language: string): string {
+function buildImportSystemPrompt(language: string, exerciseCatalog: string): string {
   const lang = language === "en" ? "English" : "Spanish";
   const dayWord = language === "en" ? "Day" : "Día";
   return [
     `You are an expert fitness data extractor.`,
     `The user will provide a document (PDF or plain-text / CSV) containing a training plan.`,
-    `Extract the plan and return ONLY valid JSON in ${lang} matching this exact schema (no markdown, no explanation):`,
+    `Extract the plan and return ONLY valid JSON. Day names, labels, and notes must be in ${lang}.`,
+    `Exercise names MUST be in English, mapped to the closest match from the provided catalog below.`,
+    `Return ONLY valid JSON matching this exact schema (no markdown, no explanation):`,
     `{`,
     `  "<Day Name>": {`,
     `    "label": "<muscle groups targeted, e.g. Chest & Triceps>",`,
     `    "exercises": [`,
     `      {`,
-    `        "name": "<exercise name>",`,
+    `        "name": "<exercise name from catalog>",`,
     `        "sets": "<number of sets as a string>",`,
     `        "reps": "<rep scheme, e.g. 12·10·8·6 or 15>",`,
     `        "rest": "<rest period, e.g. 90s>",`,
@@ -90,10 +93,15 @@ function buildImportSystemPrompt(language: string): string {
     `Rules:`,
     `- Each top-level key must follow the pattern "${dayWord} N" (e.g. "${dayWord} 1", "${dayWord} 2").`,
     `- If the document already uses its own day names, map them to "${dayWord} N" but keep the original name as part of the label.`,
+    `- Map each exercise name from the document to the closest match from the exercise catalog below. Use the exact catalog name.`,
+    `- If no close match exists in the catalog, keep the original name from the document.`,
     `- All field values must be strings — never raw numbers.`,
     `- If a field is missing in the source, use an empty string "".`,
     `- Do NOT invent exercises that are not present in the document.`,
     `- If the document is not a training plan, or is unreadable, return an empty JSON object: {}`,
+    ``,
+    `EXERCISE CATALOG (map document exercises to the closest match):`,
+    exerciseCatalog,
   ].join("\n");
 }
 
@@ -202,13 +210,15 @@ export async function importPlanFromFile(
     data = textToBase64(text);
   }
 
+  const exerciseCatalog = await getExerciseNamesForPrompt();
+
   const filePart = { inlineData: { mimeType, data } };
   const textPart = { text: buildImportUserPrompt(language) };
 
   const model = getGenerativeModel(ai, { model: "gemini-2.5-flash-lite" });
 
   const result = await model.generateContent({
-    systemInstruction: { parts: [{ text: buildImportSystemPrompt(language) }] },
+    systemInstruction: { parts: [{ text: buildImportSystemPrompt(language, exerciseCatalog) }] },
     contents: [{ role: "user", parts: [filePart, textPart] }],
     generationConfig: {
       temperature: 0.2, // low temperature → faithful extraction, minimal hallucination

@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
+import { useExerciseGif } from "../../hooks";
 import { formatDate, buildChartData, computeWeightStats } from "../../utils/helpers";
 import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
 
@@ -27,6 +28,7 @@ import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
  */
 export function ExerciseDetailView({ exercise, accentColor, logs, addLog, deleteLog, onBack }) {
   const { t } = useI18n();
+  const gifUrl = useExerciseGif(exercise.name);
   const [activeTab, setActiveTab] = useState("log");
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
 
@@ -72,6 +74,18 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
           </div>
         )}
       </div>
+
+      {/* Exercise GIF demonstration */}
+      {gifUrl && (
+        <div style={gifStyles.card}>
+          <div style={gifStyles.label}>{t("common.demonstration")}</div>
+          <img
+            src={gifUrl}
+            alt={exercise.name}
+            style={gifStyles.img}
+          />
+        </div>
+      )}
 
       {/* Tabs */}
       <div style={styles.tabs}>
@@ -416,6 +430,31 @@ const historyStyles = {
     opacity: 0.6,
     transition: "opacity 0.15s",
     WebkitTapHighlightColor: "transparent",
+  },
+};
+
+const gifStyles = {
+  card: {
+    background: colors.surface,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 20,
+    border: `1px solid ${colors.border}`,
+    textAlign: "center" as const,
+  },
+  label: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.textMuted,
+    letterSpacing: 1,
+    marginBottom: 10,
+    textTransform: "uppercase" as const,
+  },
+  img: {
+    width: "100%",
+    maxHeight: 240,
+    objectFit: "contain" as const,
+    borderRadius: 10,
   },
 };
 

@@ -29,6 +29,9 @@ export const translations = {
       records: "registros",
       noData: "sin datos",
       details: "Detalles",
+      demonstration: "Demostración",
+      searchExercise: "Buscar ejercicio...",
+      noMatches: "Sin resultados",
     },
     plan: {
       title: "PLAN",
@@ -194,6 +197,9 @@ export const translations = {
       records: "records",
       noData: "no data",
       details: "Details",
+      demonstration: "Demonstration",
+      searchExercise: "Search exercise...",
+      noMatches: "No matches",
     },
     plan: {
       title: "PLAN",

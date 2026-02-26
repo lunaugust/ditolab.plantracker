@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { colors, fonts } from "../../theme";
-import { SectionLabel, PageContainer, BackButton } from "../ui";
+import { SectionLabel, PageContainer, BackButton, ExerciseNameInput } from "../ui";
 import { useI18n } from "../../i18n";
 import { generateTrainingPlan, isAIAvailable } from "../../services/aiPlanGenerator";
 import { makeExerciseId } from "../../utils/helpers";
@@ -305,10 +305,10 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
                       {isEditing ? (
                         /* Expanded edit form */
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                          <input
+                          <ExerciseNameInput
                             autoFocus
                             value={ex.name}
-                            onChange={(e) => updatePreviewEx(dayKey, ex.id, "name", e.target.value)}
+                            onChange={(name) => updatePreviewEx(dayKey, ex.id, "name", name)}
                             placeholder={t("plan.exerciseNameTemplate", { n: i + 1 })}
                             style={styles.editInput}
                           />

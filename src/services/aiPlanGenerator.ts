@@ -10,6 +10,7 @@ import { ai } from "./firebaseClient";
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
 import { generateRuleBasedPlan } from "./ruleBasedPlanGenerator";
+import { getExerciseNamesForPrompt } from "../data/exerciseCatalog";
 
 /**
  * Whether the Firebase AI backend is available.
@@ -22,20 +23,22 @@ export function isAIAvailable() {
 /**
  * Build the system prompt for Gemini.
  * @param {string} language — "es" | "en"
+ * @param {string} exerciseCatalog — formatted exercise names grouped by body part
  * @returns {string}
  */
-function buildSystemPrompt(language) {
+function buildSystemPrompt(language, exerciseCatalog) {
   const lang = language === "en" ? "English" : "Spanish";
   return [
     `You are an expert certified personal trainer and exercise physiologist.`,
-    `Generate a training plan in ${lang}.`,
+    `Generate a training plan. Day names, labels, notes, and coaching cues must be in ${lang}.`,
+    `Exercise names MUST be in English, chosen from the provided catalog below.`,
     `Return ONLY valid JSON matching this exact schema (no markdown, no explanation):`,
     `{`,
     `  "<Day Name>": {`,
     `    "label": "<muscle groups targeted>",`,
     `    "exercises": [`,
     `      {`,
-    `        "name": "<exercise name>",`,
+    `        "name": "<exercise name from catalog>",`,
     `        "sets": "<number>",`,
     `        "reps": "<rep scheme, e.g. 12·10·8·6 or 15>",`,
     `        "rest": "<rest period, e.g. 90s>",`,
@@ -47,6 +50,7 @@ function buildSystemPrompt(language) {
     ``,
     `Rules:`,
     `- Each day key must be "${language === "en" ? "Day" : "Día"} N" (e.g. "${language === "en" ? "Day" : "Día"} 1").`,
+    `- Exercise names MUST come from the exercise catalog below. Use the exact name as listed.`,
     `- Include appropriate warm-up sets where relevant.`,
     `- Include 2-3 core/abs exercises at the end of each day.`,
     `- All string values, no numbers.`,
@@ -54,6 +58,9 @@ function buildSystemPrompt(language) {
     `- Adjust volume and intensity to the experience level.`,
     `- Match the number of training days requested.`,
     `- Keep each session within the requested time (adjust exercise count accordingly).`,
+    ``,
+    `EXERCISE CATALOG (pick ONLY from these):`,
+    exerciseCatalog,
   ].join("\n");
 }
 
@@ -143,14 +150,15 @@ function parseAIResponse(rawText) {
  */
 export async function generateTrainingPlan(form, language = "es") {
   if (!isAIAvailable()) {
-    return { plan: generateRuleBasedPlan(form, language), source: "rules" };
+    return { plan: await generateRuleBasedPlan(form, language), source: "rules" };
   }
 
   try {
+    const exerciseCatalog = await getExerciseNamesForPrompt();
     const model = getGenerativeModel(ai, { model: "gemini-3-flash-preview" });
 
     const result = await model.generateContent({
-      systemInstruction: { parts: [{ text: buildSystemPrompt(language) }] },
+      systemInstruction: { parts: [{ text: buildSystemPrompt(language, exerciseCatalog) }] },
       contents: [{ role: "user", parts: [{ text: buildUserPrompt(form, language) }] }],
       generationConfig: {
         temperature: 0.7,
@@ -164,6 +172,6 @@ export async function generateTrainingPlan(form, language = "es") {
     return { plan, source: "ai" };
   } catch (error) {
     console.warn("[AIGenerator] Gemini unavailable, using rule-based fallback.", error.message || error);
-    return { plan: generateRuleBasedPlan(form, language), source: "rules" };
+    return { plan: await generateRuleBasedPlan(form, language), source: "rules" };
   }
 }
