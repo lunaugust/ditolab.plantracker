@@ -160,8 +160,7 @@ function LogTab({
   accentColor,
   t,
 }) {
-  const lastEntry = entries[entries.length - 1];
-  const repTargets = Array.from(new Set((exercise.reps?.match(/\d+/g) || []).map(Number))).slice(0, 3);
+  const repTargets = [8, 10, 15, 20];
 
   return (
     <>
@@ -206,17 +205,8 @@ function LogTab({
               +1
             </button>
           </div>
-          {(repTargets.length > 0 || lastEntry?.reps) && (
+          {repTargets.length > 0 && (
             <div style={formStyles.chipRow}>
-              {lastEntry?.reps && (
-                <button
-                  type="button"
-                  onClick={() => setForm((f) => ({ ...f, reps: lastEntry.reps ?? "" }))}
-                  style={formStyles.chip}
-                >
-                  {t("log.lastSession")} · {lastEntry.reps}
-                </button>
-              )}
               {repTargets.map((rep) => (
                 <button
                   key={rep}
