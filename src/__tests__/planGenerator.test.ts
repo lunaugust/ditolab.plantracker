@@ -13,25 +13,25 @@ describe("generateRuleBasedPlan", () => {
     minutesPerSession: 60,
   };
 
-  it("returns the correct number of days", () => {
-    const plan = generateRuleBasedPlan(baseForm, "es");
+  it("returns the correct number of days", async () => {
+    const plan = await generateRuleBasedPlan(baseForm, "es");
     expect(Object.keys(plan)).toHaveLength(4);
   });
 
-  it("uses Spanish day keys by default", () => {
-    const plan = generateRuleBasedPlan(baseForm, "es");
+  it("uses Spanish day keys by default", async () => {
+    const plan = await generateRuleBasedPlan(baseForm, "es");
     const keys = Object.keys(plan);
     expect(keys.every((k) => k.startsWith("Día"))).toBe(true);
   });
 
-  it("uses English day keys when language is 'en'", () => {
-    const plan = generateRuleBasedPlan(baseForm, "en");
+  it("uses English day keys when language is 'en'", async () => {
+    const plan = await generateRuleBasedPlan(baseForm, "en");
     const keys = Object.keys(plan);
     expect(keys.every((k) => k.startsWith("Day"))).toBe(true);
   });
 
-  it("each day has label, color, and exercises array", () => {
-    const plan = generateRuleBasedPlan(baseForm, "es");
+  it("each day has label, color, and exercises array", async () => {
+    const plan = await generateRuleBasedPlan(baseForm, "es");
     for (const day of Object.values(plan)) {
       expect(day).toHaveProperty("label");
       expect(day).toHaveProperty("color");
@@ -40,8 +40,8 @@ describe("generateRuleBasedPlan", () => {
     }
   });
 
-  it("each exercise has required fields and a unique id", () => {
-    const plan = generateRuleBasedPlan(baseForm, "es");
+  it("each exercise has required fields and a unique id", async () => {
+    const plan = await generateRuleBasedPlan(baseForm, "es");
     const allIds = new Set();
     for (const day of Object.values(plan)) {
       for (const ex of day.exercises) {
@@ -57,8 +57,8 @@ describe("generateRuleBasedPlan", () => {
     }
   });
 
-  it("assigns colors from GENERATED_DAY_COLORS", () => {
-    const plan = generateRuleBasedPlan(baseForm, "es");
+  it("assigns colors from GENERATED_DAY_COLORS", async () => {
+    const plan = await generateRuleBasedPlan(baseForm, "es");
     Object.values(plan).forEach((day, i) => {
       expect(day.color).toBe(GENERATED_DAY_COLORS[i % GENERATED_DAY_COLORS.length]);
     });
@@ -77,8 +77,8 @@ describe("generateRuleBasedPlan — experience scaling", () => {
     minutesPerSession: 60,
   });
 
-  it("beginner gets notes about light weight", () => {
-    const plan = generateRuleBasedPlan(makeForm("beginner"), "es");
+  it("beginner gets notes about light weight", async () => {
+    const plan = await generateRuleBasedPlan(makeForm("beginner"), "es");
     const firstDay = Object.values(plan)[0];
     const hasBeginnerNote = firstDay.exercises.some(
       (ex) => ex.note && ex.note.toLowerCase().includes("livian")
@@ -86,9 +86,9 @@ describe("generateRuleBasedPlan — experience scaling", () => {
     expect(hasBeginnerNote).toBe(true);
   });
 
-  it("advanced plan has equal or more exercises than beginner", () => {
-    const beginner = generateRuleBasedPlan(makeForm("beginner"), "es");
-    const advanced = generateRuleBasedPlan(makeForm("advanced"), "es");
+  it("advanced plan has equal or more exercises than beginner", async () => {
+    const beginner = await generateRuleBasedPlan(makeForm("beginner"), "es");
+    const advanced = await generateRuleBasedPlan(makeForm("advanced"), "es");
 
     const countExercises = (plan) =>
       Object.values(plan).reduce((sum, day) => sum + day.exercises.length, 0);
@@ -102,8 +102,8 @@ describe("generateRuleBasedPlan — experience scaling", () => {
  * ================================================================ */
 describe("generateRuleBasedPlan — days per week", () => {
   for (const daysPerWeek of [2, 3, 4, 5, 6]) {
-    it(`generates ${daysPerWeek} days`, () => {
-      const plan = generateRuleBasedPlan(
+    it(`generates ${daysPerWeek} days`, async () => {
+      const plan = await generateRuleBasedPlan(
         { experience: "intermediate", goal: "strength", limitations: "", daysPerWeek, minutesPerSession: 60 },
         "es"
       );
@@ -116,10 +116,10 @@ describe("generateRuleBasedPlan — days per week", () => {
  * Session time limits exercise count
  * ================================================================ */
 describe("generateRuleBasedPlan — time limit", () => {
-  it("short session (30 min) has fewer exercises than long (90 min)", () => {
+  it("short session (30 min) has fewer exercises than long (90 min)", async () => {
     const base = { experience: "intermediate", goal: "hypertrophy", limitations: "", daysPerWeek: 4 };
-    const short = generateRuleBasedPlan({ ...base, minutesPerSession: 30 }, "es");
-    const long = generateRuleBasedPlan({ ...base, minutesPerSession: 90 }, "es");
+    const short = await generateRuleBasedPlan({ ...base, minutesPerSession: 30 }, "es");
+    const long = await generateRuleBasedPlan({ ...base, minutesPerSession: 90 }, "es");
 
     const max = (plan) => Math.max(...Object.values(plan).map((d) => d.exercises.length));
     expect(max(long)).toBeGreaterThanOrEqual(max(short));
@@ -130,8 +130,8 @@ describe("generateRuleBasedPlan — time limit", () => {
  * English translations
  * ================================================================ */
 describe("generateRuleBasedPlan — English output", () => {
-  it("translates exercise names to English", () => {
-    const plan = generateRuleBasedPlan(
+  it("translates exercise names to English", async () => {
+    const plan = await generateRuleBasedPlan(
       { experience: "intermediate", goal: "strength", limitations: "", daysPerWeek: 3, minutesPerSession: 60 },
       "en"
     );
@@ -143,8 +143,8 @@ describe("generateRuleBasedPlan — English output", () => {
     expect(hasEnglish).toBe(true);
   });
 
-  it("translates beginner notes to English", () => {
-    const plan = generateRuleBasedPlan(
+  it("translates beginner notes to English", async () => {
+    const plan = await generateRuleBasedPlan(
       { experience: "beginner", goal: "adaptation", limitations: "", daysPerWeek: 2, minutesPerSession: 60 },
       "en"
     );

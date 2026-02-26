@@ -8,7 +8,7 @@
  *     whose stored "gymbuddy_seen_version" differs from APP_VERSION.
  */
 
-export const APP_VERSION = "1.3.0";
+export const APP_VERSION = "1.4.0";
 
 /** localStorage key that tracks the last version the user dismissed. */
 export const WHATS_NEW_STORAGE_KEY = "gymbuddy_seen_version";
@@ -34,6 +34,27 @@ export type ChangelogEntry = {
  * The modal only shows the FIRST (latest) entry.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.4.0",
+    date: "2026-02-26",
+    features: [
+      {
+        icon: "↩",
+        es: "Botón volver rediseñado: ahora es más visible y fácil de encontrar.",
+        en: "Redesigned back button: now more visible and easier to find.",
+      },
+      {
+        icon: "🎬",
+        es: "GIFs de ejercicios: ahora podés ver una animación de cómo hacer cada ejercicio.",
+        en: "Exercise GIFs: now you can see an animation of how to perform each exercise.",
+      },
+      {
+        icon: "⚖",
+        es: "Entrada de peso mejorada: campo más ancho con botones ±2.5 kg para ajustes precisos.",
+        en: "Improved weight input: wider field with ±2.5 kg buttons for precise adjustments.",
+      },
+    ],
+  },
   {
     version: "1.3.0",
     date: "2026-02-25",
