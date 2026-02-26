@@ -13,7 +13,7 @@ import { formatDate, buildChartData, computeWeightStats } from "../../utils/help
 import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
 
 /**
- * Full-screen exercise detail view with tabs: Log, Progress, Details
+ * Full-screen exercise detail view with tabs: Log, Progress
  * Used on mobile for better UX
  *
  * @param {{
@@ -78,7 +78,6 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
         {[
           { key: "log", label: t("nav.log") },
           { key: "progress", label: t("nav.progress") },
-          { key: "details", label: t("common.details") },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -114,14 +113,6 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
           <ProgressTab
             entries={entries}
             accentColor={accentColor}
-            t={t}
-          />
-        )}
-
-        {activeTab === "details" && (
-          <DetailsTab
-            exercise={exercise}
-            entries={entries}
             t={t}
           />
         )}
@@ -295,56 +286,6 @@ function ProgressTab({ entries, accentColor, t }) {
   );
 }
 
-/** Details tab content */
-function DetailsTab({ exercise, entries, t }) {
-  const totalSessions = entries.length;
-  const lastLog = entries[entries.length - 1];
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={detailsStyles.card}>
-        <div style={detailsStyles.label}>{t("plan.exerciseName")}</div>
-        <div style={detailsStyles.value}>{exercise.name}</div>
-      </div>
-
-      <div style={detailsStyles.card}>
-        <div style={detailsStyles.label}>{t("plan.structure")}</div>
-        <div style={detailsStyles.value}>
-          {exercise.sets} {t("common.series")} × {exercise.reps} {t("common.reps")}
-        </div>
-      </div>
-
-      <div style={detailsStyles.card}>
-        <div style={detailsStyles.label}>{t("plan.rest")}</div>
-        <div style={detailsStyles.value}>{exercise.rest}</div>
-      </div>
-
-      {exercise.note && (
-        <div style={detailsStyles.card}>
-          <div style={detailsStyles.label}>{t("plan.note")}</div>
-          <div style={{ ...detailsStyles.value, color: colors.warning, fontStyle: "italic" }}>
-            ⚠ {exercise.note}
-          </div>
-        </div>
-      )}
-
-      <div style={detailsStyles.card}>
-        <div style={detailsStyles.label}>{t("log.totalSessions")}</div>
-        <div style={detailsStyles.value}>{totalSessions}</div>
-      </div>
-
-      {lastLog && (
-        <div style={detailsStyles.card}>
-          <div style={detailsStyles.label}>{t("log.lastSession")}</div>
-          <div style={detailsStyles.value}>
-            {formatDate(lastLog.date)} · {lastLog.weight ? `${lastLog.weight} kg` : "—"} × {lastLog.reps || "—"}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /* ---- Styles ---- */
 const styles = {
   tabs: {
@@ -503,27 +444,5 @@ const progressStyles = {
     display: "grid",
     gridTemplateColumns: "1fr 1fr 1fr",
     gap: 10,
-  },
-};
-
-const detailsStyles = {
-  card: {
-    background: colors.surface,
-    borderRadius: 10,
-    padding: 14,
-    border: `1px solid ${colors.border}`,
-  },
-  label: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 6,
-  },
-  value: {
-    fontSize: 14,
-    color: colors.textPrimary,
-    fontWeight: 500,
   },
 };
