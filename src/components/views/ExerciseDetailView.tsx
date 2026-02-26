@@ -163,38 +163,10 @@ function LogTab({
   const lastEntry = entries[entries.length - 1];
   const repTargets = Array.from(new Set((exercise.reps?.match(/\d+/g) || []).map(Number))).slice(0, 3);
 
-  const fillFromLast = () => {
-    if (!lastEntry) return;
-    setForm((prev) => ({
-      ...prev,
-      weight: lastEntry.weight ?? "",
-      reps: lastEntry.reps ?? "",
-    }));
-  };
-
   return (
     <>
       {/* Form */}
       <div style={formStyles.card}>
-        {lastEntry && (
-          <div style={formStyles.quickBar}>
-            <div style={formStyles.quickLabel}>
-              {t("log.lastSession")}:{" "}
-              <span style={formStyles.quickValue}>
-                {lastEntry.weight ? `${lastEntry.weight} kg` : "—"}
-                {lastEntry.reps ? ` · ${lastEntry.reps} ${t("common.reps")}` : ""}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={fillFromLast}
-              style={{ ...formStyles.quickBtn, color: accentColor, borderColor: accentColor }}
-            >
-              {t("log.fillFromLast")}
-            </button>
-          </div>
-        )}
-
         {/* Weight row — full width */}
         <div style={{ marginBottom: 14 }}>
           <div style={formStyles.fieldLabel}>{t("log.weightLabel").toUpperCase()}</div>
@@ -475,41 +447,6 @@ const formStyles = {
     fontWeight: 700,
     cursor: "pointer",
     minHeight: 50,
-    WebkitTapHighlightColor: "transparent",
-  },
-  quickBar: {
-    display: "flex",
-    gap: 10,
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "10px 12px",
-    background: colors.bg,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  quickLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    color: colors.textMuted,
-    display: "flex",
-    gap: 6,
-    alignItems: "center",
-  },
-  quickValue: {
-    color: colors.textPrimary,
-    fontWeight: 700,
-    fontFamily: fonts.mono,
-  },
-  quickBtn: {
-    background: "none",
-    borderRadius: 10,
-    padding: "10px 14px",
-    border: `1px solid ${colors.border}`,
-    fontFamily: fonts.sans,
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
   },
   chipRow: {

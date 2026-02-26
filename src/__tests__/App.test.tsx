@@ -164,32 +164,6 @@ describe("Exercise Detail", () => {
     expect(screen.getAllByText("Día 1").length).toBeGreaterThan(0);
   });
 
-  it("lets users reuse their last logged set with one tap", async () => {
-    loadLogs.mockResolvedValueOnce({
-      d1_hack_warmup: [
-        { weight: "60", reps: "12", notes: "", date: new Date().toISOString() },
-      ],
-    });
-    const user = userEvent.setup();
-    render(<App />);
-    await waitForPlanLoad();
-
-    await clickFirstExercise(user);
-
-    const [weightInput, repsInput] = screen.getAllByRole("spinbutton");
-    expect(weightInput.value).toBe("60");
-    expect(repsInput.value).toBe("12");
-
-    await user.clear(weightInput);
-    await user.type(weightInput, "20");
-    await user.clear(repsInput);
-    await user.type(repsInput, "5");
-
-    await user.click(screen.getByText("Usar último"));
-    expect(weightInput.value).toBe("60");
-    expect(repsInput.value).toBe("12");
-  });
-
   it("weight adjustment buttons change weight by ±2.5", async () => {
     const user = userEvent.setup();
     render(<App />);
