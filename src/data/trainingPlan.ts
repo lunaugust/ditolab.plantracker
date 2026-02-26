@@ -13,6 +13,8 @@
  * @property {string} reps         — Rep scheme description
  * @property {string} rest         — Rest period between sets
  * @property {string} [note]       — Optional coaching cue / safety note
+ * @property {"catalog"|"custom"} [noteSource]   — Note origin
+ * @property {string} [noteCatalogId]              — exerciseId used for localized catalog note lookup
  */
 
 /** @typedef {Object} TrainingDay

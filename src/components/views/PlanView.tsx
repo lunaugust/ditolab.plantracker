@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { getLastLog, makeExerciseId } from "../../utils/helpers";
+import { getExerciseNoteById } from "../../data/exerciseCatalog";
+import { applyCatalogNoteSelection, applyManualNote } from "../../utils/exerciseNotes";
 import { DayTabs, SectionLabel, PageContainer, ExerciseNameInput } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
@@ -37,7 +39,7 @@ export function PlanView({
   onOpenImporter,
   onExerciseClick,
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : null;
   const [isEditing, setIsEditing] = useState(false);
@@ -80,13 +82,20 @@ export function PlanView({
 
   const currentDay = isEditing && draftDay ? draftDay : day;
 
-  const updateExerciseField = (exerciseId, field, value) => {
+  const updateExercise = (exerciseId, updater) => {
     if (!draftDay) return;
     setDraftDay((prev) => ({
       ...prev,
       exercises: prev.exercises.map((exercise) => (
-        exercise.id === exerciseId ? { ...exercise, [field]: value } : exercise
+        exercise.id === exerciseId ? updater(exercise) : exercise
       )),
+    }));
+  };
+
+  const updateExerciseField = (exerciseId, field, value) => {
+    updateExercise(exerciseId, (exercise) => ({
+      ...exercise,
+      [field]: value,
     }));
   };
 
@@ -199,6 +208,8 @@ export function PlanView({
                       reps: "",
                       rest: "",
                       note: "",
+                      noteSource: "custom",
+                      noteCatalogId: "",
                     },
                     ...prev.exercises,
                   ],
@@ -232,9 +243,22 @@ export function PlanView({
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
               <ExerciseNameInput
                 value={ex.name}
-                onChange={(name, catalogId) => {
+                onChange={async (name, catalogId) => {
                   updateExerciseField(ex.id, "name", name);
-                  if (catalogId) updateExerciseField(ex.id, "exerciseId", catalogId);
+                  if (!catalogId) {
+                    updateExercise(ex.id, (exercise) => ({
+                      ...exercise,
+                      noteSource: "custom",
+                    }));
+                    return;
+                  }
+
+                  const localizedNote = await getExerciseNoteById(catalogId, language);
+                  updateExercise(ex.id, (exercise) => applyCatalogNoteSelection(exercise, {
+                    name,
+                    catalogId,
+                    localizedNote,
+                  }));
                 }}
                 style={styles.nameInput}
               />
@@ -247,7 +271,9 @@ export function PlanView({
 
               <input
                 value={ex.note || ""}
-                onChange={(e) => updateExerciseField(ex.id, "note", e.target.value)}
+                onChange={(e) => {
+                  updateExercise(ex.id, (exercise) => applyManualNote(exercise, e.target.value));
+                }}
                 placeholder={t("plan.notePlaceholder")}
                 style={styles.noteInput}
               />

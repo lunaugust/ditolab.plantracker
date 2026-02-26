@@ -7,6 +7,8 @@ export type CatalogEntry = {
   exerciseId: string;
   name: string;
   nameEs?: string;
+  noteEn?: string;
+  noteEs?: string;
   gifUrl: string;
   targetMuscles: string[];
   bodyParts: string[];
@@ -54,12 +56,12 @@ export async function getExerciseNamesForPrompt(): Promise<string> {
 export async function searchExercises(
   query: string,
   limit = 15
-): Promise<{ exerciseId: string; name: string; nameEs?: string; bodyParts: string[] }[]> {
+): Promise<{ exerciseId: string; name: string; nameEs?: string; noteEn?: string; noteEs?: string; bodyParts: string[] }[]> {
   const entries = await loadExerciseCatalog();
   const q = query.toLowerCase().trim();
   if (!q) return [];
 
-  const results: { exerciseId: string; name: string; nameEs?: string; bodyParts: string[] }[] = [];
+  const results: { exerciseId: string; name: string; nameEs?: string; noteEn?: string; noteEs?: string; bodyParts: string[] }[] = [];
   for (const entry of entries) {
     if (
       entry.name.toLowerCase().includes(q) ||
@@ -69,6 +71,8 @@ export async function searchExercises(
         exerciseId: entry.exerciseId,
         name: entry.name,
         nameEs: entry.nameEs,
+        noteEn: entry.noteEn,
+        noteEs: entry.noteEs,
         bodyParts: entry.bodyParts,
       });
       if (results.length >= limit) break;
@@ -106,6 +110,7 @@ export async function getExerciseIdByName(name: string): Promise<string | null> 
  * Returns null if the catalog hasn't been loaded yet.
  */
 let nameEsMap: Map<string, string> | null = null;
+let notesByIdMap: Map<string, { en: string; es: string }> | null = null;
 
 export async function loadNameEsMap(): Promise<Map<string, string>> {
   if (nameEsMap) return nameEsMap;
@@ -122,6 +127,46 @@ export async function loadNameEsMap(): Promise<Map<string, string>> {
 /** Get the nameEs map synchronously (returns empty map if not yet loaded). */
 export function getNameEsMapSync(): Map<string, string> {
   return nameEsMap ?? new Map();
+}
+
+export async function loadNotesByExerciseIdMap(): Promise<Map<string, { en: string; es: string }>> {
+  if (notesByIdMap) return notesByIdMap;
+
+  const entries = await loadExerciseCatalog();
+  notesByIdMap = new Map();
+  for (const entry of entries) {
+    const noteEn = (entry.noteEn || "").trim();
+    const noteEs = (entry.noteEs || "").trim();
+    if (!entry.exerciseId || !noteEn || !noteEs) continue;
+    notesByIdMap.set(entry.exerciseId, { en: noteEn, es: noteEs });
+  }
+
+  return notesByIdMap;
+}
+
+export function getNotesByExerciseIdMapSync(): Map<string, { en: string; es: string }> {
+  return notesByIdMap ?? new Map();
+}
+
+export async function getExerciseNoteById(
+  exerciseId: string,
+  language: "es" | "en" = "es",
+): Promise<string> {
+  if (!exerciseId) return "";
+  const map = await loadNotesByExerciseIdMap();
+  const entry = map.get(exerciseId);
+  if (!entry) return "";
+  return language === "en" ? entry.en : entry.es;
+}
+
+export function getExerciseNoteByIdSync(
+  exerciseId: string,
+  language: "es" | "en" = "es",
+): string {
+  if (!exerciseId) return "";
+  const entry = getNotesByExerciseIdMapSync().get(exerciseId);
+  if (!entry) return "";
+  return language === "en" ? entry.en : entry.es;
 }
 
 /**

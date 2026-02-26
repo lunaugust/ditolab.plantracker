@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
-import { useExerciseGif, useLocalizedExerciseName } from "../../hooks";
+import { useExerciseGif, useLocalizedExerciseName, useLocalizedExerciseNote } from "../../hooks";
 import { formatDate, buildChartData, computeWeightStats } from "../../utils/helpers";
 import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
 
@@ -30,6 +30,7 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
   const { t } = useI18n();
   const gifUrl = useExerciseGif(exercise.exerciseId, exercise.name);
   const localizedName = useLocalizedExerciseName(exercise.name);
+  const localizedNote = useLocalizedExerciseNote(exercise);
   const [activeTab, setActiveTab] = useState("log");
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
 
@@ -69,9 +70,9 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
         <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textMuted }}>
           {exercise.sets} {t("common.series")} · {exercise.reps} {t("common.reps")} · {exercise.rest}
         </div>
-        {exercise.note && (
+        {localizedNote && (
           <div style={{ fontSize: 11, color: colors.warning, marginTop: 6, fontStyle: "italic" }}>
-            ⚠ {exercise.note}
+            ⚠ {localizedNote}
           </div>
         )}
       </div>

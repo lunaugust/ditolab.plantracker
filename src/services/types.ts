@@ -8,6 +8,10 @@ export type Exercise = {
 	name: string;
 	sets: string;
 	reps: string;
+	rest?: string;
+	note?: string;
+	noteSource?: "catalog" | "custom";
+	noteCatalogId?: string;
 };
 
 export type TrainingDay = {

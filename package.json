@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "notes:generate": "node scripts/generateExerciseCoachingNotes.mjs",
+    "notes:validate": "node scripts/validateExerciseCoachingNotes.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
