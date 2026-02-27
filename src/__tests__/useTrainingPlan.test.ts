@@ -313,4 +313,52 @@ describe("useTrainingPlan", () => {
       expect(result.current.dayColors[key]).toMatch(/^#/);
     }
   });
+
+  it("creates and selects an additional owned plan", async () => {
+    const { result } = renderHook(() => useTrainingPlan());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      result.current.createPlan("Upper/Lower");
+    });
+
+    const ownedPlans = result.current.plans.filter((plan) => plan.scope === "owned");
+    expect(ownedPlans.some((plan) => plan.name === "Upper/Lower")).toBe(true);
+    expect(result.current.activePlanScope).toBe("owned");
+  });
+
+  it("shared plans are read-only until copied", async () => {
+    const shared = {
+      "Day A": {
+        label: "Shared Day",
+        color: "#123456",
+        exercises: [],
+      },
+    };
+
+    const { result } = renderHook(() => useTrainingPlan());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      result.current.addSharedPlan({ name: "Coach Plan", ownerName: "Coach", plan: shared });
+    });
+
+    expect(result.current.activePlanScope).toBe("shared");
+    expect(result.current.isSharedPlanActive).toBe(true);
+
+    await act(async () => {
+      result.current.saveDay("Day A", { label: "Edited" });
+    });
+
+    expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
+    const persistedAfterImport = mockPersistTrainingPlan.mock.calls[0][0];
+    expect(persistedAfterImport.sharedPlans).toBeDefined();
+
+    await act(async () => {
+      result.current.copySharedPlanToOwned("Coach Copy");
+    });
+
+    expect(result.current.activePlanScope).toBe("owned");
+    expect(result.current.plans.some((plan) => plan.scope === "owned" && plan.name === "Coach Copy")).toBe(true);
+  });
 });

@@ -8,7 +8,7 @@
  *     whose stored "gymbuddy_seen_version" differs from APP_VERSION.
  */
 
-export const APP_VERSION = "1.5.0";
+export const APP_VERSION = "1.6.0";
 
 /** localStorage key that tracks the last version the user dismissed. */
 export const WHATS_NEW_STORAGE_KEY = "gymbuddy_seen_version";
@@ -34,6 +34,22 @@ export type ChangelogEntry = {
  * The modal only shows the FIRST (latest) entry.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.6.0",
+    date: "2026-02-27",
+    features: [
+      {
+        icon: "📚",
+        es: "Ahora podés administrar múltiples planes personales desde el selector de planes.",
+        en: "You can now manage multiple personal plans from the plan selector.",
+      },
+      {
+        icon: "🤝",
+        es: "Compartí planes y recibí planes compartidos en modo solo lectura, con opción de copiarlos a tus planes.",
+        en: "Share plans and receive shared plans in read-only mode, with an option to copy them to your own plans.",
+      },
+    ],
+  },
   {
     version: "1.5.0",
     date: "2026-02-26",

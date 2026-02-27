@@ -26,6 +26,14 @@ export default function App() {
     addDay,
     removeDay,
     replacePlan,
+    plans,
+    activePlanId,
+    activePlanScope,
+    isSharedPlanActive,
+    createPlan,
+    selectPlan,
+    addSharedPlan,
+    copySharedPlanToOwned,
   } = useTrainingPlan(storageScope, auth.loading);
   const nav = useNavigation(dayKeys);
   const { canInstall, install } = useInstallPWA();
@@ -161,6 +169,15 @@ export default function App() {
           saveDay={saveDay}
           addDay={addDay}
           removeDay={removeDay}
+          plans={plans}
+          activePlanId={activePlanId}
+          activePlanScope={activePlanScope}
+          isSharedPlanActive={isSharedPlanActive}
+          createPlan={createPlan}
+          selectPlan={selectPlan}
+          addSharedPlan={addSharedPlan}
+          copySharedPlanToOwned={copySharedPlanToOwned}
+          shareOwnerName={auth.user?.displayName || "GymBuddy"}
           onOpenGenerator={() => setShowGenerator(true)}
           onOpenImporter={() => setShowImporter(true)}
           onExerciseClick={nav.selectExercise}

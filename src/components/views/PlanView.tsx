@@ -18,6 +18,15 @@ interface PlanViewProps {
   saveDay: (dayKey: string, nextDay: Partial<TrainingDay>) => void;
   addDay: () => string;
   removeDay: (dayKey: string) => void;
+  plans: Array<{ id: string; name: string; scope: "owned" | "shared"; ownerName?: string }>;
+  activePlanId: string;
+  activePlanScope: "owned" | "shared";
+  isSharedPlanActive: boolean;
+  createPlan: (name: string, sourcePlan?: TrainingPlan) => string;
+  selectPlan: (planId: string, scope: "owned" | "shared") => void;
+  addSharedPlan: (payload: { name: string; ownerName: string; plan: TrainingPlan }) => string;
+  copySharedPlanToOwned: (name: string) => string;
+  shareOwnerName: string;
   onOpenGenerator: () => void;
   onOpenImporter: () => void;
   onExerciseClick?: (exercise: Exercise) => void;
@@ -33,6 +42,15 @@ export function PlanView({
   saveDay,
   addDay,
   removeDay,
+  plans,
+  activePlanId,
+  activePlanScope,
+  isSharedPlanActive,
+  createPlan,
+  selectPlan,
+  addSharedPlan,
+  copySharedPlanToOwned,
+  shareOwnerName,
   onOpenGenerator,
   onOpenImporter,
   onExerciseClick,
@@ -42,6 +60,40 @@ export function PlanView({
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : null;
   const [isEditing, setIsEditing] = useState(false);
   const [draftDay, setDraftDay] = useState<TrainingDay | null>(null);
+
+  const shareCurrentPlan = async () => {
+    const payload = JSON.stringify({
+      name: plans.find((planOption) => planOption.id === activePlanId && planOption.scope === activePlanScope)?.name || t("plan.defaultPlanName"),
+      ownerName: shareOwnerName,
+      plan: trainingPlan,
+    });
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(payload);
+        window.alert(t("plan.sharedCodeCopied"));
+      } else {
+        window.prompt(t("plan.sharedCodeManualCopy"), payload);
+      }
+    } catch {
+      window.prompt(t("plan.sharedCodeManualCopy"), payload);
+    }
+  };
+
+  const importSharedPlan = () => {
+    const raw = window.prompt(t("plan.pasteSharedCode"));
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as { name?: string; ownerName?: string; plan?: TrainingPlan };
+      if (!parsed || !parsed.plan || typeof parsed.plan !== "object") throw new Error("invalid");
+      addSharedPlan({
+        name: parsed.name || t("plan.sharedPlanDefaultName"),
+        ownerName: parsed.ownerName || "Unknown",
+        plan: parsed.plan,
+      });
+    } catch {
+      window.alert(t("plan.invalidSharedCode"));
+    }
+  };
 
   useEffect(() => {
     if (!isEditing || !day) return;
@@ -126,35 +178,93 @@ export function PlanView({
         onSelect={setActiveDay}
       />
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        <select
+          value={`${activePlanScope}:${activePlanId}`}
+          onChange={(event) => {
+            const [scope, id] = event.target.value.split(":");
+            if (!id || (scope !== "owned" && scope !== "shared")) return;
+            setIsEditing(false);
+            selectPlan(id, scope);
+          }}
+          style={styles.planSelector}
+        >
+          {plans.map((planOption) => (
+            <option key={`${planOption.scope}:${planOption.id}`} value={`${planOption.scope}:${planOption.id}`}>
+              {planOption.scope === "shared"
+                ? `${planOption.name} · ${t("plan.sharedBy", { owner: planOption.ownerName || "Unknown" })}`
+                : planOption.name}
+            </option>
+          ))}
+        </select>
         <button
           onClick={() => {
-            const newDay = addDay();
-            if (newDay) setActiveDay(newDay);
+            const name = window.prompt(t("plan.newPlanPrompt"), t("plan.defaultPlanName"));
+            if (name === null) return;
+            createPlan(name, trainingPlan);
+            setIsEditing(false);
           }}
           style={styles.ghostButton}
         >
-          {t("plan.addDayShort")}
+          {t("plan.newPlan")}
         </button>
-        <button
-          onClick={() => removeDay(safeActiveDay)}
-          disabled={dayKeys.length <= 1}
-          style={{ ...styles.ghostButton, opacity: dayKeys.length <= 1 ? 0.4 : 1 }}
-        >
-          {t("plan.removeDayShort")}
+        {!isSharedPlanActive && (
+          <button onClick={shareCurrentPlan} style={styles.ghostButton}>
+            {t("plan.sharePlan")}
+          </button>
+        )}
+        <button onClick={importSharedPlan} style={styles.ghostButton}>
+          {t("plan.importSharedPlan")}
         </button>
-        <button
-          onClick={onOpenGenerator}
-          style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}
-        >
-          ✦ {t("generator.title")}
-        </button>
-        <button
-          onClick={onOpenImporter}
-          style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue, marginLeft: "auto" }}
-        >
-          {t("importer.openButton")}
-        </button>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        {!isSharedPlanActive ? (
+          <>
+            <button
+              onClick={() => {
+                const newDay = addDay();
+                if (newDay) setActiveDay(newDay);
+              }}
+              style={styles.ghostButton}
+            >
+              {t("plan.addDayShort")}
+            </button>
+            <button
+              onClick={() => removeDay(safeActiveDay)}
+              disabled={dayKeys.length <= 1}
+              style={{ ...styles.ghostButton, opacity: dayKeys.length <= 1 ? 0.4 : 1 }}
+            >
+              {t("plan.removeDayShort")}
+            </button>
+            <button
+              onClick={onOpenGenerator}
+              style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}
+            >
+              ✦ {t("generator.title")}
+            </button>
+            <button
+              onClick={onOpenImporter}
+              style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue, marginLeft: "auto" }}
+            >
+              {t("importer.openButton")}
+            </button>
+          </>
+        ) : (
+          <>
+            <div style={styles.readOnlyBadge}>{t("plan.sharedReadOnly")}</div>
+            <button
+              onClick={() => {
+                const name = window.prompt(t("plan.copySharedPrompt"), `${day.label} ${t("plan.copySuffix")}`);
+                if (name === null) return;
+                copySharedPlanToOwned(name);
+              }}
+              style={{ ...styles.ghostButton, marginLeft: "auto" }}
+            >
+              {t("plan.copyToMyPlans")}
+            </button>
+          </>
+        )}
       </div>
 
       {/* Day info header */}
@@ -175,12 +285,12 @@ export function PlanView({
         </div>
 
         <div style={{ display: "flex", gap: 8 }}>
-          {!isEditing && (
+          {!isEditing && !isSharedPlanActive && (
             <button onClick={startEditing} style={styles.ghostButton}>
               {t("plan.editPlan")}
             </button>
           )}
-          {isEditing && (
+          {isEditing && !isSharedPlanActive && (
             <>
               <button onClick={cancelEditing} style={styles.ghostButton}>
                 {t("common.cancel")}
@@ -318,6 +428,26 @@ export function PlanView({
 }
 
 const styles = {
+  planSelector: {
+    border: `1px solid ${colors.border}`,
+    background: colors.surface,
+    color: colors.textPrimary,
+    borderRadius: 10,
+    padding: "8px 10px",
+    fontFamily: fonts.sans,
+    fontSize: 12,
+    minWidth: 170,
+    flex: 1,
+  },
+  readOnlyBadge: {
+    border: `1px solid ${colors.border}`,
+    background: colors.surface,
+    color: colors.textMuted,
+    borderRadius: 10,
+    padding: "8px 10px",
+    fontFamily: fonts.mono,
+    fontSize: 11,
+  },
   ghostButton: {
     border: `1px solid ${colors.border}`,
     background: colors.surface,
