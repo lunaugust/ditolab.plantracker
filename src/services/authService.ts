@@ -3,14 +3,16 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   signOut,
+  type User,
+  type NextOrObserver,
 } from "firebase/auth";
 import { auth } from "./firebaseClient";
 
-export function isAuthEnabled() {
+export function isAuthEnabled(): boolean {
   return Boolean(auth);
 }
 
-export function subscribeToAuthState(callback) {
+export function subscribeToAuthState(callback: NextOrObserver<User>): () => void {
   if (!auth) return () => {};
   return onAuthStateChanged(auth, callback);
 }

@@ -1,5 +1,6 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useTrainingLogs } from "../hooks/useTrainingLogs";
+import type { Mock } from "vitest";
 
 /* ================================================================
  * Mock storageService so tests don't touch real localStorage
@@ -10,6 +11,9 @@ vi.mock("../services/storageService", () => ({
 }));
 
 import { loadLogs, persistLogs } from "../services/storageService";
+
+const mockLoadLogs = loadLogs as unknown as Mock;
+const mockPersistLogs = persistLogs as unknown as Mock;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -26,7 +30,7 @@ describe("useTrainingLogs", () => {
 
   it("loads existing logs from storage", async () => {
     const stored = { ex1: [{ date: "d", weight: "50", reps: "10", notes: "" }] };
-    loadLogs.mockResolvedValueOnce(stored);
+    mockLoadLogs.mockResolvedValueOnce(stored);
 
     const { result } = renderHook(() => useTrainingLogs());
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -42,7 +46,7 @@ describe("useTrainingLogs", () => {
     });
 
     expect(persistLogs).toHaveBeenCalledTimes(1);
-    const persisted = persistLogs.mock.calls[0][0];
+    const persisted = mockPersistLogs.mock.calls[0][0];
     expect(persisted.ex1).toHaveLength(1);
     expect(persisted.ex1[0].weight).toBe("60");
     expect(persisted.ex1[0].reps).toBe("8");
@@ -61,10 +65,22 @@ describe("useTrainingLogs", () => {
     expect(persistLogs).not.toHaveBeenCalled();
   });
 
+  it("addLog calls persist exactly once (no double state update)", async () => {
+    const { result } = renderHook(() => useTrainingLogs());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      result.current.addLog("ex1", { weight: "80", reps: "5", notes: "" });
+    });
+
+    // The refactored hook must call persistLogs exactly once per mutation
+    expect(persistLogs).toHaveBeenCalledTimes(1);
+  });
+
   it("deleteLog removes entry by index and persists", async () => {
     const entry1 = { date: "d1", weight: "40", reps: "10", notes: "" };
     const entry2 = { date: "d2", weight: "50", reps: "8", notes: "" };
-    loadLogs.mockResolvedValueOnce({ ex1: [entry1, entry2] });
+    mockLoadLogs.mockResolvedValueOnce({ ex1: [entry1, entry2] });
 
     const { result } = renderHook(() => useTrainingLogs());
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -73,9 +89,23 @@ describe("useTrainingLogs", () => {
       result.current.deleteLog("ex1", 0);
     });
 
-    const persisted = persistLogs.mock.calls[0][0];
+    const persisted = mockPersistLogs.mock.calls[0][0];
     expect(persisted.ex1).toHaveLength(1);
     expect(persisted.ex1[0]).toEqual(entry2);
+  });
+
+  it("deleteLog calls persist exactly once (no double state update)", async () => {
+    const entry = { date: "d1", weight: "40", reps: "10", notes: "" };
+    mockLoadLogs.mockResolvedValueOnce({ ex1: [entry] });
+
+    const { result } = renderHook(() => useTrainingLogs());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => {
+      result.current.deleteLog("ex1", 0);
+    });
+
+    expect(persistLogs).toHaveBeenCalledTimes(1);
   });
 
   it("shows save message after successful persist", async () => {

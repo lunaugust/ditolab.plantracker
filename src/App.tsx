@@ -4,6 +4,7 @@ import { Header, LoadingScreen, AuthScreen, FeedbackModal, WhatsNewModal } from 
 import { APP_VERSION, WHATS_NEW_STORAGE_KEY } from "./data/changelog";
 import { PlanView, PlanGeneratorWizard, PlanImportWizard, ExerciseDetailView } from "./components/views";
 import { colors } from "./theme";
+import type { TrainingPlan } from "./services/types";
 
 /**
  * Root application component.
@@ -49,7 +50,7 @@ export default function App() {
 
   // --- Login-redirect logic ---
   const authInitializedRef = useRef(false);
-  const prevUserUidRef = useRef(null);
+  const prevUserUidRef = useRef<string | null>(null);
   const [pendingLoginRedirect, setPendingLoginRedirect] = useState(false);
 
   useEffect(() => {
@@ -82,10 +83,11 @@ export default function App() {
 
   // Clear selected exercise if it no longer exists in the plan
   useEffect(() => {
-    if (!nav.selectedExercise) return;
+    const selectedExercise = nav.selectedExercise;
+    if (!selectedExercise) return;
 
     const exists = Object.values(trainingPlan)
-      .some((day) => day.exercises.some((exercise) => exercise.id === nav.selectedExercise.id));
+      .some((day) => day.exercises.some((exercise) => exercise.id === selectedExercise.id));
 
     if (!exists) nav.clearExercise();
   }, [trainingPlan, nav.selectedExercise, nav.clearExercise]);
@@ -99,7 +101,7 @@ export default function App() {
     return (
       <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
         <PlanGeneratorWizard
-          onApply={(plan) => {
+          onApply={(plan: TrainingPlan) => {
             replacePlan(plan);
             setShowGenerator(false);
             const firstDay = Object.keys(plan).sort()[0];
@@ -115,7 +117,7 @@ export default function App() {
     return (
       <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
         <PlanImportWizard
-          onApply={(plan) => {
+          onApply={(plan: TrainingPlan) => {
             replacePlan(plan);
             setShowImporter(false);
             const firstDay = Object.keys(plan).sort()[0];

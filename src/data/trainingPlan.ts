@@ -24,7 +24,9 @@
  */
 
 /** @type {Record<string, TrainingDay>} */
-export const TRAINING_PLAN = {
+import type { TrainingPlan } from "../services/types";
+
+export const TRAINING_PLAN: TrainingPlan = {
   "Día 1": {
     label: "Cuádriceps · Femoral · Glúteos · Pantorrillas",
     color: "#e8643a",

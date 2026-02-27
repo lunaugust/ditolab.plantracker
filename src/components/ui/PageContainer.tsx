@@ -1,11 +1,11 @@
 import { layout } from "../../theme";
+import type { ReactNode } from "react";
 
-/**
- * Max-width page wrapper (centres content, mobile-friendly padding).
- *
- * @param {{ children: React.ReactNode }} props
- */
-export function PageContainer({ children }) {
+interface PageContainerProps {
+  children: ReactNode;
+}
+
+export function PageContainer({ children }: PageContainerProps) {
   return (
     <div
       style={{

@@ -218,7 +218,7 @@ export async function importPlanFromFile(
   const model = getGenerativeModel(ai, { model: "gemini-2.5-flash-lite" });
 
   const result = await model.generateContent({
-    systemInstruction: { parts: [{ text: buildImportSystemPrompt(language, exerciseCatalog) }] },
+    systemInstruction: buildImportSystemPrompt(language, exerciseCatalog),
     contents: [{ role: "user", parts: [filePart, textPart] }],
     generationConfig: {
       temperature: 0.2, // low temperature → faithful extraction, minimal hallucination

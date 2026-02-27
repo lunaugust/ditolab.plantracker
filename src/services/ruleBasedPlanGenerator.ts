@@ -12,12 +12,24 @@
 import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
 import { attachExerciseIds } from "../data/exerciseCatalog";
+import type { GeneratorForm } from "../data/planGeneratorConfig";
+import type { TrainingPlan } from "./types";
+
+type ExerciseTemplate = {
+  name: string;
+  sets: string;
+  reps: string;
+  rest: string;
+  note?: string;
+};
+
+type ExerciseLibrary = Record<string, ExerciseTemplate[]>;
 
 /* ================================================================
  * Exercise library — grouped by muscle region.
  * Names match exercises.json entries exactly (English, lowercase).
  * ================================================================ */
-const EXERCISES = {
+const EXERCISES: ExerciseLibrary = {
   quadriceps: [
     { name: "sled hack squat", sets: "4", reps: "12·10·8·6", rest: "90s" },
     { name: "smith leg press", sets: "4", reps: "12", rest: "90s" },
@@ -83,7 +95,10 @@ const EXERCISES = {
  * Day split templates by days-per-week
  * Each entry: { label, groups[] }
  * ================================================================ */
-const SPLITS = {
+type DayTemplate = { label: string; groups: string[] };
+type SplitMap = Record<number, DayTemplate[]>;
+
+const SPLITS: SplitMap = {
   2: [
     { label: "Tren Superior", groups: ["chest", "back", "shoulders", "biceps", "triceps", "core"] },
     { label: "Tren Inferior", groups: ["quadriceps", "hamstrings", "glutes", "calves", "core"] },
@@ -117,7 +132,7 @@ const SPLITS = {
 };
 
 /* English labels for day splits */
-const SPLITS_EN = {
+const SPLITS_EN: SplitMap = {
   2: [
     { label: "Upper Body", groups: ["chest", "back", "shoulders", "biceps", "triceps", "core"] },
     { label: "Lower Body", groups: ["quadriceps", "hamstrings", "glutes", "calves", "core"] },
@@ -153,13 +168,13 @@ const SPLITS_EN = {
 /* ================================================================
  * Volume multipliers per experience × goal
  * ================================================================ */
-const VOLUME = {
+const VOLUME: Record<string, { exercises: number; sets: number }> = {
   beginner:     { exercises: 1.0, sets: 0.75 },
   intermediate: { exercises: 1.0, sets: 1.0 },
   advanced:     { exercises: 1.2, sets: 1.25 },
 };
 
-const EXERCISES_PER_GROUP = {
+const EXERCISES_PER_GROUP: Record<string, number> = {
   adaptation:  1,
   fatBurn:     2,
   resistance:  2,
@@ -173,10 +188,10 @@ const EXERCISES_PER_GROUP = {
  * ================================================================ */
 
 /** Pick N exercises from a group, cycling if needed */
-function pickExercises(groupKey, count) {
+function pickExercises(groupKey: string, count: number): ExerciseTemplate[] {
   const pool = EXERCISES[groupKey] || [];
   if (pool.length === 0) return [];
-  const picked = [];
+  const picked: ExerciseTemplate[] = [];
   for (let i = 0; i < count; i++) {
     picked.push({ ...pool[i % pool.length] });
   }
@@ -184,20 +199,20 @@ function pickExercises(groupKey, count) {
 }
 
 /** Scale sets string by a multiplier (e.g. "4" × 0.75 → "3") */
-function scaleSets(setsStr, multiplier) {
+function scaleSets(setsStr: string, multiplier: number): string {
   const n = parseInt(setsStr, 10);
   if (!Number.isFinite(n)) return setsStr;
   return String(Math.max(1, Math.round(n * multiplier)));
 }
 
 /** Beginner note translations */
-const BEGINNER_NOTES = {
+const BEGINNER_NOTES: Record<string, { suffix: string; full: string }> = {
   es: { suffix: "Peso liviano", full: "Peso liviano, enfocarse en técnica" },
   en: { suffix: "Light weight", full: "Light weight, focus on technique" },
 };
 
 /** Add beginner-friendly notes */
-function addBeginnerNotes(exercise, language) {
+function addBeginnerNotes(exercise: ExerciseTemplate, language: string): ExerciseTemplate {
   const notes = BEGINNER_NOTES[language] || BEGINNER_NOTES.en;
   return {
     ...exercise,
@@ -216,7 +231,7 @@ function addBeginnerNotes(exercise, language) {
  * @param {string} language — "es" | "en"
  * @returns {Promise<Record<string, import("../data/trainingPlan").TrainingDay>>}
  */
-export async function generateRuleBasedPlan(form, language = "es") {
+export async function generateRuleBasedPlan(form: GeneratorForm, language = "es"): Promise<TrainingPlan> {
   const days = form.daysPerWeek;
   const splitSource = language === "en" ? SPLITS_EN : SPLITS;
   const split = splitSource[days] || splitSource[3];
@@ -227,9 +242,9 @@ export async function generateRuleBasedPlan(form, language = "es") {
   const maxExercises = Math.floor(form.minutesPerSession / 5);
 
   const dayPrefix = language === "en" ? "Day" : "Día";
-  const plan = {};
+  const plan: TrainingPlan = {};
 
-  split.forEach((dayTemplate, dayIndex) => {
+  split.forEach((dayTemplate: DayTemplate, dayIndex: number) => {
     const dayKey = `${dayPrefix} ${dayIndex + 1}`;
     const rawExercises = [];
 
@@ -254,7 +269,7 @@ export async function generateRuleBasedPlan(form, language = "es") {
     }
 
     // Add unique IDs
-    exercises = exercises.map((ex) => ({
+    const finalExercises: import("./types").Exercise[] = exercises.map((ex) => ({
       id: makeExerciseId(),
       name: ex.name,
       sets: ex.sets,
@@ -266,7 +281,7 @@ export async function generateRuleBasedPlan(form, language = "es") {
     plan[dayKey] = {
       label: dayTemplate.label,
       color: GENERATED_DAY_COLORS[dayIndex % GENERATED_DAY_COLORS.length],
-      exercises,
+      exercises: finalExercises,
     };
   });
 

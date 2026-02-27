@@ -11,87 +11,98 @@ import {
   MINUTES_OPTIONS,
   DEFAULT_GENERATOR_FORM,
 } from "../../data/planGeneratorConfig";
+import type { TrainingPlan, Exercise } from "../../services/types";
 
-/**
- * Multi-step wizard for AI-powered (or rule-based) plan generation.
- *
- * @param {{
- *   onApply: (plan: Record<string, any>) => void,
- *   onClose: () => void,
- * }} props
- */
-export function PlanGeneratorWizard({ onApply, onClose }) {
+interface PlanGeneratorWizardProps {
+  onApply: (plan: TrainingPlan) => void;
+  onClose: () => void;
+}
+
+export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardProps) {
   const { t, language } = useI18n();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(DEFAULT_GENERATOR_FORM);
   const [generating, setGenerating] = useState(false);
-  const [preview, setPreview] = useState(null);
-  const [source, setSource] = useState(null);
+  const [preview, setPreview] = useState<TrainingPlan | null>(null);
+  const [source, setSource] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [editingExId, setEditingExId] = useState(null); // "dayKey|||exId"
-  const [editingDayLabel, setEditingDayLabel] = useState(null);
-  const editSnapshot = useRef(null);
-  const dragRef = useRef(null); // { dayKey, fromIdx } while dragging
-  const [dragOver, setDragOver] = useState(null); // { dayKey, toIdx }
+  const [editingExId, setEditingExId] = useState<string | null>(null);
+  const [editingDayLabel, setEditingDayLabel] = useState<string | null>(null);
+  const editSnapshot = useRef<Exercise | null>(null);
+  const dragRef = useRef<{ dayKey: string; fromIdx: number } | null>(null);
+  const [dragOver, setDragOver] = useState<{ dayKey: string; toIdx: number } | null>(null);
 
   /* ---- Preview mutation helpers ---- */
-  const updatePreviewEx = useCallback((dayKey, exId, field, value) => {
-    setPreview((prev) => ({
-      ...prev,
-      [dayKey]: {
-        ...prev[dayKey],
-        exercises: prev[dayKey].exercises.map((ex) =>
-          ex.id === exId ? { ...ex, [field]: value } : ex
-        ),
-      },
-    }));
-  }, []);
-
-  const removePreviewEx = useCallback((dayKey, exId) => {
-    setPreview((prev) => ({
-      ...prev,
-      [dayKey]: {
-        ...prev[dayKey],
-        exercises: prev[dayKey].exercises.filter((ex) => ex.id !== exId),
-      },
-    }));
-    setEditingExId(null);
-  }, []);
-
-  const addPreviewEx = useCallback((dayKey) => {
-    const newEx = { id: makeExerciseId(), name: "", sets: "3", reps: "10", rest: "60s", note: "" };
-    setPreview((prev) => ({
-      ...prev,
-      [dayKey]: { ...prev[dayKey], exercises: [...prev[dayKey].exercises, newEx] },
-    }));
-    editSnapshot.current = { ...newEx };
-    setEditingExId(`${dayKey}|||${newEx.id}`);
-  }, []);
-
-  const openEditEx = useCallback((dayKey, ex) => {
-    editSnapshot.current = { ...ex };
-    setEditingExId(`${dayKey}|||${ex.id}`);
-  }, []);
-
-  const cancelEditEx = useCallback((dayKey, exId) => {
-    if (editSnapshot.current) {
-      const snap = editSnapshot.current;
-      setPreview((prev) => ({
+  const updatePreviewEx = useCallback((dayKey: string, exId: string, field: keyof Exercise, value: string) => {
+    setPreview((prev) => {
+      if (!prev) return prev;
+      return {
         ...prev,
         [dayKey]: {
           ...prev[dayKey],
           exercises: prev[dayKey].exercises.map((ex) =>
-            ex.id === exId ? { ...snap } : ex
+            ex.id === exId ? { ...ex, [field]: value } : ex
           ),
         },
-      }));
+      };
+    });
+  }, []);
+
+  const removePreviewEx = useCallback((dayKey: string, exId: string) => {
+    setPreview((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [dayKey]: {
+          ...prev[dayKey],
+          exercises: prev[dayKey].exercises.filter((ex) => ex.id !== exId),
+        },
+      };
+    });
+    setEditingExId(null);
+  }, []);
+
+  const addPreviewEx = useCallback((dayKey: string) => {
+    const newEx: Exercise = { id: makeExerciseId(), name: "", sets: "3", reps: "10", rest: "60s", note: "" };
+    setPreview((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [dayKey]: { ...prev[dayKey], exercises: [...prev[dayKey].exercises, newEx] },
+      };
+    });
+    editSnapshot.current = { ...newEx };
+    setEditingExId(`${dayKey}|||${newEx.id}`);
+  }, []);
+
+  const openEditEx = useCallback((dayKey: string, ex: Exercise) => {
+    editSnapshot.current = { ...ex };
+    setEditingExId(`${dayKey}|||${ex.id}`);
+  }, []);
+
+  const cancelEditEx = useCallback((dayKey: string, exId: string) => {
+    if (editSnapshot.current) {
+      const snap = editSnapshot.current;
+      setPreview((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          [dayKey]: {
+            ...prev[dayKey],
+            exercises: prev[dayKey].exercises.map((ex) =>
+              ex.id === exId ? { ...snap } : ex
+            ),
+          },
+        };
+      });
       editSnapshot.current = null;
     }
     setEditingExId(null);
   }, []);
 
-  const movePreviewEx = useCallback((dayKey, fromIdx, dir) => {
+  const movePreviewEx = useCallback((dayKey: string, fromIdx: number, dir: number) => {
     setPreview((prev) => {
+      if (!prev) return prev;
       const exercises = [...prev[dayKey].exercises];
       const toIdx = fromIdx + dir;
       if (toIdx < 0 || toIdx >= exercises.length) return prev;
@@ -101,9 +112,10 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
     });
   }, []);
 
-  const moveExToIndex = useCallback((dayKey, fromIdx, toIdx) => {
+  const moveExToIndex = useCallback((dayKey: string, fromIdx: number, toIdx: number) => {
     if (fromIdx === toIdx) return;
     setPreview((prev) => {
+      if (!prev) return prev;
       const exercises = [...prev[dayKey].exercises];
       const [moved] = exercises.splice(fromIdx, 1);
       exercises.splice(toIdx, 0, moved);
@@ -111,14 +123,17 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
     });
   }, []);
 
-  const updateDayLabelPreview = useCallback((dayKey, value) => {
-    setPreview((prev) => ({
-      ...prev,
-      [dayKey]: { ...prev[dayKey], label: value },
-    }));
+  const updateDayLabelPreview = useCallback((dayKey: string, value: string) => {
+    setPreview((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [dayKey]: { ...prev[dayKey], label: value },
+      };
+    });
   }, []);
 
-  const update = useCallback((field, value) => {
+  const update = useCallback((field: string, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   }, []);
 
@@ -198,6 +213,9 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
           rows={3}
           style={styles.textarea}
         />
+        <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textDim, marginTop: 8, lineHeight: 1.4 }}>
+          🔒 {t("generator.limitationsPrivacyNotice")}
+        </div>
         <button
           onClick={() => setStep(3)}
           style={{ ...styles.primaryBtn, marginTop: 12 }}
@@ -381,7 +399,7 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
                         >
                           {/* Drag handle — large touch target, pointer-event based */}
                           <button
-                            aria-label="Drag to reorder"
+                            aria-label={t("generator.dragToReorder")}
                             style={styles.dragHandle}
                             onPointerDown={(e) => {
                               e.currentTarget.setPointerCapture(e.pointerId);
@@ -390,9 +408,9 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
                             onPointerMove={(e) => {
                               if (!dragRef.current || dragRef.current.dayKey !== dayKey) return;
                               const el = document.elementFromPoint(e.clientX, e.clientY);
-                              const row = el?.closest("[data-exidx]");
+                              const row = el?.closest("[data-exidx]") as HTMLElement | null;
                               if (row && row.dataset.daykey === dayKey) {
-                                const toIdx = parseInt(row.dataset.exidx, 10);
+                                const toIdx = parseInt(row.dataset.exidx ?? "", 10);
                                 if (!isNaN(toIdx)) setDragOver({ dayKey, toIdx });
                               }
                             }}
@@ -507,7 +525,7 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
 
 /* ---- Sub-components ---- */
 
-function OptionButton({ label, active, onClick, compact = false }) {
+function OptionButton({ label, active, onClick, compact = false }: { label: string; active: boolean; onClick: () => void; compact?: boolean }) {
   return (
     <button
       onClick={onClick}
@@ -533,7 +551,7 @@ function OptionButton({ label, active, onClick, compact = false }) {
 
 /* ---- Styles ---- */
 
-const styles = {
+const styles: Record<string, import("react").CSSProperties> = {
   optionsGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",

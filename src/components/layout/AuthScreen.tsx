@@ -1,13 +1,18 @@
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
 
-export function AuthScreen({ onSignIn, error }) {
+interface AuthScreenProps {
+  onSignIn: () => void;
+  error: string;
+}
+
+export function AuthScreen({ onSignIn, error }: AuthScreenProps) {
   const { t } = useI18n();
 
   return (
     <div style={styles.wrapper}>
       <div style={styles.card}>
-        <div style={styles.title}>GymBuddy AI</div>
+        <div style={styles.title}>{t("app.name")}</div>
         <div style={styles.subtitle}>{t("auth.subtitle")}</div>
 
         <button onClick={onSignIn} style={styles.googleBtn}>

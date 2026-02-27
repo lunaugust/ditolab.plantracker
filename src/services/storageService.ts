@@ -7,27 +7,28 @@
 
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebaseClient";
+import type { LogsByExercise, TrainingPlan } from "./types";
 
 const STORAGE_KEY = "gymbuddy_logs";
 const PLAN_STORAGE_KEY = "gymbuddy_plan";
 
-function getStorageKey(scope = "guest") {
+function getStorageKey(scope = "guest"): string {
   return scope === "guest" ? STORAGE_KEY : `${STORAGE_KEY}:${scope}`;
 }
 
-function isRemoteScope(scope) {
+function isRemoteScope(scope: string): boolean {
   return scope !== "guest" && Boolean(db) && isFirebaseConfigured;
 }
 
-function getUserLogsDoc(scope) {
-  return doc(db, "users", scope, "appData", "trainingLogs");
+function getUserLogsDoc(scope: string) {
+  return doc(db!, "users", scope, "appData", "trainingLogs");
 }
 
-function getUserPlanDoc(scope) {
-  return doc(db, "users", scope, "appData", "trainingPlan");
+function getUserPlanDoc(scope: string) {
+  return doc(db!, "users", scope, "appData", "trainingPlan");
 }
 
-function getPlanStorageKey(scope = "guest") {
+function getPlanStorageKey(scope = "guest"): string {
   return scope === "guest" ? PLAN_STORAGE_KEY : `${PLAN_STORAGE_KEY}:${scope}`;
 }
 
@@ -36,7 +37,7 @@ function getPlanStorageKey(scope = "guest") {
  * @param {string} [scope="guest"]
  * @returns {Promise<Record<string, import("./types").LogEntry[]>>}
  */
-export async function loadLogs(scope = "guest") {
+export async function loadLogs(scope = "guest"): Promise<LogsByExercise> {
   if (isRemoteScope(scope)) {
     try {
       const snap = await getDoc(getUserLogsDoc(scope));
@@ -66,7 +67,7 @@ export async function loadLogs(scope = "guest") {
  * @param {string} [scope="guest"]
  * @returns {Promise<void>}
  */
-export async function persistLogs(logs, scope = "guest") {
+export async function persistLogs(logs: LogsByExercise, scope = "guest"): Promise<void> {
   if (isRemoteScope(scope)) {
     try {
       await setDoc(getUserLogsDoc(scope), { logs, updatedAt: serverTimestamp() });
@@ -97,7 +98,7 @@ export async function persistLogs(logs, scope = "guest") {
  * @param {string} [scope="guest"]
  * @returns {Promise<Record<string, { label: string, color: string, exercises: any[] }>>}
  */
-export async function loadTrainingPlan(scope = "guest") {
+export async function loadTrainingPlan(scope = "guest"): Promise<TrainingPlan | Record<string, never>> {
   if (isRemoteScope(scope)) {
     try {
       const snap = await getDoc(getUserPlanDoc(scope));
@@ -127,7 +128,7 @@ export async function loadTrainingPlan(scope = "guest") {
  * @param {string} [scope="guest"]
  * @returns {Promise<void>}
  */
-export async function persistTrainingPlan(plan, scope = "guest") {
+export async function persistTrainingPlan(plan: TrainingPlan, scope = "guest"): Promise<void> {
   if (isRemoteScope(scope)) {
     try {
       await setDoc(getUserPlanDoc(scope), { plan, updatedAt: serverTimestamp() });

@@ -1,6 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useTrainingPlan } from "../hooks/useTrainingPlan";
 import { TRAINING_PLAN } from "../data/trainingPlan";
+import type { Mock } from "vitest";
 
 /* ================================================================
  * Mock storageService
@@ -13,6 +14,9 @@ vi.mock("../services/storageService", () => ({
 }));
 
 import { loadTrainingPlan, persistTrainingPlan } from "../services/storageService";
+
+const mockLoadTrainingPlan = loadTrainingPlan as unknown as Mock;
+const mockPersistTrainingPlan = persistTrainingPlan as unknown as Mock;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -42,7 +46,7 @@ describe("useTrainingPlan", () => {
         ],
       },
     };
-    loadTrainingPlan.mockResolvedValueOnce(customPlan);
+    mockLoadTrainingPlan.mockResolvedValueOnce(customPlan);
 
     const { result } = renderHook(() => useTrainingPlan());
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -73,7 +77,7 @@ describe("useTrainingPlan", () => {
    * normalizePlan — malformed inputs
    * ---------------------------------------------------------- */
   it("handles null/malformed storage data by falling back to TRAINING_PLAN", async () => {
-    loadTrainingPlan.mockResolvedValueOnce("not-an-object");
+    mockLoadTrainingPlan.mockResolvedValueOnce("not-an-object");
     const { result } = renderHook(() => useTrainingPlan());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -97,7 +101,7 @@ describe("useTrainingPlan", () => {
     });
 
     expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = persistTrainingPlan.mock.calls[0][0];
+    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
     expect(persisted[firstKey].label).toBe("Updated Label");
     // Exercises should remain unchanged
     expect(persisted[firstKey].exercises.length).toBeGreaterThan(0);
@@ -123,18 +127,18 @@ describe("useTrainingPlan", () => {
 
     const initialCount = result.current.dayKeys.length;
 
-    let newKey;
+    let newKey: string | undefined;
     await act(async () => {
       newKey = result.current.addDay();
     });
 
     expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = persistTrainingPlan.mock.calls[0][0];
+    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
     const newDayKeys = Object.keys(persisted);
     expect(newDayKeys.length).toBe(initialCount + 1);
     expect(newKey).toBeDefined();
     // New day should have empty exercises
-    expect(persisted[newKey].exercises).toEqual([]);
+    expect(persisted[newKey!].exercises).toEqual([]);
   });
 
   /* ----------------------------------------------------------
@@ -152,7 +156,7 @@ describe("useTrainingPlan", () => {
     });
 
     expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = persistTrainingPlan.mock.calls[0][0];
+    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
     expect(persisted[keyToRemove]).toBeUndefined();
     expect(Object.keys(persisted).length).toBe(initialKeys.length - 1);
   });
@@ -165,7 +169,7 @@ describe("useTrainingPlan", () => {
         exercises: [],
       },
     };
-    loadTrainingPlan.mockResolvedValueOnce(singleDayPlan);
+    mockLoadTrainingPlan.mockResolvedValueOnce(singleDayPlan);
 
     const { result } = renderHook(() => useTrainingPlan());
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -192,7 +196,7 @@ describe("useTrainingPlan", () => {
     });
 
     expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = persistTrainingPlan.mock.calls[0][0];
+    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
     expect(persisted[firstKey].exercises.length).toBe(initialCount + 1);
     // New exercise should have an id and empty sets/reps/rest
     const newExercise = persisted[firstKey].exercises[initialCount];
@@ -218,8 +222,8 @@ describe("useTrainingPlan", () => {
     });
 
     expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = persistTrainingPlan.mock.calls[0][0];
-    const ids = persisted[firstKey].exercises.map((e) => e.id);
+    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
+    const ids = persisted[firstKey].exercises.map((e: { id: string }) => e.id);
     expect(ids).not.toContain(exerciseToRemove);
   });
 
@@ -245,7 +249,7 @@ describe("useTrainingPlan", () => {
     });
 
     expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = persistTrainingPlan.mock.calls[0][0];
+    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
     expect(Object.keys(persisted)).toEqual(["Day A"]);
     expect(persisted["Day A"].exercises[0].name).toBe("Curl");
   });
@@ -276,7 +280,7 @@ describe("useTrainingPlan", () => {
 
   it("shows error message when persist fails", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    persistTrainingPlan.mockRejectedValueOnce(new Error("write failed"));
+    mockPersistTrainingPlan.mockRejectedValueOnce(new Error("write failed"));
 
     const { result } = renderHook(() => useTrainingPlan());
     await waitFor(() => expect(result.current.loading).toBe(false));

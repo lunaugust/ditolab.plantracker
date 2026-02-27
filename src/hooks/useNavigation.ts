@@ -1,24 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { DEFAULT_DAY } from "../data/trainingPlan";
+import type { Exercise } from "../services/types";
 
-/**
- * Centralised navigation state for the app:
- *   - active training day
- *   - selected exercise (for slide-out panel)
- *   - panel open state
- *
- * @returns {{
- *   activeDay: string,
- *   setActiveDay: (d: string) => void,
- *   selectedExercise: import("../data/trainingPlan").Exercise | null,
- *   selectExercise: (ex: import("../data/trainingPlan").Exercise) => void,
- *   clearExercise: () => void,
- *   isPanelOpen: boolean,
- * }}
- */
-export function useNavigation(dayKeys = []) {
+export function useNavigation(dayKeys: string[] = []) {
   const [activeDay, setActiveDay] = useState(dayKeys[0] || DEFAULT_DAY);
-  const [selectedExercise, setSelectedExercise] = useState(null);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
 
   useEffect(() => {
     if (dayKeys.length === 0) return;
@@ -27,7 +13,7 @@ export function useNavigation(dayKeys = []) {
     }
   }, [dayKeys, activeDay]);
 
-  const selectExercise = useCallback((ex) => setSelectedExercise(ex), []);
+  const selectExercise = useCallback((ex: Exercise) => setSelectedExercise(ex), []);
   const clearExercise = useCallback(() => setSelectedExercise(null), []);
 
   return {

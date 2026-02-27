@@ -1,11 +1,13 @@
 import { colors, fonts } from "../../theme";
+import type { CSSProperties } from "react";
 
-/**
- * Stat card shown in the progress detail (Actual / Máximo / Mínimo).
- *
- * @param {{ label: string, value: string, color?: string }} props
- */
-export function StatCard({ label, value, color = colors.textPrimary }) {
+interface StatCardProps {
+  label: string;
+  value: string;
+  color?: string;
+}
+
+export function StatCard({ label, value, color = colors.textPrimary }: StatCardProps) {
   return (
     <div style={styles.card}>
       <div style={styles.label}>{label.toUpperCase()}</div>
@@ -14,7 +16,7 @@ export function StatCard({ label, value, color = colors.textPrimary }) {
   );
 }
 
-const styles = {
+const styles: Record<string, CSSProperties> = {
   card: {
     background: colors.surface,
     borderRadius: 12,

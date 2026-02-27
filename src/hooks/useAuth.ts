@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import type { User } from "firebase/auth";
 import {
   isAuthEnabled,
   subscribeToAuthState,
@@ -10,12 +11,12 @@ import { useI18n } from "../i18n";
 export function useAuth() {
   const { t } = useI18n();
   const enabled = isAuthEnabled();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState("");
 
-  const resolveAuthError = useCallback((err, fallbackKey) => {
-    const message = err?.message;
+  const resolveAuthError = useCallback((err: unknown, fallbackKey: string): string => {
+    const message = err instanceof Error ? err.message : undefined;
     if (message === "FIREBASE_AUTH_NOT_CONFIGURED") return t("auth.loginError");
     return message || t(fallbackKey);
   }, [t]);

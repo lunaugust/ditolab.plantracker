@@ -7,7 +7,7 @@ const mockAddDoc = vi.fn().mockResolvedValue({ id: "doc1" });
 
 vi.mock("firebase/firestore", () => ({
   collection: vi.fn(() => "feedbackCollection"),
-  addDoc: (...args) => mockAddDoc(...args),
+  addDoc: (...args: unknown[]) => mockAddDoc(...args),
   serverTimestamp: vi.fn(() => "SERVER_TIMESTAMP"),
 }));
 
@@ -47,7 +47,7 @@ describe("feedbackService", () => {
   });
 
   it("trims message and defaults category/rating", async () => {
-    await saveFeedback("user123", { message: "  Hello  ", view: "log" });
+    await saveFeedback("user123", { rating: null, category: "general", message: "  Hello  ", view: "log" });
 
     const savedData = mockAddDoc.mock.calls[0][1];
     expect(savedData.message).toBe("Hello");
@@ -62,7 +62,7 @@ describe("feedbackService", () => {
     await saveFeedback("guest", baseEntry);
 
     expect(mockAddDoc).not.toHaveBeenCalled();
-    const queue = JSON.parse(localStorage.getItem(LOCAL_QUEUE_KEY));
+    const queue = JSON.parse(localStorage.getItem(LOCAL_QUEUE_KEY) ?? "null");
     expect(queue).toHaveLength(1);
     expect(queue[0].uid).toBe("guest");
     expect(queue[0].message).toBe("Great app!");
@@ -73,7 +73,7 @@ describe("feedbackService", () => {
     await saveFeedback("guest", { ...baseEntry, message: "First" });
     await saveFeedback("guest", { ...baseEntry, message: "Second" });
 
-    const queue = JSON.parse(localStorage.getItem(LOCAL_QUEUE_KEY));
+    const queue = JSON.parse(localStorage.getItem(LOCAL_QUEUE_KEY) ?? "null");
     expect(queue).toHaveLength(2);
     expect(queue[0].message).toBe("First");
     expect(queue[1].message).toBe("Second");
@@ -90,7 +90,7 @@ describe("feedbackService", () => {
     // Should have attempted Firestore
     expect(mockAddDoc).toHaveBeenCalledTimes(1);
     // Should have fallen back to localStorage
-    const queue = JSON.parse(localStorage.getItem(LOCAL_QUEUE_KEY));
+    const queue = JSON.parse(localStorage.getItem(LOCAL_QUEUE_KEY) ?? "null");
     expect(queue).toHaveLength(1);
     expect(queue[0].uid).toBe("user123");
   });

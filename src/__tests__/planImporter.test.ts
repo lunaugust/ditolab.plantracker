@@ -1,4 +1,4 @@
-import { detectMimeType, isImportAvailable } from "../services/planImporter";
+import { detectMimeType, isImportAvailable, importPlanFromFile } from "../services/planImporter";
 
 /* ================================================================
  * Mock firebase/ai — not available in test environment
@@ -61,6 +61,21 @@ describe("planImporter", () => {
   describe("isImportAvailable", () => {
     it("returns false when ai is null", () => {
       expect(isImportAvailable()).toBe(false);
+    });
+  });
+
+  /* ----------------------------------------------------------
+   * importPlanFromFile — error boundaries
+   * ---------------------------------------------------------- */
+  describe("importPlanFromFile", () => {
+    it("throws when AI is unavailable (ai === null)", async () => {
+      const file = new File(["a,b"], "plan.csv", { type: "text/csv" });
+      await expect(importPlanFromFile(file, "es")).rejects.toThrow();
+    });
+
+    it("throws for unsupported file type (no valid MIME)", async () => {
+      const file = new File(["data"], "image.png", { type: "image/png" });
+      await expect(importPlanFromFile(file, "es")).rejects.toThrow();
     });
   });
 });

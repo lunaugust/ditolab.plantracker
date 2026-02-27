@@ -69,7 +69,7 @@ describe("generateRuleBasedPlan", () => {
  * Experience level affects volume
  * ================================================================ */
 describe("generateRuleBasedPlan — experience scaling", () => {
-  const makeForm = (experience) => ({
+  const makeForm = (experience: string) => ({
     experience,
     goal: "hypertrophy",
     limitations: "",
@@ -90,7 +90,7 @@ describe("generateRuleBasedPlan — experience scaling", () => {
     const beginner = await generateRuleBasedPlan(makeForm("beginner"), "es");
     const advanced = await generateRuleBasedPlan(makeForm("advanced"), "es");
 
-    const countExercises = (plan) =>
+    const countExercises = (plan: Awaited<ReturnType<typeof generateRuleBasedPlan>>) =>
       Object.values(plan).reduce((sum, day) => sum + day.exercises.length, 0);
 
     expect(countExercises(advanced)).toBeGreaterThanOrEqual(countExercises(beginner));
@@ -121,7 +121,7 @@ describe("generateRuleBasedPlan — time limit", () => {
     const short = await generateRuleBasedPlan({ ...base, minutesPerSession: 30 }, "es");
     const long = await generateRuleBasedPlan({ ...base, minutesPerSession: 90 }, "es");
 
-    const max = (plan) => Math.max(...Object.values(plan).map((d) => d.exercises.length));
+    const max = (plan: Awaited<ReturnType<typeof generateRuleBasedPlan>>) => Math.max(...Object.values(plan).map((d) => d.exercises.length));
     expect(max(long)).toBeGreaterThanOrEqual(max(short));
   });
 });

@@ -1,32 +1,16 @@
-/**
- * AI Plan Generator — calls Gemini via Firebase AI Logic.
- *
- * Falls back to rule-based generation when Firebase AI is unavailable
- * (guest mode, missing config, or API failure).
- */
-
 import { getGenerativeModel } from "firebase/ai";
 import { ai } from "./firebaseClient";
-import { GENERATED_DAY_COLORS } from "../data/planGeneratorConfig";
+import { GENERATED_DAY_COLORS, type GeneratorForm } from "../data/planGeneratorConfig";
 import { makeExerciseId } from "../utils/helpers";
 import { generateRuleBasedPlan } from "./ruleBasedPlanGenerator";
 import { getExerciseNamesForPrompt, attachExerciseIds } from "../data/exerciseCatalog";
+import type { TrainingPlan } from "./types";
 
-/**
- * Whether the Firebase AI backend is available.
- * @returns {boolean}
- */
-export function isAIAvailable() {
+export function isAIAvailable(): boolean {
   return Boolean(ai);
 }
 
-/**
- * Build the system prompt for Gemini.
- * @param {string} language — "es" | "en"
- * @param {string} exerciseCatalog — formatted exercise names grouped by body part
- * @returns {string}
- */
-function buildSystemPrompt(language, exerciseCatalog) {
+function buildSystemPrompt(language: string, exerciseCatalog: string): string {
   const lang = language === "en" ? "English" : "Spanish";
   return [
     `You are an expert certified personal trainer and exercise physiologist.`,
@@ -64,13 +48,7 @@ function buildSystemPrompt(language, exerciseCatalog) {
   ].join("\n");
 }
 
-/**
- * Build the user message from wizard form data.
- * @param {import("../data/planGeneratorConfig").GeneratorForm} form
- * @param {string} language
- * @returns {string}
- */
-function buildUserPrompt(form, language) {
+function buildUserPrompt(form: GeneratorForm, language: string): string {
   const isEn = language === "en";
   const lines = [
     isEn ? `Experience level: ${form.experience}` : `Nivel de experiencia: ${form.experience}`,
@@ -92,36 +70,27 @@ function buildUserPrompt(form, language) {
   return lines.join("\n");
 }
 
-/**
- * Post-process AI response text → training plan object.
- * Strips markdown fences, parses JSON, normalizes IDs & colors.
- *
- * @param {string} rawText
- * @returns {Record<string, import("../data/trainingPlan").TrainingDay>}
- */
-function parseAIResponse(rawText) {
-  // Strip markdown code fences if Gemini wraps the response
+function parseAIResponse(rawText: string): TrainingPlan {
   let cleaned = rawText.trim();
   if (cleaned.startsWith("```")) {
     cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
   }
 
-  const parsed = JSON.parse(cleaned);
+  const parsed: unknown = JSON.parse(cleaned);
 
   if (!parsed || typeof parsed !== "object") {
     throw new Error("AI response is not a valid object");
   }
 
-  const dayKeys = Object.keys(parsed);
+  const dayKeys = Object.keys(parsed as object);
   if (dayKeys.length === 0) {
     throw new Error("AI response contains no training days");
   }
 
-  // Normalize: add IDs, colors, ensure all fields are strings
-  const plan = {};
+  const plan: TrainingPlan = {};
   dayKeys.forEach((dayKey, dayIndex) => {
-    const rawDay = parsed[dayKey];
-    const exercises = Array.isArray(rawDay?.exercises) ? rawDay.exercises : [];
+    const rawDay = (parsed as Record<string, unknown>)[dayKey] as Record<string, unknown> | undefined;
+    const exercises = Array.isArray(rawDay?.exercises) ? rawDay.exercises as Record<string, unknown>[] : [];
 
     plan[dayKey] = {
       label: String(rawDay?.label || ""),
@@ -140,25 +109,17 @@ function parseAIResponse(rawText) {
   return plan;
 }
 
-/**
- * Generate a training plan using Firebase AI (Gemini).
- * Falls back to rule-based generation on failure.
- *
- * @param {import("../data/planGeneratorConfig").GeneratorForm} form
- * @param {string} language — "es" | "en"
- * @returns {Promise<{ plan: Record<string, any>, source: "ai" | "rules" }>}
- */
-export async function generateTrainingPlan(form, language = "es") {
+export async function generateTrainingPlan(form: GeneratorForm, language = "es"): Promise<{ plan: TrainingPlan; source: "ai" | "rules" }> {
   if (!isAIAvailable()) {
     return { plan: await generateRuleBasedPlan(form, language), source: "rules" };
   }
 
   try {
     const exerciseCatalog = await getExerciseNamesForPrompt();
-    const model = getGenerativeModel(ai, { model: "gemini-3-flash-preview" });
+    const model = getGenerativeModel(ai!, { model: "gemini-3-flash-preview" });
 
     const result = await model.generateContent({
-      systemInstruction: { parts: [{ text: buildSystemPrompt(language, exerciseCatalog) }] },
+      systemInstruction: buildSystemPrompt(language, exerciseCatalog),
       contents: [{ role: "user", parts: [{ text: buildUserPrompt(form, language) }] }],
       generationConfig: {
         temperature: 0.7,
@@ -172,7 +133,7 @@ export async function generateTrainingPlan(form, language = "es") {
     const planWithIds = await attachExerciseIds(plan);
     return { plan: planWithIds, source: "ai" };
   } catch (error) {
-    console.warn("[AIGenerator] Gemini unavailable, using rule-based fallback.", error.message || error);
+    console.warn("[AIGenerator] Gemini unavailable, using rule-based fallback.", error instanceof Error ? error.message : error);
     return { plan: await generateRuleBasedPlan(form, language), source: "rules" };
   }
 }

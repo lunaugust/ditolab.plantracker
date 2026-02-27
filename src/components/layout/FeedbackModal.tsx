@@ -2,22 +2,20 @@ import { useState, useCallback } from "react";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
 import { saveFeedback } from "../../services/feedbackService";
+import type { CSSProperties } from "react";
 
 const CATEGORIES = ["bug", "suggestion", "general", "plan"];
 
-/**
- * Floating feedback sheet.
- *
- * @param {{
- *   scope: string,
- *   currentView: string,
- *   onClose: () => void,
- * }} props
- */
-export function FeedbackModal({ scope, currentView, onClose }) {
+interface FeedbackModalProps {
+  scope: string;
+  currentView: string;
+  onClose: () => void;
+}
+
+export function FeedbackModal({ scope, currentView, onClose }: FeedbackModalProps) {
   const { t } = useI18n();
-  const [rating, setRating] = useState(null);
-  const [hoveredStar, setHoveredStar] = useState(null);
+  const [rating, setRating] = useState<number | null>(null);
+  const [hoveredStar, setHoveredStar] = useState<number | null>(null);
   const [category, setCategory] = useState("general");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -117,6 +115,11 @@ export function FeedbackModal({ scope, currentView, onClose }) {
             />
             {error && <div style={styles.errorMsg}>{error}</div>}
 
+            {/* Privacy notice */}
+            <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textDim, marginTop: 12, lineHeight: 1.4 }}>
+              🔒 {t("feedback.privacyNotice")}
+            </div>
+
             {/* Actions */}
             <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
               <button onClick={onClose} style={styles.cancelBtn}>
@@ -137,7 +140,7 @@ export function FeedbackModal({ scope, currentView, onClose }) {
   );
 }
 
-const styles = {
+const styles: Record<string, CSSProperties> = {
   backdrop: {
     position: "fixed",
     inset: 0,

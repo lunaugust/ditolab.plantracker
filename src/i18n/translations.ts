@@ -19,10 +19,14 @@ export const translations = {
       loginError: "No se pudo iniciar sesión",
       logoutError: "No se pudo cerrar sesión",
     },
+    app: {
+      name: "GymBuddy AI",
+    },
     common: {
       back: "← volver",
       save: "Guardar",
       cancel: "Cancelar",
+      close: "Cerrar",
       series: "series",
       reps: "reps",
       sessions: "sesiones",
@@ -121,6 +125,8 @@ export const translations = {
       success: "✓ Plan generado",
       error: "✗ Error al generar plan",
       addExercise: "+ Ejercicio",
+      dragToReorder: "Arrastrar para reordenar",
+      limitationsPrivacyNotice: "El texto de limitaciones se envía a la IA para personalizar tu plan.",
     },
     importer: {
       title: "IMPORTAR PLAN",
@@ -169,6 +175,7 @@ export const translations = {
       sending: "Enviando...",
       success: "✓ ¡Gracias por tu comentario!",
       error: "✗ Error al enviar",
+      privacyNotice: "Tus comentarios se almacenan de forma segura para mejorar la app.",
     },
   },
   en: {
@@ -188,10 +195,14 @@ export const translations = {
       loginError: "Could not sign in",
       logoutError: "Could not sign out",
     },
+    app: {
+      name: "GymBuddy AI",
+    },
     common: {
       back: "← back",
       save: "Save",
       cancel: "Cancel",
+      close: "Close",
       series: "sets",
       reps: "reps",
       sessions: "sessions",
@@ -290,6 +301,8 @@ export const translations = {
       success: "✓ Plan generated",
       error: "✗ Error generating plan",
       addExercise: "+ Exercise",
+      dragToReorder: "Drag to reorder",
+      limitationsPrivacyNotice: "Your limitations text is sent to the AI to personalise your plan.",
     },
     importer: {
       title: "IMPORT PLAN",
@@ -338,6 +351,7 @@ export const translations = {
       sending: "Sending...",
       success: "✓ Thanks for your feedback!",
       error: "✗ Failed to send",
+      privacyNotice: "Your feedback is stored securely to help us improve the app.",
     },
   },
 };
