@@ -84,12 +84,24 @@ function makePlanId(prefix = "plan"): string {
 }
 
 function encodeBase64(value: string): string {
-  if (typeof btoa === "function") return btoa(value);
+  if (typeof btoa === "function") {
+    try {
+      return btoa(unescape(encodeURIComponent(value)));
+    } catch {
+      // fall through to Buffer
+    }
+  }
   return Buffer.from(value, "utf-8").toString("base64");
 }
 
 function decodeBase64(value: string): string {
-  if (typeof atob === "function") return atob(value);
+  if (typeof atob === "function") {
+    try {
+      return decodeURIComponent(escape(atob(value)));
+    } catch {
+      // fall through to Buffer
+    }
+  }
   return Buffer.from(value, "base64").toString("utf-8");
 }
 

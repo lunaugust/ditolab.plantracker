@@ -87,14 +87,23 @@ export function PlanView({
 
   const handleSharePlan = async () => {
     const code = onSharePlan();
-    if (!code) return;
-
-    try {
-      await navigator.clipboard.writeText(code);
-      window.alert(t("plan.shareCopied"));
-    } catch {
-      window.prompt(t("plan.sharePrompt"), code);
+    if (!code) {
+      window.alert(t("plan.shareFailed"));
+      return;
     }
+
+    const canCopy = typeof navigator !== "undefined" && navigator.clipboard?.writeText;
+    if (canCopy) {
+      try {
+        await navigator.clipboard.writeText(code);
+        window.alert(t("plan.shareCopied"));
+        return;
+      } catch {
+        // fall back to prompt below
+      }
+    }
+
+    window.prompt(t("plan.sharePrompt"), code);
   };
 
   const handleImportShared = () => {

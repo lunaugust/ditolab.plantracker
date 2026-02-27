@@ -243,6 +243,21 @@ describe("useTrainingPlan", () => {
     expect(persisted.sharedPlans[0].id).toBe("shared-123");
   });
 
+  it("shareActivePlan returns a shareable code with the active plan id", async () => {
+    const { result } = renderHook(() => useTrainingPlan());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let code: string | null = null;
+    act(() => {
+      code = result.current.shareActivePlan();
+    });
+
+    expect(code).toBeTruthy();
+    const payload = JSON.parse(Buffer.from(code!, "base64").toString("utf-8"));
+    expect(payload.id).toBe(result.current.activePlanId);
+    expect(payload.plan).toBeDefined();
+  });
+
   /* ----------------------------------------------------------
    * Save feedback
    * ---------------------------------------------------------- */
