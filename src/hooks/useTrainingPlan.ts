@@ -4,18 +4,19 @@ import { loadTrainingPlan, persistTrainingPlan } from "../services/storageServic
 import { SAVE_MSG_DURATION_MS } from "../theme";
 import { useI18n } from "../i18n";
 import { makeExerciseId } from "../utils/helpers";
+import type { Exercise, TrainingDay, TrainingPlan } from "../services/types";
 
-function normalizeString(value, fallback = "") {
+function normalizeString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
 }
 
 const DEFAULT_DAY_COLORS = Object.values(TRAINING_PLAN).map((day) => day.color);
 
-function clonePlan(plan) {
+function clonePlan(plan: TrainingPlan): TrainingPlan {
   return JSON.parse(JSON.stringify(plan));
 }
 
-function getNextDayName(existingKeys, template) {
+function getNextDayName(existingKeys: string[], template: string): string {
   let index = existingKeys.length + 1;
   let candidate = template.replace("{n}", String(index));
   while (existingKeys.includes(candidate)) {
@@ -25,12 +26,12 @@ function getNextDayName(existingKeys, template) {
   return candidate;
 }
 
-function normalizeExercise(rawExercise, index) {
-  const exercise = rawExercise && typeof rawExercise === "object" ? rawExercise : {};
+function normalizeExercise(rawExercise: unknown, index: number): Exercise {
+  const exercise = rawExercise && typeof rawExercise === "object" ? rawExercise as Record<string, unknown> : {};
   const normalizedExerciseId = normalizeString(exercise.exerciseId, "");
   const normalizedNote = normalizeString(exercise.note, "");
   const rawNoteSource = normalizeString(exercise.noteSource, "");
-  const normalizedNoteSource = rawNoteSource === "catalog" ? "catalog" : "custom";
+  const normalizedNoteSource: "catalog" | "custom" = rawNoteSource === "catalog" ? "catalog" : "custom";
   const normalizedNoteCatalogId = normalizeString(exercise.noteCatalogId, normalizedExerciseId);
 
   return {
@@ -46,20 +47,21 @@ function normalizeExercise(rawExercise, index) {
   };
 }
 
-function compareDayKeys(a, b) {
+function compareDayKeys(a: string, b: string): number {
   return a.localeCompare(b, "es", { numeric: true, sensitivity: "base" });
 }
 
-function normalizePlan(inputPlan) {
-  const source = inputPlan && typeof inputPlan === "object" ? inputPlan : null;
+function normalizePlan(inputPlan: unknown): TrainingPlan {
+  const source = inputPlan && typeof inputPlan === "object" ? inputPlan as Record<string, unknown> : null;
   const sourceKeys = source ? Object.keys(source) : [];
-  const basePlan = sourceKeys.length > 0 ? source : TRAINING_PLAN;
+  const basePlan: Record<string, unknown> = sourceKeys.length > 0 ? source! : TRAINING_PLAN;
   const baseKeys = Object.keys(basePlan);
 
   return Object.fromEntries(
     baseKeys.map((dayKey, index) => {
-      const rawDay = basePlan[dayKey] && typeof basePlan[dayKey] === "object" ? basePlan[dayKey] : {};
-      const rawExercises = Array.isArray(rawDay.exercises) ? rawDay.exercises : [];
+      const rawDayVal = basePlan[dayKey];
+      const rawDay = rawDayVal && typeof rawDayVal === "object" ? rawDayVal as Record<string, unknown> : {} as Record<string, unknown>;
+      const rawExercises = Array.isArray(rawDay.exercises) ? rawDay.exercises as unknown[] : [];
       const defaultColor = DEFAULT_DAY_COLORS[index % DEFAULT_DAY_COLORS.length] || "#e8643a";
 
       return [
@@ -118,7 +120,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     };
   }, [storageScope, authLoading]);
 
-  const saveMsgTimerRef = useRef(null);
+  const saveMsgTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* Clean up pending save-message timer on unmount */
   useEffect(() => {
@@ -127,7 +129,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     };
   }, []);
 
-  const persist = useCallback(async (nextPlan) => {
+  const persist = useCallback(async (nextPlan: TrainingPlan) => {
     const normalized = normalizePlan(nextPlan);
     setTrainingPlan(normalized);
 
@@ -141,7 +143,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     saveMsgTimerRef.current = setTimeout(() => setSaveMsg(""), SAVE_MSG_DURATION_MS);
   }, [storageScope, t]);
 
-  const saveDay = useCallback((dayKey, nextDay) => {
+  const saveDay = useCallback((dayKey: string, nextDay: Partial<TrainingDay>) => {
     const plan = trainingPlanRef.current;
     if (!plan[dayKey]) return;
     const nextPlan = {
@@ -173,7 +175,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     return newDayKey;
   }, [persist, t]);
 
-  const removeDay = useCallback((dayKey) => {
+  const removeDay = useCallback((dayKey: string) => {
     const plan = trainingPlanRef.current;
     if (!plan[dayKey]) return;
     const keys = Object.keys(plan);
@@ -184,7 +186,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     persist(nextPlan);
   }, [persist]);
 
-  const addExercise = useCallback((dayKey) => {
+  const addExercise = useCallback((dayKey: string) => {
     const plan = trainingPlanRef.current;
     const day = plan[dayKey];
     if (!day) return;
@@ -204,7 +206,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     persist(nextPlan);
   }, [persist, t]);
 
-  const removeExercise = useCallback((dayKey, exerciseId) => {
+  const removeExercise = useCallback((dayKey: string, exerciseId: string) => {
     const plan = trainingPlanRef.current;
     const day = plan[dayKey];
     if (!day) return;
@@ -214,7 +216,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     persist(nextPlan);
   }, [persist]);
 
-  const replacePlan = useCallback((newPlan) => {
+  const replacePlan = useCallback((newPlan: TrainingPlan) => {
     persist(newPlan);
   }, [persist]);
 

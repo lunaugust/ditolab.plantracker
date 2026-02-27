@@ -6,25 +6,23 @@ import { DayTabs, SectionLabel, PageContainer, ExerciseNameInput } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
+import type { Exercise, TrainingDay, TrainingPlan, LogsByExercise } from "../../services/types";
 
-/**
- * "Plan" screen — shows the structured training plan per day.
- *
- * @param {{
- *   activeDay: string,
- *   setActiveDay: (d: string) => void,
- *   trainingPlan: Record<string, import("../../data/trainingPlan").TrainingDay>,
- *   dayKeys: string[],
- *   dayColors: Record<string, string>,
- *   logs: Record<string, import("../../services/types").LogEntry[]>,
- *   saveDay: (dayKey: string, nextDay: import("../../data/trainingPlan").TrainingDay) => void,
- *   addDay: () => string,
- *   removeDay: (dayKey: string) => void,
- *   onOpenGenerator: () => void,
- *   onOpenImporter: () => void,
- *   onExerciseClick?: (exercise: import("../../data/trainingPlan").Exercise) => void,
- * }} props
- */
+interface PlanViewProps {
+  activeDay: string;
+  setActiveDay: (d: string) => void;
+  trainingPlan: TrainingPlan;
+  dayKeys: string[];
+  dayColors: Record<string, string>;
+  logs: LogsByExercise;
+  saveDay: (dayKey: string, nextDay: Partial<TrainingDay>) => void;
+  addDay: () => string;
+  removeDay: (dayKey: string) => void;
+  onOpenGenerator: () => void;
+  onOpenImporter: () => void;
+  onExerciseClick?: (exercise: Exercise) => void;
+}
+
 export function PlanView({
   activeDay,
   setActiveDay,
@@ -38,12 +36,12 @@ export function PlanView({
   onOpenGenerator,
   onOpenImporter,
   onExerciseClick,
-}) {
+}: PlanViewProps) {
   const { t, language } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : null;
   const [isEditing, setIsEditing] = useState(false);
-  const [draftDay, setDraftDay] = useState(null);
+  const [draftDay, setDraftDay] = useState<TrainingDay | null>(null);
 
   useEffect(() => {
     if (!isEditing || !day) return;
@@ -82,24 +80,27 @@ export function PlanView({
 
   const currentDay = isEditing && draftDay ? draftDay : day;
 
-  const updateExercise = (exerciseId, updater) => {
+  const updateExercise = (exerciseId: string, updater: (ex: Exercise) => Exercise) => {
     if (!draftDay) return;
-    setDraftDay((prev) => ({
-      ...prev,
-      exercises: prev.exercises.map((exercise) => (
-        exercise.id === exerciseId ? updater(exercise) : exercise
-      )),
-    }));
+    setDraftDay((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        exercises: prev.exercises.map((exercise) => (
+          exercise.id === exerciseId ? updater(exercise) : exercise
+        )),
+      };
+    });
   };
 
-  const updateExerciseField = (exerciseId, field, value) => {
+  const updateExerciseField = (exerciseId: string, field: keyof Exercise, value: string) => {
     updateExercise(exerciseId, (exercise) => ({
       ...exercise,
       [field]: value,
     }));
   };
 
-  const moveExercise = (fromIndex, direction) => {
+  const moveExercise = (fromIndex: number, direction: number) => {
     setDraftDay((prev) => {
       if (!prev) return prev;
       const toIndex = fromIndex + direction;
@@ -163,7 +164,7 @@ export function PlanView({
           {isEditing ? (
             <input
               value={currentDay.label}
-              onChange={(e) => setDraftDay((prev) => ({ ...prev, label: e.target.value }))}
+              onChange={(e) => setDraftDay((prev) => prev ? { ...prev, label: e.target.value } : prev)}
               style={styles.dayLabelInput}
             />
           ) : (

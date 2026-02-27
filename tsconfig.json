@@ -9,8 +9,7 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "strict": false,
-    "noCheck": true,
+    "strict": true,
     "noEmit": true,
     "jsx": "react-jsx",
     "types": ["vite/client", "vitest/globals", "vite-plugin-pwa/client", "node"]

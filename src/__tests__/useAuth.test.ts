@@ -1,5 +1,6 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useAuth } from "../hooks/useAuth";
+import type { Mock } from "vitest";
 
 /* ================================================================
  * Mock authService
@@ -18,9 +19,14 @@ import {
   signOutUser,
 } from "../services/authService";
 
+const mockIsAuthEnabled = isAuthEnabled as unknown as Mock;
+const mockSubscribeToAuthState = subscribeToAuthState as unknown as Mock;
+const mockSignInWithGoogle = signInWithGoogle as unknown as Mock;
+const mockSignOutUser = signOutUser as unknown as Mock;
+
 beforeEach(() => {
   vi.clearAllMocks();
-  isAuthEnabled.mockReturnValue(false);
+  mockIsAuthEnabled.mockReturnValue(false);
 });
 
 describe("useAuth", () => {
@@ -45,10 +51,10 @@ describe("useAuth", () => {
    * Enabled auth — subscription
    * ---------------------------------------------------------- */
   it("subscribes to auth state and sets user on callback", async () => {
-    isAuthEnabled.mockReturnValue(true);
+    mockIsAuthEnabled.mockReturnValue(true);
 
-    let authCallback;
-    subscribeToAuthState.mockImplementation((cb) => {
+    let authCallback: ((user: unknown) => void) | undefined;
+    mockSubscribeToAuthState.mockImplementation((cb: (user: unknown) => void) => {
       authCallback = cb;
       return () => {};
     });
@@ -61,16 +67,16 @@ describe("useAuth", () => {
 
     // Simulate auth state change
     const mockUser = { uid: "user123", displayName: "Augusto" };
-    act(() => authCallback(mockUser));
+    act(() => authCallback?.(mockUser));
 
     expect(result.current.user).toEqual(mockUser);
     expect(result.current.loading).toBe(false);
   });
 
   it("unsubscribes on unmount", () => {
-    isAuthEnabled.mockReturnValue(true);
+    mockIsAuthEnabled.mockReturnValue(true);
     const unsubscribe = vi.fn();
-    subscribeToAuthState.mockReturnValue(unsubscribe);
+    mockSubscribeToAuthState.mockReturnValue(unsubscribe);
 
     const { unmount } = renderHook(() => useAuth());
     unmount();
@@ -82,7 +88,7 @@ describe("useAuth", () => {
    * loginWithGoogle
    * ---------------------------------------------------------- */
   it("loginWithGoogle calls signInWithGoogle", async () => {
-    signInWithGoogle.mockResolvedValue(undefined);
+    mockSignInWithGoogle.mockResolvedValue(undefined);
     const { result } = renderHook(() => useAuth());
 
     await act(async () => {
@@ -94,7 +100,7 @@ describe("useAuth", () => {
   });
 
   it("loginWithGoogle sets error on failure", async () => {
-    signInWithGoogle.mockRejectedValue(new Error("popup closed"));
+    mockSignInWithGoogle.mockRejectedValue(new Error("popup closed"));
     const { result } = renderHook(() => useAuth());
 
     await act(async () => {
@@ -105,7 +111,7 @@ describe("useAuth", () => {
   });
 
   it("loginWithGoogle maps FIREBASE_AUTH_NOT_CONFIGURED to localized message", async () => {
-    signInWithGoogle.mockRejectedValue(new Error("FIREBASE_AUTH_NOT_CONFIGURED"));
+    mockSignInWithGoogle.mockRejectedValue(new Error("FIREBASE_AUTH_NOT_CONFIGURED"));
     const { result } = renderHook(() => useAuth());
 
     await act(async () => {
@@ -118,7 +124,7 @@ describe("useAuth", () => {
 
   it("loginWithGoogle clears previous errors before attempting", async () => {
     // First call fails
-    signInWithGoogle.mockRejectedValueOnce(new Error("fail"));
+    mockSignInWithGoogle.mockRejectedValueOnce(new Error("fail"));
     const { result } = renderHook(() => useAuth());
 
     await act(async () => {
@@ -127,7 +133,7 @@ describe("useAuth", () => {
     expect(result.current.error).toBe("fail");
 
     // Second call succeeds — error should clear
-    signInWithGoogle.mockResolvedValueOnce(undefined);
+    mockSignInWithGoogle.mockResolvedValueOnce(undefined);
     await act(async () => {
       await result.current.loginWithGoogle();
     });
@@ -138,7 +144,7 @@ describe("useAuth", () => {
    * logout
    * ---------------------------------------------------------- */
   it("logout calls signOutUser", async () => {
-    signOutUser.mockResolvedValue(undefined);
+    mockSignOutUser.mockResolvedValue(undefined);
     const { result } = renderHook(() => useAuth());
 
     await act(async () => {
@@ -150,7 +156,7 @@ describe("useAuth", () => {
   });
 
   it("logout sets error on failure", async () => {
-    signOutUser.mockRejectedValue(new Error("network error"));
+    mockSignOutUser.mockRejectedValue(new Error("network error"));
     const { result } = renderHook(() => useAuth());
 
     await act(async () => {
@@ -161,7 +167,7 @@ describe("useAuth", () => {
   });
 
   it("logout uses fallback key when error has no message", async () => {
-    signOutUser.mockRejectedValue({});
+    mockSignOutUser.mockRejectedValue({});
     const { result } = renderHook(() => useAuth());
 
     await act(async () => {

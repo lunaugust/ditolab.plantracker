@@ -39,7 +39,7 @@ describe("persistLogs", () => {
   it("writes JSON to localStorage", async () => {
     const data = { ex1: [{ date: "d", weight: "60", reps: "8", notes: "" }] };
     await persistLogs(data);
-    expect(JSON.parse(localStorage.getItem(STORAGE_KEY))).toEqual(data);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null")).toEqual(data);
   });
 
   it("throws when localStorage.setItem fails", async () => {

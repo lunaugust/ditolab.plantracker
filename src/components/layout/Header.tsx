@@ -1,5 +1,6 @@
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
+import type { CSSProperties } from "react";
 
 /** Download / install icon */
 const InstallIcon = () => (
@@ -10,10 +11,16 @@ const InstallIcon = () => (
   </svg>
 );
 
-/**
- * Simplified header with branding + actions (no bottom navigation)
- */
-export function Header({ saveMsg, authUserName, onSignOut, onOpenFeedback, canInstall, onInstall }) {
+interface HeaderProps {
+  saveMsg: string;
+  authUserName?: string | null;
+  onSignOut: (() => void) | null;
+  onOpenFeedback: () => void;
+  canInstall: boolean;
+  onInstall: () => void;
+}
+
+export function Header({ saveMsg, authUserName, onSignOut, onOpenFeedback, canInstall, onInstall }: HeaderProps) {
   const { language, setLanguage, t } = useI18n();
 
   return (
@@ -68,7 +75,7 @@ export function Header({ saveMsg, authUserName, onSignOut, onOpenFeedback, canIn
   );
 }
 
-const styles = {
+const styles: Record<string, CSSProperties> = {
   topBar: {
     position: "sticky",
     top: 0,

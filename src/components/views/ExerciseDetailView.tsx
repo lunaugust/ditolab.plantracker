@@ -12,21 +12,19 @@ import { useI18n } from "../../i18n";
 import { useExerciseGif, useLocalizedExerciseName, useLocalizedExerciseNote } from "../../hooks";
 import { formatDate, buildChartData, computeWeightStats } from "../../utils/helpers";
 import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
+import type { Exercise, LogEntry, LogsByExercise } from "../../services/types";
+import type { CSSProperties } from "react";
 
-/**
- * Full-screen exercise detail view with tabs: Log, Progress
- * Used on mobile for better UX
- *
- * @param {{
- *   exercise: import("../../data/trainingPlan").Exercise,
- *   accentColor: string,
- *   logs: Record<string, import("../../services/types").LogEntry[]>,
- *   addLog: (exId: string, data: { weight: string, reps: string, notes: string }) => void,
- *   deleteLog: (exId: string, idx: number) => void,
- *   onBack: () => void,
- * }} props
- */
-export function ExerciseDetailView({ exercise, accentColor, logs, addLog, deleteLog, onBack }) {
+interface ExerciseDetailViewProps {
+  exercise: Exercise;
+  accentColor: string;
+  logs: LogsByExercise;
+  addLog: (exId: string, data: { weight: string; reps: string; notes: string }) => void;
+  deleteLog: (exId: string, idx: number) => void;
+  onBack: () => void;
+}
+
+export function ExerciseDetailView({ exercise, accentColor, logs, addLog, deleteLog, onBack }: ExerciseDetailViewProps) {
   const { t } = useI18n();
   const gifUrl = useExerciseGif(exercise.exerciseId, exercise.name);
   const localizedName = useLocalizedExerciseName(exercise.name);
@@ -51,14 +49,14 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
     setForm((prev) => ({ weight: prev.weight, reps: prev.reps, notes: "" }));
   };
 
-  const adjustWeight = (delta) => {
+  const adjustWeight = (delta: number) => {
     const current = Number(form.weight);
     const safeCurrent = Number.isFinite(current) ? current : 0;
     const next = Math.max(0, safeCurrent + delta);
     setForm((prev) => ({ ...prev, weight: String(next) }));
   };
 
-  const adjustReps = (delta) => {
+  const adjustReps = (delta: number) => {
     const current = Number(form.reps);
     const safeCurrent = Number.isFinite(current) ? current : 0;
     const next = Math.max(0, safeCurrent + delta);
@@ -147,6 +145,23 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
 }
 
 /** Log tab content */
+type FormState = { weight: string; reps: string; notes: string };
+type TFunction = (key: string, params?: Record<string, string | number>) => string;
+
+interface LogTabProps {
+  exercise: Exercise;
+  form: FormState;
+  setForm: React.Dispatch<React.SetStateAction<FormState>>;
+  handleSubmit: () => void;
+  adjustWeight: (delta: number) => void;
+  adjustReps: (delta: number) => void;
+  entries: LogEntry[];
+  deleteLog: (exId: string, idx: number) => void;
+  exerciseId: string;
+  accentColor: string;
+  t: TFunction;
+}
+
 function LogTab({
   exercise,
   form,
@@ -159,7 +174,7 @@ function LogTab({
   exerciseId,
   accentColor,
   t,
-}) {
+}: LogTabProps) {
   const repTargets = [8, 10, 15, 20];
 
   return (
@@ -279,7 +294,7 @@ function LogTab({
 }
 
 /** Progress tab content */
-function ProgressTab({ entries, accentColor, t }) {
+function ProgressTab({ entries, accentColor, t }: { entries: LogEntry[]; accentColor: string; t: TFunction }) {
   const chartData = buildChartData(entries).filter((d) => d.peso > 0);
   const stats = computeWeightStats(entries);
 
@@ -345,7 +360,7 @@ function ProgressTab({ entries, accentColor, t }) {
 }
 
 /* ---- Styles ---- */
-const styles = {
+const styles: Record<string, CSSProperties> = {
   tabs: {
     display: "flex",
     gap: 4,
@@ -366,7 +381,7 @@ const styles = {
   },
 };
 
-const formStyles = {
+const formStyles: Record<string, CSSProperties> = {
   card: {
     background: colors.surface,
     borderRadius: 14,
@@ -458,7 +473,7 @@ const formStyles = {
   },
 };
 
-const historyStyles = {
+const historyStyles: Record<string, CSSProperties> = {
   emptyState: {
     color: colors.textGhost,
     fontSize: 13,
@@ -519,7 +534,7 @@ const gifStyles = {
   },
 };
 
-const progressStyles = {
+const progressStyles: Record<string, CSSProperties> = {
   noDataCard: {
     background: colors.surface,
     borderRadius: 12,

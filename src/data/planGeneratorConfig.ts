@@ -37,6 +37,15 @@ export const DEFAULT_GENERATOR_FORM = {
   minutesPerSession: 60,
 };
 
+/** Form data collected by the plan generator wizard */
+export type GeneratorForm = {
+  experience: string;
+  goal: string;
+  limitations: string;
+  daysPerWeek: number;
+  minutesPerSession: number;
+};
+
 /** Day accent colours cycled for generated plans */
 export const GENERATED_DAY_COLORS = [
   "#e8643a",

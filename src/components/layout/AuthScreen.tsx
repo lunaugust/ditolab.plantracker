@@ -1,7 +1,12 @@
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
 
-export function AuthScreen({ onSignIn, error }) {
+interface AuthScreenProps {
+  onSignIn: () => void;
+  error: string;
+}
+
+export function AuthScreen({ onSignIn, error }: AuthScreenProps) {
   const { t } = useI18n();
 
   return (

@@ -2,23 +2,21 @@ import { colors, fonts } from "../../theme";
 import { padIndex } from "../../utils/helpers";
 import { useI18n } from "../../i18n";
 import { useLocalizedExerciseName } from "../../hooks";
+import type { Exercise, LogEntry } from "../../services/types";
 
-/**
- * A single exercise row used across Plan, Log-picker and Progress screens.
- *
- * @param {{
- *   exercise: import("../../data/trainingPlan").Exercise,
- *   index: number,
- *   accentColor: string,
- *   lastLog?: import("../../services/types").LogEntry | null,
- *   onClick?: () => void,
- *   showChevron?: boolean,
- *   showDetails?: boolean,
- *   totalLogs?: number,
- *   progressDiff?: number | null,
- *   disabled?: boolean,
- * }} props
- */
+interface ExerciseRowProps {
+  exercise: Exercise;
+  index: number;
+  accentColor: string;
+  lastLog?: LogEntry | null;
+  onClick?: () => void;
+  showChevron?: boolean;
+  showDetails?: boolean;
+  totalLogs?: number;
+  progressDiff?: number | null;
+  disabled?: boolean;
+}
+
 export function ExerciseRow({
   exercise,
   index,
@@ -30,7 +28,7 @@ export function ExerciseRow({
   totalLogs = 0,
   progressDiff = null,
   disabled = false,
-}) {
+}: ExerciseRowProps) {
   const { t } = useI18n();
   const localizedName = useLocalizedExerciseName(exercise.name);
   const interactive = !!onClick && !disabled;

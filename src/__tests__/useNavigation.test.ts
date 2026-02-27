@@ -41,7 +41,7 @@ describe("useNavigation", () => {
 
   it("selectExercise / clearExercise toggle selected exercise and isPanelOpen", () => {
     const { result } = renderHook(() => useNavigation());
-    const fakeExercise = { id: "test", name: "Test Exercise" };
+    const fakeExercise = { id: "test", name: "Test Exercise", sets: "3", reps: "10" };
 
     act(() => result.current.selectExercise(fakeExercise));
     expect(result.current.selectedExercise).toEqual(fakeExercise);

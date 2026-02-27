@@ -1,11 +1,14 @@
 import { colors, fonts } from "../../theme";
+import type { CSSProperties } from "react";
 
-/**
- * Horizontal tab bar for switching between training days.
- *
- * @param {{ days: string[], activeDay: string, dayColors: Record<string,string>, onSelect: (day: string) => void }} props
- */
-export function DayTabs({ days, activeDay, dayColors, onSelect }) {
+interface DayTabsProps {
+  days: string[];
+  activeDay: string;
+  dayColors: Record<string, string>;
+  onSelect: (day: string) => void;
+}
+
+export function DayTabs({ days, activeDay, dayColors, onSelect }: DayTabsProps) {
   return (
     <div style={styles.container}>
       {days.map((day) => {
@@ -31,7 +34,7 @@ export function DayTabs({ days, activeDay, dayColors, onSelect }) {
   );
 }
 
-const styles = {
+const styles: Record<string, CSSProperties> = {
   container: {
     display: "flex",
     gap: 8,

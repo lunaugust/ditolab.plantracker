@@ -1,11 +1,12 @@
 import { colors, fonts } from "../../theme";
+import type { CSSProperties, ReactNode } from "react";
 
-/**
- * Small section-heading label (mono, uppercase, letter-spaced).
- *
- * @param {{ children: React.ReactNode, color?: string }} props
- */
-export function SectionLabel({ children, color = colors.textMuted }) {
+interface SectionLabelProps {
+  children: ReactNode;
+  color?: string;
+}
+
+export function SectionLabel({ children, color = colors.textMuted }: SectionLabelProps) {
   return (
     <div
       style={{
@@ -13,7 +14,7 @@ export function SectionLabel({ children, color = colors.textMuted }) {
         fontSize: 10,
         color,
         letterSpacing: 3,
-        textTransform: "uppercase",
+        textTransform: "uppercase" as CSSProperties["textTransform"],
         marginBottom: 12,
       }}
     >

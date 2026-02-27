@@ -12,7 +12,7 @@ registerSW({
   },
 });
 
-createRoot(document.getElementById("root")).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <I18nProvider>
       <App />

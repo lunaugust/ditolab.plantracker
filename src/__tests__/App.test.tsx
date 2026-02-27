@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
+import type { Mock } from "vitest";
+import type { ReactNode } from "react";
 
 vi.mock("../services/authService", () => ({
   isAuthEnabled: vi.fn(() => false),
@@ -24,12 +26,15 @@ vi.mock("../services/storageService", async () => {
 
 import { loadLogs, persistLogs } from "../services/storageService";
 
+const mockLoadLogs = loadLogs as unknown as Mock;
+const mockPersistLogs = persistLogs as unknown as Mock;
+
 /* Mock recharts ResponsiveContainer (it needs a real DOM size) */
 vi.mock("recharts", async () => {
   const actual = await vi.importActual("recharts");
   return {
     ...actual,
-    ResponsiveContainer: ({ children }) => (
+    ResponsiveContainer: ({ children }: { children: ReactNode }) => (
       <div data-testid="responsive-container" style={{ width: 400, height: 220 }}>
         {children}
       </div>
@@ -39,7 +44,7 @@ vi.mock("recharts", async () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  loadLogs.mockResolvedValue({});
+  mockLoadLogs.mockResolvedValue({});
 });
 
 /** Wait for the plan to load by looking for exercise metadata (sets/reps are never localized). */
@@ -53,7 +58,7 @@ async function waitForPlanLoad() {
  * ExerciseRow's onClick is on the outermost div. We find the exercise metadata
  * text, then walk up to the clickable row wrapper.
  */
-async function clickFirstExercise(user) {
+async function clickFirstExercise(user: ReturnType<typeof userEvent.setup>) {
   const metaEl = await screen.findByText(/15-20 reps/, {}, { timeout: 3000 });
   // Walk up from the meta <div> to the ExerciseRow root <div> with onClick
   let el = metaEl.parentElement;
@@ -143,7 +148,7 @@ describe("Exercise Detail", () => {
 
     // Verify persistLogs was called
     expect(persistLogs).toHaveBeenCalledTimes(1);
-    const persisted = persistLogs.mock.calls[0][0];
+    const persisted = mockPersistLogs.mock.calls[0][0];
     expect(persisted["d1_hack_warmup"]).toBeDefined();
     expect(persisted["d1_hack_warmup"][0].weight).toBe("100");
     expect(persisted["d1_hack_warmup"][0].reps).toBe("8");
@@ -173,15 +178,15 @@ describe("Exercise Detail", () => {
 
     // Click +2.5 button
     await user.click(screen.getByText("+2.5"));
-    const [weightInput] = screen.getAllByRole("spinbutton");
+    const [weightInput] = screen.getAllByRole("spinbutton") as HTMLInputElement[];
     expect(weightInput.value).toBe("2.5");
 
     // Click +2.5 again
     await user.click(screen.getByText("+2.5"));
-    expect(weightInput.value).toBe("5");
+    expect((screen.getAllByRole("spinbutton")[0] as HTMLInputElement).value).toBe("5");
 
     // Click -2.5
     await user.click(screen.getByText("-2.5"));
-    expect(weightInput.value).toBe("2.5");
+    expect((screen.getAllByRole("spinbutton")[0] as HTMLInputElement).value).toBe("2.5");
   });
 });
