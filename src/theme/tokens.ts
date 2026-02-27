@@ -27,6 +27,10 @@ export const colors = {
 
   success: "#7de83a",
   warning: "#e8643a",
+  danger:  "#e85a5a",
+
+  tooltipBg:    "#1a1a1a",
+  textOnAccent: "#ffffff",
 };
 
 /* ---- Typography ---- */

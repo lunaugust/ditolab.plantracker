@@ -368,7 +368,7 @@ const styles: Record<string, React.CSSProperties> = {
   primaryButton: {
     width: "100%",
     background: colors.accent.blue,
-    color: "#fff",
+    color: colors.textOnAccent,
     border: "none",
     borderRadius: 12,
     padding: "14px 20px",
@@ -394,7 +394,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: colors.surface,
     border: `1px solid ${colors.border}`,
     borderRadius: 10,
-    color: "#e85a5a",
+    color: colors.danger,
     fontSize: 13,
   },
   warningBanner: {
