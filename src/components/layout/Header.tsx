@@ -16,18 +16,28 @@ interface HeaderProps {
   authUserName?: string | null;
   onSignOut: (() => void) | null;
   onOpenFeedback: () => void;
+  onOpenPlanManager?: () => void;
+  activePlanName?: string;
+  canEdit?: boolean;
   canInstall: boolean;
   onInstall: () => void;
 }
 
-export function Header({ saveMsg, authUserName, onSignOut, onOpenFeedback, canInstall, onInstall }: HeaderProps) {
+export function Header({ saveMsg, authUserName, onSignOut, onOpenFeedback, onOpenPlanManager, activePlanName, canEdit, canInstall, onInstall }: HeaderProps) {
   const { language, setLanguage, t } = useI18n();
 
   return (
     <div style={styles.topBar}>
       <div>
         <div style={styles.subtitle}>{t("header.subtitle")}</div>
-        <div style={styles.title}>{authUserName?.split(" ")[0] || "GymBuddy"}</div>
+        <div style={styles.titleRow}>
+          <div style={styles.title}>{authUserName?.split(" ")[0] || "GymBuddy"}</div>
+          {onOpenPlanManager && activePlanName && (
+            <button onClick={onOpenPlanManager} style={styles.planBtn} title={t("planManager.switchPlan")}>
+              {activePlanName} {canEdit === false ? "🔒" : "▾"}
+            </button>
+          )}
+        </div>
       </div>
       <div style={styles.actions}>
         <div style={styles.langSwitch}>
@@ -101,6 +111,27 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 20,
     fontWeight: 700,
     letterSpacing: -0.5,
+  },
+  titleRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  planBtn: {
+    background: colors.surface,
+    border: `1px solid ${colors.border}`,
+    color: colors.textSecondary,
+    borderRadius: 16,
+    padding: "4px 10px",
+    fontSize: 12,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    whiteSpace: "nowrap",
+    maxWidth: 150,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   },
   saveMsg: {
     fontFamily: fonts.mono,
