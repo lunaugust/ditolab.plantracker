@@ -15,7 +15,9 @@ export function WhatsNewModal({ onDismiss }: { onDismiss: () => void }) {
   const { t, language } = useI18n();
 
   const latest = CHANGELOG[0];
-  if (!latest) return null;
+  const previous = CHANGELOG[1];
+  const visibleEntries = [latest, previous].filter((entry): entry is typeof CHANGELOG[number] => Boolean(entry));
+  if (visibleEntries.length === 0) return null;
 
   const lang = language === "en" ? "en" : "es";
 
@@ -31,24 +33,31 @@ export function WhatsNewModal({ onDismiss }: { onDismiss: () => void }) {
         <div style={styles.titleRow}>
           <div>
             <div style={styles.title}>{t("whatsNew.title")}</div>
-            <div style={styles.versionBadge}>
-              {t("whatsNew.version")} {APP_VERSION} · {latest.date}
+              <div style={styles.versionBadge}>
+              {t("whatsNew.version")} {APP_VERSION}
+              </div>
             </div>
-          </div>
           <button onClick={onDismiss} style={styles.closeBtn} aria-label={t("common.close")}>
             ✕
           </button>
         </div>
 
         {/* Feature list */}
-        <ul style={styles.featureList}>
-          {latest.features.map((feat, i) => (
-            <li key={i} style={styles.featureItem}>
-              <span style={styles.featureIcon}>{feat.icon}</span>
-              <span style={styles.featureText}>{feat[lang]}</span>
-            </li>
-          ))}
-        </ul>
+        {visibleEntries.map((entry) => (
+          <div key={entry.version} style={styles.versionSection}>
+            <div style={styles.entryLabel}>
+              {t("whatsNew.version")} {entry.version} · {entry.date}
+            </div>
+            <ul style={styles.featureList}>
+              {entry.features.map((feat, i) => (
+                <li key={`${entry.version}-${i}`} style={styles.featureItem}>
+                  <span style={styles.featureIcon}>{feat.icon}</span>
+                  <span style={styles.featureText}>{feat[lang]}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
 
         {/* Dismiss button */}
         <button onClick={onDismiss} style={styles.dismissBtn}>
@@ -118,11 +127,20 @@ const styles: Record<string, React.CSSProperties> = {
   },
   featureList: {
     listStyle: "none",
-    margin: "0 0 24px",
+    margin: "8px 0 16px",
     padding: 0,
     display: "flex",
     flexDirection: "column",
     gap: 14,
+  },
+  versionSection: {
+    marginBottom: 8,
+  },
+  entryLabel: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.textMuted,
+    letterSpacing: 0.5,
   },
   featureItem: {
     display: "flex",

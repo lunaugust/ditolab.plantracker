@@ -22,6 +22,19 @@ export type TrainingDay = {
 
 export type TrainingPlan = Record<string, TrainingDay>;
 
+export type OwnedPlan = {
+	id: string;
+	name: string;
+	plan: TrainingPlan;
+};
+
+export type SharedPlan = {
+	id: string;
+	name: string;
+	ownerName: string;
+	plan: TrainingPlan;
+};
+
 export type LogEntry = {
 	date: string;
 	weight: string;
