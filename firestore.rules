@@ -9,12 +9,49 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Legacy plan storage for backward compatibility
     match /users/{userId}/appData/trainingLogs {
       allow read, write: if isOwner(userId);
     }
 
     match /users/{userId}/appData/trainingPlan {
       allow read, write: if isOwner(userId);
+    }
+
+    // User metadata (active plan ID)
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Multi-plan storage with sharing support
+    match /plans/{planId} {
+      function getPlanData() {
+        return get(/databases/$(database)/documents/plans/$(planId)).data;
+      }
+
+      function isOwnerOfPlan() {
+        return isSignedIn() && resource.data.metadata.ownerId == request.auth.uid;
+      }
+
+      function isSharedWithUser() {
+        return isSignedIn() && request.auth.uid in resource.data.metadata.sharedWith;
+      }
+
+      function isCreatingOwnPlan() {
+        return isSignedIn() && request.resource.data.metadata.ownerId == request.auth.uid;
+      }
+
+      // Read access: owner or shared user
+      allow read: if isOwnerOfPlan() || isSharedWithUser();
+
+      // Create: only for own plans
+      allow create: if isCreatingOwnPlan();
+
+      // Update: only owner can update (shared users have read-only access)
+      allow update: if isOwnerOfPlan();
+
+      // Delete: only owner can delete
+      allow delete: if isOwnerOfPlan();
     }
 
     // Feedback — authenticated users can only create their own entries (append-only)
