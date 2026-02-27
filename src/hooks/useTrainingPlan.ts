@@ -93,7 +93,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
   const [hasPlan, setHasPlan] = useState(false);
 
   /* ---- Keep a ref in sync so mutations always read the latest plan ---- */
-  const trainingPlanRef = useRef(normalizePlan(TRAINING_PLAN));
+  const trainingPlanRef = useRef(trainingPlan);
   useEffect(() => {
     trainingPlanRef.current = trainingPlan;
   }, [trainingPlan]);
