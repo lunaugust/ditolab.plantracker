@@ -325,13 +325,13 @@ function ProgressTab({ entries, accentColor, t }: { entries: LogEntry[]; accentC
               />
               <Tooltip
                 contentStyle={{
-                  background: "#1a1a1a",
-                  border: "1px solid #2a2a2a",
+                  background: colors.tooltipBg,
+                  border: `1px solid ${colors.border}`,
                   borderRadius: 8,
                   fontFamily: "DM Mono",
                   fontSize: 12,
                 }}
-                labelStyle={{ color: "#666" }}
+                labelStyle={{ color: colors.textSecondary }}
                 itemStyle={{ color: accentColor }}
               />
               <Line
