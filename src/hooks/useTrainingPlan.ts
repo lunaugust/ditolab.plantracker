@@ -16,6 +16,10 @@ function clonePlan(plan: TrainingPlan): TrainingPlan {
   return JSON.parse(JSON.stringify(plan));
 }
 
+function cloneStoredPlanState(state: StoredPlanState): StoredPlanState {
+  return JSON.parse(JSON.stringify(state));
+}
+
 function getNextDayName(existingKeys: string[], template: string): string {
   let index = existingKeys.length + 1;
   let candidate = template.replace("{n}", String(index));
@@ -263,7 +267,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
   const saveDay = useCallback((dayKey: string, nextDay: Partial<TrainingDay>) => {
     const active = getActiveOwnedPlan();
     if (!active || !active.owned.plan[dayKey]) return;
-    const nextState = clonePlan(active.state as unknown as TrainingPlan) as unknown as StoredPlanState;
+    const nextState = cloneStoredPlanState(active.state);
     nextState.ownedPlans[active.state.activePlanId].plan = {
       ...active.owned.plan,
       [dayKey]: {
@@ -282,7 +286,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     const newDayKey = getNextDayName(existingKeys, t("plan.dayNameTemplate"));
     const color = DEFAULT_DAY_COLORS[existingKeys.length % DEFAULT_DAY_COLORS.length] || "#e8643a";
 
-    const nextState = clonePlan(active.state as unknown as TrainingPlan) as unknown as StoredPlanState;
+    const nextState = cloneStoredPlanState(active.state);
     nextState.ownedPlans[active.state.activePlanId].plan = {
       ...plan,
       [newDayKey]: {
@@ -304,7 +308,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
     const keys = Object.keys(plan);
     if (keys.length <= 1) return;
 
-    const nextState = clonePlan(active.state as unknown as TrainingPlan) as unknown as StoredPlanState;
+    const nextState = cloneStoredPlanState(active.state);
     const nextPlan = clonePlan(plan);
     delete nextPlan[dayKey];
     nextState.ownedPlans[active.state.activePlanId].plan = nextPlan;
@@ -330,7 +334,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
       noteSource: "custom",
       noteCatalogId: "",
     });
-    const nextState = clonePlan(active.state as unknown as TrainingPlan) as unknown as StoredPlanState;
+    const nextState = cloneStoredPlanState(active.state);
     nextState.ownedPlans[active.state.activePlanId].plan = nextPlan;
     persist(nextState);
   }, [getActiveOwnedPlan, persist, t]);
@@ -344,7 +348,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
 
     const nextPlan = clonePlan(plan);
     nextPlan[dayKey].exercises = day.exercises.filter((exercise) => exercise.id !== exerciseId);
-    const nextState = clonePlan(active.state as unknown as TrainingPlan) as unknown as StoredPlanState;
+    const nextState = cloneStoredPlanState(active.state);
     nextState.ownedPlans[active.state.activePlanId].plan = nextPlan;
     persist(nextState);
   }, [getActiveOwnedPlan, persist]);
@@ -352,7 +356,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
   const replacePlan = useCallback((newPlan: TrainingPlan) => {
     const active = getActiveOwnedPlan();
     if (!active) return;
-    const nextState = clonePlan(active.state as unknown as TrainingPlan) as unknown as StoredPlanState;
+    const nextState = cloneStoredPlanState(active.state);
     nextState.ownedPlans[active.state.activePlanId].plan = normalizePlan(newPlan);
     persist(nextState);
   }, [getActiveOwnedPlan, persist]);
@@ -360,7 +364,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
   const createPlan = useCallback((name: string, sourcePlan?: TrainingPlan) => {
     const state = planStateRef.current;
     const planId = makeExerciseId();
-    const nextState = clonePlan(state as unknown as TrainingPlan) as unknown as StoredPlanState;
+    const nextState = cloneStoredPlanState(state);
     nextState.ownedPlans[planId] = {
       name: name.trim() || t("plan.defaultPlanName"),
       plan: normalizePlan(sourcePlan || trainingPlan),
@@ -385,7 +389,7 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
   const addSharedPlan = useCallback((payload: Pick<SharedPlan, "name" | "ownerName" | "plan">) => {
     const state = planStateRef.current;
     const planId = makeExerciseId();
-    const nextState = clonePlan(state as unknown as TrainingPlan) as unknown as StoredPlanState;
+    const nextState = cloneStoredPlanState(state);
     nextState.sharedPlans[planId] = {
       name: payload.name.trim() || t("plan.sharedPlanDefaultName"),
       ownerName: payload.ownerName.trim() || "Unknown",

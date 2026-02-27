@@ -21,6 +21,7 @@ interface PlanViewProps {
   plans: Array<{ id: string; name: string; scope: "owned" | "shared"; ownerName?: string }>;
   activePlanId: string;
   activePlanScope: "owned" | "shared";
+  activePlanName: string;
   isSharedPlanActive: boolean;
   createPlan: (name: string, sourcePlan?: TrainingPlan) => string;
   selectPlan: (planId: string, scope: "owned" | "shared") => void;
@@ -45,6 +46,7 @@ export function PlanView({
   plans,
   activePlanId,
   activePlanScope,
+  activePlanName,
   isSharedPlanActive,
   createPlan,
   selectPlan,
@@ -63,7 +65,7 @@ export function PlanView({
 
   const shareCurrentPlan = async () => {
     const payload = JSON.stringify({
-      name: plans.find((planOption) => planOption.id === activePlanId && planOption.scope === activePlanScope)?.name || t("plan.defaultPlanName"),
+      name: activePlanName,
       ownerName: shareOwnerName,
       plan: trainingPlan,
     });
@@ -255,7 +257,7 @@ export function PlanView({
             <div style={styles.readOnlyBadge}>{t("plan.sharedReadOnly")}</div>
             <button
               onClick={() => {
-                const name = window.prompt(t("plan.copySharedPrompt"), `${day.label} ${t("plan.copySuffix")}`);
+                const name = window.prompt(t("plan.copySharedPrompt"), `${activePlanName} ${t("plan.copySuffix")}`);
                 if (name === null) return;
                 copySharedPlanToOwned(name);
               }}

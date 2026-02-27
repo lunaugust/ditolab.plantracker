@@ -29,6 +29,7 @@ export default function App() {
     plans,
     activePlanId,
     activePlanScope,
+    activePlanName,
     isSharedPlanActive,
     createPlan,
     selectPlan,
@@ -172,6 +173,7 @@ export default function App() {
           plans={plans}
           activePlanId={activePlanId}
           activePlanScope={activePlanScope}
+          activePlanName={activePlanName}
           isSharedPlanActive={isSharedPlanActive}
           createPlan={createPlan}
           selectPlan={selectPlan}
