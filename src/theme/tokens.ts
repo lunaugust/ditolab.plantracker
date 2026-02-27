@@ -6,6 +6,7 @@
 /* ---- Colours ---- */
 export const colors = {
   bg:          "#0d0d0d",
+  bgAlt:       "#0a0a0a",
   surface:     "#111111",
   surfaceAlt:  "#0f0f0f",
   border:      "#1e1e1e",
@@ -23,6 +24,7 @@ export const colors = {
     orange: "#e8643a",
     blue:   "#3ab8e8",
     green:  "#7de83a",
+    red:    "#e85a5a",
   },
 
   success: "#7de83a",
@@ -39,6 +41,19 @@ export const fonts = {
   mono:  "'DM Mono', monospace",
   googleImport:
     "https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap",
+  size: {
+    xs: "12px",
+    sm: "14px",
+    md: "16px",
+    lg: "18px",
+    xl: "24px",
+  },
+  weight: {
+    normal: 400,
+    medium: 500,
+    semibold: 600,
+    bold: 700,
+  },
 };
 
 /* ---- Spacing (px) ---- */
