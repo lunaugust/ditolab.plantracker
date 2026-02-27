@@ -4,6 +4,7 @@ import { Header, LoadingScreen, AuthScreen, FeedbackModal, WhatsNewModal } from 
 import { APP_VERSION, WHATS_NEW_STORAGE_KEY } from "./data/changelog";
 import { PlanView, PlanGeneratorWizard, PlanImportWizard, ExerciseDetailView } from "./components/views";
 import { colors } from "./theme";
+import { useI18n } from "./i18n";
 import type { TrainingPlan } from "./services/types";
 
 /**
@@ -12,6 +13,7 @@ import type { TrainingPlan } from "./services/types";
  * Orchestrates the hooks and renders a unified workout view with full-screen exercise detail navigation.
  */
 export default function App() {
+  const { t } = useI18n();
   const auth = useAuth();
   const storageScope = auth.user?.uid || "guest";
   const { logs, loading: logsLoading, saveMsg: logSaveMsg, addLog, deleteLog } = useTrainingLogs(storageScope);
@@ -22,6 +24,17 @@ export default function App() {
     loading: planLoading,
     saveMsg: planSaveMsg,
     hasPlan,
+    plans,
+    activePlanId,
+    activePlanName,
+    activePlanSource,
+    activePlanOwnerName,
+    readOnly,
+    setActivePlan,
+    createPlan,
+    copyActivePlanToOwned,
+    shareActivePlan,
+    addSharedPlanFromCode,
     saveDay,
     addDay,
     removeDay,
@@ -102,7 +115,7 @@ export default function App() {
       <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
         <PlanGeneratorWizard
           onApply={(plan: TrainingPlan) => {
-            replacePlan(plan);
+            replacePlan(plan, { asNew: true, name: t("plan.generatedPlanName") });
             setShowGenerator(false);
             const firstDay = Object.keys(plan).sort()[0];
             if (firstDay) nav.setActiveDay(firstDay);
@@ -118,7 +131,7 @@ export default function App() {
       <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
         <PlanImportWizard
           onApply={(plan: TrainingPlan) => {
-            replacePlan(plan);
+            replacePlan(plan, { asNew: true, name: t("plan.importedPlanName") });
             setShowImporter(false);
             const firstDay = Object.keys(plan).sort()[0];
             if (firstDay) nav.setActiveDay(firstDay);
@@ -157,6 +170,19 @@ export default function App() {
           trainingPlan={trainingPlan}
           dayKeys={dayKeys}
           dayColors={dayColors}
+          plans={plans}
+          activePlanId={activePlanId}
+          activePlanName={activePlanName}
+          activePlanSource={activePlanSource}
+          activePlanOwnerName={activePlanOwnerName}
+          readOnly={readOnly}
+          onSelectPlan={setActivePlan}
+          onCreatePlan={() => {
+            createPlan();
+          }}
+          onSharePlan={shareActivePlan}
+          onImportSharedPlan={addSharedPlanFromCode}
+          onCopyPlan={copyActivePlanToOwned}
           logs={logs}
           saveDay={saveDay}
           addDay={addDay}

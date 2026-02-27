@@ -22,6 +22,23 @@ export type TrainingDay = {
 
 export type TrainingPlan = Record<string, TrainingDay>;
 
+export type PlanSource = "owned" | "shared";
+
+export type PlanMetadata = {
+	id: string;
+	name: string;
+	plan: TrainingPlan;
+	source: PlanSource;
+	ownerName?: string;
+	shareCode?: string;
+};
+
+export type PlanLibrary = {
+	activePlanId: string;
+	ownedPlans: PlanMetadata[];
+	sharedPlans: PlanMetadata[];
+};
+
 export type LogEntry = {
 	date: string;
 	weight: string;
