@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useTrainingLogs, useNavigation, useAuth, useMultiPlan, useInstallPWA } from "./hooks";
-import { Header, LoadingScreen, AuthScreen, FeedbackModal, WhatsNewModal, PlanManagerModal } from "./components/layout";
+import { Header, LoadingScreen, AuthScreen, FeedbackModal, WhatsNewModal, PlanManagerModal, FloatingPlanSelector } from "./components/layout";
 import { APP_VERSION, WHATS_NEW_STORAGE_KEY } from "./data/changelog";
 import { PlanView, PlanGeneratorWizard, PlanImportWizard, ExerciseDetailView } from "./components/views";
 import { colors } from "./theme";
@@ -191,9 +191,6 @@ export default function App() {
         authUserName={auth.user?.displayName}
         onSignOut={auth.enabled ? auth.logout : null}
         onOpenFeedback={() => setShowFeedback(true)}
-        onOpenPlanManager={() => setShowPlanManager(true)}
-        activePlanName={activePlanMetadata?.name}
-        canEdit={canEdit}
         canInstall={canInstall}
         onInstall={install}
       />
@@ -278,6 +275,15 @@ export default function App() {
           onSharePlan={handleSharePlan}
           onCopyPlan={copySharedPlan}
           onClose={() => setShowPlanManager(false)}
+        />
+      )}
+
+      {/* Floating plan selector - mobile-optimized UX */}
+      {activePlanMetadata && (
+        <FloatingPlanSelector
+          planName={activePlanMetadata.name}
+          canEdit={canEdit}
+          onOpenPlanManager={() => setShowPlanManager(true)}
         />
       )}
     </div>
