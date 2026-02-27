@@ -35,7 +35,7 @@ export function WhatsNewModal({ onDismiss }: { onDismiss: () => void }) {
               {t("whatsNew.version")} {APP_VERSION} · {latest.date}
             </div>
           </div>
-          <button onClick={onDismiss} style={styles.closeBtn} aria-label="close">
+          <button onClick={onDismiss} style={styles.closeBtn} aria-label={t("common.close")}>
             ✕
           </button>
         </div>

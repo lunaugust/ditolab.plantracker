@@ -1,5 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap");
 
+/* ---- Design token CSS custom properties ---- */
+:root {
+  --color-bg:           #0d0d0d;
+  --color-surface:      #111111;
+  --color-text-primary: #f0ede8;
+  --color-text-ghost:   #333333;
+  --color-accent-orange: #e8643a;
+}
+
 /* ---- Reset ---- */
 *,
 *::before,
@@ -11,15 +20,15 @@
 
 /* ---- Scrollbar ---- */
 ::-webkit-scrollbar       { width: 4px; }
-::-webkit-scrollbar-track { background: #111; }
-::-webkit-scrollbar-thumb { background: #333; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: var(--color-text-ghost); }
 
 /* ---- Base ---- */
 html, body, #root {
   min-height: 100vh;
   min-height: 100dvh; /* dynamic viewport for mobile browsers */
-  background: #0d0d0d;
-  color: #f0ede8;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
   font-family: "DM Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -60,6 +69,6 @@ input[type="number"]::-webkit-outer-spin-button {
 
 /* ---- Selection colour ---- */
 ::selection {
-  background: rgba(232, 100, 58, 0.3);
-  color: #f0ede8;
+  background: rgba(232, 100, 58, 0.3); /* --color-accent-orange at 30% opacity */
+  color: var(--color-text-primary);
 }

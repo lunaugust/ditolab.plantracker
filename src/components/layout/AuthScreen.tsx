@@ -7,7 +7,7 @@ export function AuthScreen({ onSignIn, error }) {
   return (
     <div style={styles.wrapper}>
       <div style={styles.card}>
-        <div style={styles.title}>GymBuddy AI</div>
+        <div style={styles.title}>{t("app.name")}</div>
         <div style={styles.subtitle}>{t("auth.subtitle")}</div>
 
         <button onClick={onSignIn} style={styles.googleBtn}>

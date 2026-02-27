@@ -198,6 +198,9 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
           rows={3}
           style={styles.textarea}
         />
+        <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textDim, marginTop: 8, lineHeight: 1.4 }}>
+          🔒 {t("generator.limitationsPrivacyNotice")}
+        </div>
         <button
           onClick={() => setStep(3)}
           style={{ ...styles.primaryBtn, marginTop: 12 }}
@@ -381,7 +384,7 @@ export function PlanGeneratorWizard({ onApply, onClose }) {
                         >
                           {/* Drag handle — large touch target, pointer-event based */}
                           <button
-                            aria-label="Drag to reorder"
+                            aria-label={t("generator.dragToReorder")}
                             style={styles.dragHandle}
                             onPointerDown={(e) => {
                               e.currentTarget.setPointerCapture(e.pointerId);

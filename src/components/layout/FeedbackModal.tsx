@@ -117,6 +117,11 @@ export function FeedbackModal({ scope, currentView, onClose }) {
             />
             {error && <div style={styles.errorMsg}>{error}</div>}
 
+            {/* Privacy notice */}
+            <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textDim, marginTop: 12, lineHeight: 1.4 }}>
+              🔒 {t("feedback.privacyNotice")}
+            </div>
+
             {/* Actions */}
             <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
               <button onClick={onClose} style={styles.cancelBtn}>
