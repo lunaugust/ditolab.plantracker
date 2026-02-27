@@ -2,24 +2,20 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { loadLogs, persistLogs } from "../services/storageService";
 import { SAVE_MSG_DURATION_MS } from "../theme";
 import { useI18n } from "../i18n";
+import type { LogEntry } from "../services/types";
 
-/**
- * Encapsulates all training-log state, persistence, and mutations.
- *
- * @returns {{
- *   logs: Record<string, import("../services/types").LogEntry[]>,
- *   loading: boolean,
- *   saveMsg: string,
- *   addLog: (exerciseId: string, entry: Omit<import("../services/types").LogEntry, "date">) => void,
- *   deleteLog: (exerciseId: string, index: number) => void,
- * }}
- */
 export function useTrainingLogs(storageScope = "guest") {
   const { t } = useI18n();
-  const [logs, setLogs] = useState({});
+  const [logs, setLogs] = useState<Record<string, LogEntry[]>>({});
   const [loading, setLoading] = useState(true);
   const [saveMsg, setSaveMsg] = useState("");
-  const saveMsgTimerRef = useRef(null);
+  const saveMsgTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /* ---- Keep a ref in sync so mutations always read the latest state ---- */
+  const logsRef = useRef<Record<string, LogEntry[]>>({});
+  useEffect(() => {
+    logsRef.current = logs;
+  }, [logs]);
 
   /* ---- Clean up pending save-message timer on unmount ---- */
   useEffect(() => {
@@ -42,9 +38,8 @@ export function useTrainingLogs(storageScope = "guest") {
     return () => { cancelled = true; };
   }, [storageScope]);
 
-  /* ---- Persist helper ---- */
-  const persist = useCallback(async (nextLogs) => {
-    setLogs(nextLogs);
+  /* ---- Persist helper — does NOT call setLogs (caller already did) ---- */
+  const persist = useCallback(async (nextLogs: Record<string, LogEntry[]>) => {
     try {
       await persistLogs(nextLogs, storageScope);
       setSaveMsg(t("log.saveSuccess"));
@@ -57,30 +52,26 @@ export function useTrainingLogs(storageScope = "guest") {
 
   /* ---- Public mutations ---- */
   const addLog = useCallback(
-    (exerciseId, { weight, reps, notes }) => {
+    (exerciseId: string, { weight, reps, notes }: { weight: string; reps: string; notes: string }) => {
       if (!weight && !reps) return;
-      const entry = { date: new Date().toISOString(), weight, reps, notes };
-      setLogs((prev) => {
-        const nextLogs = {
-          ...prev,
-          [exerciseId]: [...(prev[exerciseId] || []), entry],
-        };
-        persist(nextLogs);
-        return nextLogs;
-      });
+      const entry: LogEntry = { date: new Date().toISOString(), weight, reps, notes };
+      const nextLogs = {
+        ...logsRef.current,
+        [exerciseId]: [...(logsRef.current[exerciseId] || []), entry],
+      };
+      setLogs(nextLogs);
+      persist(nextLogs);
     },
     [persist],
   );
 
   const deleteLog = useCallback(
-    (exerciseId, index) => {
-      setLogs((prev) => {
-        const arr = [...(prev[exerciseId] || [])];
-        arr.splice(index, 1);
-        const nextLogs = { ...prev, [exerciseId]: arr };
-        persist(nextLogs);
-        return nextLogs;
-      });
+    (exerciseId: string, index: number) => {
+      const arr = [...(logsRef.current[exerciseId] || [])];
+      arr.splice(index, 1);
+      const nextLogs = { ...logsRef.current, [exerciseId]: arr };
+      setLogs(nextLogs);
+      persist(nextLogs);
     },
     [persist],
   );

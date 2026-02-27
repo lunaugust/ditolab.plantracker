@@ -90,6 +90,12 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
   /** True when a saved plan was found in storage; false when falling back to static defaults. */
   const [hasPlan, setHasPlan] = useState(false);
 
+  /* ---- Keep a ref in sync so mutations always read the latest plan ---- */
+  const trainingPlanRef = useRef(normalizePlan(TRAINING_PLAN));
+  useEffect(() => {
+    trainingPlanRef.current = trainingPlan;
+  }, [trainingPlan]);
+
   useEffect(() => {
     // Wait until auth has resolved so we always load with the correct scope.
     if (authLoading) return;
@@ -136,24 +142,26 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
   }, [storageScope, t]);
 
   const saveDay = useCallback((dayKey, nextDay) => {
-    if (!trainingPlan[dayKey]) return;
+    const plan = trainingPlanRef.current;
+    if (!plan[dayKey]) return;
     const nextPlan = {
-      ...trainingPlan,
+      ...plan,
       [dayKey]: {
-        ...trainingPlan[dayKey],
+        ...plan[dayKey],
         ...nextDay,
       },
     };
     persist(nextPlan);
-  }, [trainingPlan, persist]);
+  }, [persist]);
 
   const addDay = useCallback(() => {
-    const existingKeys = Object.keys(trainingPlan);
+    const plan = trainingPlanRef.current;
+    const existingKeys = Object.keys(plan);
     const newDayKey = getNextDayName(existingKeys, t("plan.dayNameTemplate"));
     const color = DEFAULT_DAY_COLORS[existingKeys.length % DEFAULT_DAY_COLORS.length] || "#e8643a";
 
     const nextPlan = {
-      ...trainingPlan,
+      ...plan,
       [newDayKey]: {
         label: t("plan.dayLabelPlaceholder"),
         color,
@@ -163,23 +171,25 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
 
     persist(nextPlan);
     return newDayKey;
-  }, [trainingPlan, persist, t]);
+  }, [persist, t]);
 
   const removeDay = useCallback((dayKey) => {
-    if (!trainingPlan[dayKey]) return;
-    const keys = Object.keys(trainingPlan);
+    const plan = trainingPlanRef.current;
+    if (!plan[dayKey]) return;
+    const keys = Object.keys(plan);
     if (keys.length <= 1) return;
 
-    const nextPlan = clonePlan(trainingPlan);
+    const nextPlan = clonePlan(plan);
     delete nextPlan[dayKey];
     persist(nextPlan);
-  }, [trainingPlan, persist]);
+  }, [persist]);
 
   const addExercise = useCallback((dayKey) => {
-    const day = trainingPlan[dayKey];
+    const plan = trainingPlanRef.current;
+    const day = plan[dayKey];
     if (!day) return;
 
-    const nextPlan = clonePlan(trainingPlan);
+    const nextPlan = clonePlan(plan);
     nextPlan[dayKey].exercises.push({
       id: makeExerciseId(),
       exerciseId: "",
@@ -192,16 +202,17 @@ export function useTrainingPlan(storageScope = "guest", authLoading = false) {
       noteCatalogId: "",
     });
     persist(nextPlan);
-  }, [trainingPlan, persist, t]);
+  }, [persist, t]);
 
   const removeExercise = useCallback((dayKey, exerciseId) => {
-    const day = trainingPlan[dayKey];
+    const plan = trainingPlanRef.current;
+    const day = plan[dayKey];
     if (!day) return;
 
-    const nextPlan = clonePlan(trainingPlan);
+    const nextPlan = clonePlan(plan);
     nextPlan[dayKey].exercises = day.exercises.filter((exercise) => exercise.id !== exerciseId);
     persist(nextPlan);
-  }, [trainingPlan, persist]);
+  }, [persist]);
 
   const replacePlan = useCallback((newPlan) => {
     persist(newPlan);
