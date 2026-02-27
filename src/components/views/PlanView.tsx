@@ -6,7 +6,7 @@ import { DayTabs, SectionLabel, PageContainer, ExerciseNameInput } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
-import type { Exercise, TrainingDay, TrainingPlan, LogsByExercise } from "../../services/types";
+import type { Exercise, PlanMetadata, PlanSource, TrainingDay, TrainingPlan, LogsByExercise } from "../../services/types";
 
 interface PlanViewProps {
   activeDay: string;
@@ -14,6 +14,17 @@ interface PlanViewProps {
   trainingPlan: TrainingPlan;
   dayKeys: string[];
   dayColors: Record<string, string>;
+  plans: PlanMetadata[];
+  activePlanId: string;
+  activePlanName: string;
+  activePlanSource: PlanSource;
+  activePlanOwnerName?: string;
+  readOnly?: boolean;
+  onSelectPlan: (planId: string) => void;
+  onCreatePlan: () => void;
+  onSharePlan: () => string | null;
+  onImportSharedPlan: (code: string) => { status: "added" | "invalid" | "duplicate"; planId?: string };
+  onCopyPlan: () => void;
   logs: LogsByExercise;
   saveDay: (dayKey: string, nextDay: Partial<TrainingDay>) => void;
   addDay: () => string;
@@ -29,6 +40,17 @@ export function PlanView({
   trainingPlan,
   dayKeys,
   dayColors,
+  plans,
+  activePlanId,
+  activePlanName,
+  activePlanSource,
+  activePlanOwnerName,
+  readOnly = false,
+  onSelectPlan,
+  onCreatePlan,
+  onSharePlan,
+  onImportSharedPlan,
+  onCopyPlan,
   logs,
   saveDay,
   addDay,
@@ -42,19 +64,134 @@ export function PlanView({
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : null;
   const [isEditing, setIsEditing] = useState(false);
   const [draftDay, setDraftDay] = useState<TrainingDay | null>(null);
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const update = () => setIsNarrow(window.innerWidth <= 640);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   useEffect(() => {
     if (!isEditing || !day) return;
     setDraftDay(JSON.parse(JSON.stringify(day)));
   }, [isEditing, day, safeActiveDay]);
 
+  useEffect(() => {
+    if (readOnly && isEditing) {
+      setIsEditing(false);
+      setDraftDay(null);
+    }
+  }, [readOnly, isEditing]);
+
+  useEffect(() => {
+    setIsEditing(false);
+    setDraftDay(null);
+  }, [activePlanId]);
+
+  const ownedPlans = plans.filter((plan) => plan.source === "owned");
+  const sharedPlans = plans.filter((plan) => plan.source === "shared");
+
+  const handleSharePlan = async () => {
+    const code = onSharePlan();
+    if (!code) {
+      window.alert(t("plan.shareFailed"));
+      return;
+    }
+
+    const canCopy = typeof navigator !== "undefined" && navigator.clipboard?.writeText;
+    if (canCopy) {
+      try {
+        await navigator.clipboard.writeText(code);
+        window.alert(t("plan.shareCopied"));
+        return;
+      } catch {
+        // fall back to prompt below
+      }
+    }
+
+    window.prompt(t("plan.sharePrompt"), code);
+  };
+
+  const handleImportShared = () => {
+    const code = window.prompt(t("plan.enterShareCodePrompt"));
+    if (!code) return;
+    const result = onImportSharedPlan(code);
+    if (result.status === "invalid") {
+      window.alert(t("plan.invalidShareCode"));
+    } else if (result.status === "duplicate") {
+      window.alert(t("plan.sharedAlreadyAdded"));
+    }
+  };
+
+  const planHeader = (
+    <>
+      <div style={styles.planBar}>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <SectionLabel>{t("plan.planSwitcherLabel")}</SectionLabel>
+          <select
+            value={activePlanId}
+            onChange={(e) => onSelectPlan(e.target.value)}
+            style={styles.planSelect}
+          >
+            {ownedPlans.length > 0 && (
+              <optgroup label={t("plan.myPlans")}>
+                {ownedPlans.map((plan) => (
+                  <option key={plan.id} value={plan.id}>{plan.name}</option>
+                ))}
+              </optgroup>
+            )}
+            {sharedPlans.length > 0 && (
+              <optgroup label={t("plan.sharedWithMe")}>
+                {sharedPlans.map((plan) => (
+                  <option key={plan.id} value={plan.id}>{plan.name}</option>
+                ))}
+              </optgroup>
+            )}
+          </select>
+          <div style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
+            {t("plan.currentPlanLabel", { name: activePlanName })}
+            {" · "}
+            {activePlanSource === "shared" ? t("plan.sharedPlanMeta", { owner: activePlanOwnerName || t("plan.unknownOwner") }) : t("plan.ownedPlanMeta")}
+          </div>
+        </div>
+        <div style={styles.planActions}>
+          <button onClick={onCreatePlan} style={styles.ghostButton}>{t("plan.newPlan")}</button>
+          <button onClick={handleSharePlan} style={{ ...styles.ghostButton, opacity: activePlanSource === "shared" ? 0.4 : 1 }} disabled={activePlanSource === "shared"}>
+            {t("plan.sharePlan")}
+          </button>
+          <button onClick={handleImportShared} style={styles.ghostButton}>
+            {t("plan.addSharedPlan")}
+          </button>
+          {activePlanSource === "shared" && (
+            <button onClick={onCopyPlan} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>
+              {t("plan.copyToMyPlans")}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {activePlanSource === "shared" && (
+        <div style={styles.readOnlyBanner}>
+          <div style={{ color: colors.textSecondary }}>{t("plan.readOnlyNotice")}</div>
+          <button onClick={onCopyPlan} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>
+            {t("plan.copyToMyPlans")}
+          </button>
+        </div>
+      )}
+    </>
+  );
+
   if (!day) {
     return (
       <PageContainer>
         <SectionLabel>{t("plan.title")}</SectionLabel>
+        {planHeader}
         <div style={{ color: colors.textMuted, marginBottom: 12 }}>{t("plan.noDays")}</div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button onClick={addDay} style={styles.ghostButton}>{t("plan.addDay")}</button>
+          <button onClick={addDay} style={{ ...styles.ghostButton, opacity: readOnly ? 0.4 : 1 }} disabled={readOnly}>{t("plan.addDay")}</button>
           <button onClick={onOpenGenerator} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>✦ {t("generator.title")}</button>
           <button onClick={onOpenImporter} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>{t("importer.openButton")}</button>
         </div>
@@ -119,6 +256,60 @@ export function PlanView({
 
   return (
     <PageContainer>
+      <div style={styles.planBar}>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <SectionLabel>{t("plan.planSwitcherLabel")}</SectionLabel>
+          <select
+            value={activePlanId}
+            onChange={(e) => onSelectPlan(e.target.value)}
+            style={styles.planSelect}
+          >
+            {ownedPlans.length > 0 && (
+              <optgroup label={t("plan.myPlans")}>
+                {ownedPlans.map((plan) => (
+                  <option key={plan.id} value={plan.id}>{plan.name}</option>
+                ))}
+              </optgroup>
+            )}
+            {sharedPlans.length > 0 && (
+              <optgroup label={t("plan.sharedWithMe")}>
+                {sharedPlans.map((plan) => (
+                  <option key={plan.id} value={plan.id}>{plan.name}</option>
+                ))}
+              </optgroup>
+            )}
+          </select>
+          <div style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
+            {t("plan.currentPlanLabel", { name: activePlanName })}
+            {" · "}
+            {activePlanSource === "shared" ? t("plan.sharedPlanMeta", { owner: activePlanOwnerName || t("plan.unknownOwner") }) : t("plan.ownedPlanMeta")}
+          </div>
+        </div>
+        <div style={styles.planActions}>
+          <button onClick={onCreatePlan} style={styles.ghostButton}>{t("plan.newPlan")}</button>
+          <button onClick={handleSharePlan} style={{ ...styles.ghostButton, opacity: activePlanSource === "shared" ? 0.4 : 1 }} disabled={activePlanSource === "shared"}>
+            {t("plan.sharePlan")}
+          </button>
+          <button onClick={handleImportShared} style={styles.ghostButton}>
+            {t("plan.addSharedPlan")}
+          </button>
+          {activePlanSource === "shared" && (
+            <button onClick={onCopyPlan} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>
+              {t("plan.copyToMyPlans")}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {activePlanSource === "shared" && (
+        <div style={styles.readOnlyBanner}>
+          <div style={{ color: colors.textSecondary }}>{t("plan.readOnlyNotice")}</div>
+          <button onClick={onCopyPlan} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>
+            {t("plan.copyToMyPlans")}
+          </button>
+        </div>
+      )}
+
       <DayTabs
         days={dayKeys}
         activeDay={safeActiveDay}
@@ -132,14 +323,15 @@ export function PlanView({
             const newDay = addDay();
             if (newDay) setActiveDay(newDay);
           }}
-          style={styles.ghostButton}
+          disabled={readOnly}
+          style={{ ...styles.ghostButton, opacity: readOnly ? 0.4 : 1 }}
         >
           {t("plan.addDayShort")}
         </button>
         <button
           onClick={() => removeDay(safeActiveDay)}
-          disabled={dayKeys.length <= 1}
-          style={{ ...styles.ghostButton, opacity: dayKeys.length <= 1 ? 0.4 : 1 }}
+          disabled={dayKeys.length <= 1 || readOnly}
+          style={{ ...styles.ghostButton, opacity: dayKeys.length <= 1 || readOnly ? 0.4 : 1 }}
         >
           {t("plan.removeDayShort")}
         </button>
@@ -175,7 +367,7 @@ export function PlanView({
         </div>
 
         <div style={{ display: "flex", gap: 8 }}>
-          {!isEditing && (
+          {!isEditing && !readOnly && (
             <button onClick={startEditing} style={styles.ghostButton}>
               {t("plan.editPlan")}
             </button>
@@ -313,6 +505,33 @@ export function PlanView({
           </div>
         ))}
       </div>
+
+      {isNarrow && (
+        <div style={styles.mobileActionBar}>
+          <button
+            onClick={() => {
+              const newDay = addDay();
+              if (newDay) setActiveDay(newDay);
+            }}
+            disabled={readOnly}
+            style={{ ...styles.mobileButton, opacity: readOnly ? 0.4 : 1 }}
+          >
+            {t("plan.addDayShort")}
+          </button>
+          <button
+            onClick={onOpenGenerator}
+            style={{ ...styles.mobileButton, background: colors.accent.blue, color: colors.bg }}
+          >
+            ✦ {t("generator.title")}
+          </button>
+          <button
+            onClick={onOpenImporter}
+            style={styles.mobileButton}
+          >
+            {t("importer.openButton")}
+          </button>
+        </div>
+      )}
     </PageContainer>
   );
 }
@@ -388,5 +607,64 @@ const styles = {
     padding: "8px 10px",
     fontFamily: fonts.sans,
     fontSize: 12,
+  },
+  planBar: {
+    display: "flex",
+    gap: 12,
+    alignItems: "flex-start",
+    marginBottom: 16,
+    flexWrap: "wrap",
+  },
+  planSelect: {
+    width: "100%",
+    border: `1px solid ${colors.border}`,
+    background: colors.bg,
+    color: colors.textPrimary,
+    borderRadius: 10,
+    padding: "10px 12px",
+    fontFamily: fonts.sans,
+    fontSize: 14,
+  },
+  planActions: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    minWidth: 220,
+  },
+  readOnlyBanner: {
+    display: "flex",
+    gap: 10,
+    alignItems: "center",
+    background: colors.surface,
+    border: `1px solid ${colors.borderLight}`,
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 12,
+  },
+  mobileActionBar: {
+    position: "sticky",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: 8,
+    padding: 10,
+    background: colors.bg,
+    borderTop: `1px solid ${colors.borderLight}`,
+    boxShadow: "0 -4px 14px rgba(0,0,0,0.08)",
+    zIndex: 5,
+  },
+  mobileButton: {
+    border: `1px solid ${colors.border}`,
+    background: colors.surface,
+    color: colors.textPrimary,
+    borderRadius: 12,
+    padding: "12px 10px",
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    fontWeight: 600,
   },
 };

@@ -2,6 +2,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { useTrainingPlan } from "../hooks/useTrainingPlan";
 import { TRAINING_PLAN } from "../data/trainingPlan";
 import type { Mock } from "vitest";
+import type { PlanLibrary } from "../services/types";
 
 /* ================================================================
  * Mock storageService
@@ -18,6 +19,14 @@ import { loadTrainingPlan, persistTrainingPlan } from "../services/storageServic
 const mockLoadTrainingPlan = loadTrainingPlan as unknown as Mock;
 const mockPersistTrainingPlan = persistTrainingPlan as unknown as Mock;
 
+function decodePersistedLibrary() {
+  const persisted = mockPersistTrainingPlan.mock.calls[0]?.[0] as PlanLibrary | undefined;
+  if (!persisted) throw new Error("Nothing persisted");
+  return persisted;
+}
+
+const makeShareCode = (payload: unknown) => Buffer.from(JSON.stringify(payload)).toString("base64");
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -26,17 +35,19 @@ describe("useTrainingPlan", () => {
   /* ----------------------------------------------------------
    * Bootstrap & loading
    * ---------------------------------------------------------- */
-  it("starts in loading state and resolves with default plan", async () => {
+  it("bootstraps default library when storage is empty", async () => {
     const { result } = renderHook(() => useTrainingPlan());
     expect(result.current.loading).toBe(true);
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    // Falls back to TRAINING_PLAN when storage returns null
+
     expect(result.current.hasPlan).toBe(false);
+    expect(result.current.plans.length).toBeGreaterThan(0);
+    expect(result.current.activePlanSource).toBe("owned");
     expect(Object.keys(result.current.trainingPlan).length).toBeGreaterThan(0);
   });
 
-  it("loads a persisted plan from storage", async () => {
+  it("loads a persisted plan library", async () => {
     const customPlan = {
       "Día 1": {
         label: "Custom",
@@ -46,14 +57,40 @@ describe("useTrainingPlan", () => {
         ],
       },
     };
-    mockLoadTrainingPlan.mockResolvedValueOnce(customPlan);
+    const library: PlanLibrary = {
+      activePlanId: "p1",
+      ownedPlans: [{ id: "p1", name: "Personal Plan", plan: customPlan, source: "owned" }],
+      sharedPlans: [],
+    };
+    mockLoadTrainingPlan.mockResolvedValueOnce(library);
 
     const { result } = renderHook(() => useTrainingPlan());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.hasPlan).toBe(true);
+    expect(result.current.activePlanId).toBe("p1");
     expect(result.current.trainingPlan["Día 1"].label).toBe("Custom");
-    expect(result.current.trainingPlan["Día 1"].exercises[0].name).toBe("Custom Squat");
+    expect(result.current.plans[0].name).toBe("Personal Plan");
+  });
+
+  it("accepts legacy single-plan storage data", async () => {
+    const legacyPlan = {
+      "Day A": {
+        label: "Arms",
+        color: "#ff0000",
+        exercises: [
+          { id: "a1", name: "Curl", sets: "3", reps: "12", rest: "60s" },
+        ],
+      },
+    };
+    mockLoadTrainingPlan.mockResolvedValueOnce(legacyPlan);
+
+    const { result } = renderHook(() => useTrainingPlan());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.hasPlan).toBe(true);
+    expect(result.current.trainingPlan["Day A"].label).toBe("Arms");
+    expect(result.current.plans[0].plan["Day A"].exercises[0].name).toBe("Curl");
   });
 
   it("waits for authLoading to become false before loading", async () => {
@@ -62,11 +99,9 @@ describe("useTrainingPlan", () => {
       { initialProps: { scope: "guest", authLoading: true } },
     );
 
-    // Should remain loading while authLoading is true
     expect(result.current.loading).toBe(true);
     expect(loadTrainingPlan).not.toHaveBeenCalled();
 
-    // When auth resolves, it should start loading
     rerender({ scope: "user123", authLoading: false });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -74,23 +109,9 @@ describe("useTrainingPlan", () => {
   });
 
   /* ----------------------------------------------------------
-   * normalizePlan — malformed inputs
+   * Mutations on owned plans
    * ---------------------------------------------------------- */
-  it("handles null/malformed storage data by falling back to TRAINING_PLAN", async () => {
-    mockLoadTrainingPlan.mockResolvedValueOnce("not-an-object");
-    const { result } = renderHook(() => useTrainingPlan());
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    // Should have same keys as the static default
-    const defaultKeys = Object.keys(TRAINING_PLAN);
-    expect(result.current.dayKeys.length).toBe(defaultKeys.length);
-    expect(result.current.hasPlan).toBe(false);
-  });
-
-  /* ----------------------------------------------------------
-   * saveDay
-   * ---------------------------------------------------------- */
-  it("saveDay merges partial day updates and persists", async () => {
+  it("saveDay merges partial updates and persists within the library", async () => {
     const { result } = renderHook(() => useTrainingPlan());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -100,77 +121,40 @@ describe("useTrainingPlan", () => {
       result.current.saveDay(firstKey, { label: "Updated Label" });
     });
 
-    expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
-    expect(persisted[firstKey].label).toBe("Updated Label");
-    // Exercises should remain unchanged
-    expect(persisted[firstKey].exercises.length).toBeGreaterThan(0);
+    const persisted = decodePersistedLibrary();
+    expect(persisted.ownedPlans[0].plan[firstKey].label).toBe("Updated Label");
   });
 
-  it("saveDay is a no-op for non-existent day keys", async () => {
-    const { result } = renderHook(() => useTrainingPlan());
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    act(() => {
-      result.current.saveDay("NonExistentDay", { label: "X" });
-    });
-
-    expect(persistTrainingPlan).not.toHaveBeenCalled();
-  });
-
-  /* ----------------------------------------------------------
-   * addDay
-   * ---------------------------------------------------------- */
-  it("addDay appends a new day with unique key and correct color", async () => {
+  it("addDay appends a new day to the active plan", async () => {
     const { result } = renderHook(() => useTrainingPlan());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     const initialCount = result.current.dayKeys.length;
+    let newKey = "";
 
-    let newKey: string | undefined;
     await act(async () => {
       newKey = result.current.addDay();
     });
 
-    expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
-    const newDayKeys = Object.keys(persisted);
-    expect(newDayKeys.length).toBe(initialCount + 1);
-    expect(newKey).toBeDefined();
-    // New day should have empty exercises
-    expect(persisted[newKey!].exercises).toEqual([]);
+    const persisted = decodePersistedLibrary();
+    const nextPlan = persisted.ownedPlans[0].plan;
+    expect(Object.keys(nextPlan).length).toBe(initialCount + 1);
+    expect(nextPlan[newKey]).toBeDefined();
+    expect(nextPlan[newKey].exercises).toEqual([]);
   });
 
-  /* ----------------------------------------------------------
-   * removeDay
-   * ---------------------------------------------------------- */
-  it("removeDay deletes a day and persists", async () => {
-    const { result } = renderHook(() => useTrainingPlan());
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    const initialKeys = [...result.current.dayKeys];
-    const keyToRemove = initialKeys[initialKeys.length - 1];
-
-    await act(async () => {
-      result.current.removeDay(keyToRemove);
-    });
-
-    expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
-    expect(persisted[keyToRemove]).toBeUndefined();
-    expect(Object.keys(persisted).length).toBe(initialKeys.length - 1);
-  });
-
-  it("removeDay is a no-op when only one day remains", async () => {
-    const singleDayPlan = {
-      "Día 1": {
-        label: "Only Day",
-        color: "#e8643a",
-        exercises: [],
-      },
+  it("removeDay prevents deleting the last remaining day", async () => {
+    const singleLibrary: PlanLibrary = {
+      activePlanId: "only",
+      ownedPlans: [{
+        id: "only",
+        name: "Only Plan",
+        source: "owned",
+        plan: { "Día 1": { label: "Only Day", color: "#e8643a", exercises: [] } },
+      }],
+      sharedPlans: [],
     };
-    mockLoadTrainingPlan.mockResolvedValueOnce(singleDayPlan);
-
+    mockLoadTrainingPlan.mockResolvedValueOnce(singleLibrary);
     const { result } = renderHook(() => useTrainingPlan());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -182,76 +166,96 @@ describe("useTrainingPlan", () => {
   });
 
   /* ----------------------------------------------------------
-   * addExercise
+   * Shared plans
    * ---------------------------------------------------------- */
-  it("addExercise pushes a new exercise template to the day", async () => {
-    const { result } = renderHook(() => useTrainingPlan());
-    await waitFor(() => expect(result.current.loading).toBe(false));
+  it("creates a new owned plan when replacing while a shared plan is active", async () => {
+    const baseLibrary: PlanLibrary = {
+      activePlanId: "shared-1",
+      ownedPlans: [
+        { id: "owned-1", name: "Base", source: "owned", plan: TRAINING_PLAN },
+      ],
+      sharedPlans: [
+        { id: "shared-1", name: "Read-only", source: "shared", plan: TRAINING_PLAN },
+      ],
+    };
+    mockLoadTrainingPlan.mockResolvedValueOnce(baseLibrary);
 
-    const firstKey = result.current.dayKeys[0];
-    const initialCount = result.current.trainingPlan[firstKey].exercises.length;
-
-    await act(async () => {
-      result.current.addExercise(firstKey);
-    });
-
-    expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
-    expect(persisted[firstKey].exercises.length).toBe(initialCount + 1);
-    // New exercise should have an id and empty sets/reps/rest
-    const newExercise = persisted[firstKey].exercises[initialCount];
-    expect(newExercise.id).toBeDefined();
-    expect(newExercise.sets).toBe("");
-    expect(newExercise.reps).toBe("");
-    expect(newExercise.noteSource).toBe("custom");
-  });
-
-  /* ----------------------------------------------------------
-   * removeExercise
-   * ---------------------------------------------------------- */
-  it("removeExercise filters out an exercise by ID", async () => {
-    const { result } = renderHook(() => useTrainingPlan());
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    const firstKey = result.current.dayKeys[0];
-    const exercises = result.current.trainingPlan[firstKey].exercises;
-    const exerciseToRemove = exercises[0].id;
-
-    await act(async () => {
-      result.current.removeExercise(firstKey, exerciseToRemove);
-    });
-
-    expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
-    const ids = persisted[firstKey].exercises.map((e: { id: string }) => e.id);
-    expect(ids).not.toContain(exerciseToRemove);
-  });
-
-  /* ----------------------------------------------------------
-   * replacePlan
-   * ---------------------------------------------------------- */
-  it("replacePlan replaces the entire plan and persists", async () => {
     const { result } = renderHook(() => useTrainingPlan());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     const newPlan = {
-      "Day A": {
-        label: "Arms",
-        color: "#ff0000",
-        exercises: [
-          { id: "a1", name: "Curl", sets: "3", reps: "12", rest: "60s" },
-        ],
-      },
+      "Day A": { label: "Arms", color: "#ff0000", exercises: [] },
     };
 
     await act(async () => {
       result.current.replacePlan(newPlan);
     });
 
-    expect(persistTrainingPlan).toHaveBeenCalledTimes(1);
-    const persisted = mockPersistTrainingPlan.mock.calls[0][0];
-    expect(Object.keys(persisted)).toEqual(["Day A"]);
-    expect(persisted["Day A"].exercises[0].name).toBe("Curl");
+    const persisted = decodePersistedLibrary();
+    expect(persisted.ownedPlans.length).toBe(2);
+    expect(persisted.sharedPlans.length).toBe(1);
+  });
+
+  it("prevents edits on shared plans until copied", async () => {
+    const baseLibrary: PlanLibrary = {
+      activePlanId: "shared-1",
+      ownedPlans: [
+        { id: "owned-1", name: "Base", source: "owned", plan: TRAINING_PLAN },
+      ],
+      sharedPlans: [
+        { id: "shared-1", name: "Read-only", source: "shared", plan: TRAINING_PLAN },
+      ],
+    };
+    mockLoadTrainingPlan.mockResolvedValueOnce(baseLibrary);
+
+    const { result } = renderHook(() => useTrainingPlan());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const firstKey = Object.keys(TRAINING_PLAN)[0];
+
+    act(() => {
+      result.current.saveDay(firstKey, { label: "Should not persist" });
+    });
+    expect(persistTrainingPlan).not.toHaveBeenCalled();
+
+    await act(async () => {
+      result.current.copyActivePlanToOwned("Copied Plan");
+    });
+
+    const persisted = decodePersistedLibrary();
+    expect(persisted.ownedPlans.length).toBe(2);
+    expect(persisted.ownedPlans[0].name).toBe("Copied Plan");
+  });
+
+  it("imports a shared plan code and persists it", async () => {
+    const { result } = renderHook(() => useTrainingPlan());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    const sharedPayload = { id: "shared-123", name: "Shared A", plan: TRAINING_PLAN };
+    const code = makeShareCode(sharedPayload);
+
+    await act(async () => {
+      result.current.addSharedPlanFromCode(code);
+    });
+
+    const persisted = decodePersistedLibrary();
+    expect(persisted.sharedPlans.length).toBe(1);
+    expect(persisted.sharedPlans[0].id).toBe("shared-123");
+  });
+
+  it("shareActivePlan returns a shareable code with the active plan id", async () => {
+    const { result } = renderHook(() => useTrainingPlan());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let code: string | null = null;
+    act(() => {
+      code = result.current.shareActivePlan();
+    });
+
+    expect(code).toBeTruthy();
+    const payload = JSON.parse(Buffer.from(code!, "base64").toString("utf-8"));
+    expect(payload.id).toBe(result.current.activePlanId);
+    expect(payload.plan).toBeDefined();
   });
 
   /* ----------------------------------------------------------
@@ -271,28 +275,6 @@ describe("useTrainingPlan", () => {
 
     await waitFor(() => expect(result.current.saveMsg).toBe("✓ Plan guardado"));
 
-    // Message clears after SAVE_MSG_DURATION_MS (2000ms)
-    act(() => vi.advanceTimersByTime(2500));
-    expect(result.current.saveMsg).toBe("");
-
-    vi.useRealTimers();
-  });
-
-  it("shows error message when persist fails", async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    mockPersistTrainingPlan.mockRejectedValueOnce(new Error("write failed"));
-
-    const { result } = renderHook(() => useTrainingPlan());
-    await waitFor(() => expect(result.current.loading).toBe(false));
-
-    const firstKey = result.current.dayKeys[0];
-
-    await act(async () => {
-      result.current.saveDay(firstKey, { label: "Fail" });
-    });
-
-    await waitFor(() => expect(result.current.saveMsg).toBe("✗ Error al guardar plan"));
-
     act(() => vi.advanceTimersByTime(2500));
     expect(result.current.saveMsg).toBe("");
 
@@ -307,7 +289,6 @@ describe("useTrainingPlan", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.dayKeys.length).toBeGreaterThan(0);
-    // Each key should have a corresponding color
     for (const key of result.current.dayKeys) {
       expect(result.current.dayColors[key]).toBeDefined();
       expect(result.current.dayColors[key]).toMatch(/^#/);

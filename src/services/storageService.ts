@@ -7,10 +7,12 @@
 
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebaseClient";
-import type { LogsByExercise, TrainingPlan } from "./types";
+import type { LogsByExercise, PlanLibrary, TrainingPlan } from "./types";
 
 const STORAGE_KEY = "gymbuddy_logs";
 const PLAN_STORAGE_KEY = "gymbuddy_plan";
+
+type StoredPlan = TrainingPlan | PlanLibrary;
 
 function getStorageKey(scope = "guest"): string {
   return scope === "guest" ? STORAGE_KEY : `${STORAGE_KEY}:${scope}`;
@@ -98,7 +100,7 @@ export async function persistLogs(logs: LogsByExercise, scope = "guest"): Promis
  * @param {string} [scope="guest"]
  * @returns {Promise<Record<string, { label: string, color: string, exercises: any[] }>>}
  */
-export async function loadTrainingPlan(scope = "guest"): Promise<TrainingPlan | Record<string, never>> {
+export async function loadTrainingPlan(scope = "guest"): Promise<StoredPlan | Record<string, never>> {
   if (isRemoteScope(scope)) {
     try {
       const snap = await getDoc(getUserPlanDoc(scope));
@@ -128,7 +130,7 @@ export async function loadTrainingPlan(scope = "guest"): Promise<TrainingPlan | 
  * @param {string} [scope="guest"]
  * @returns {Promise<void>}
  */
-export async function persistTrainingPlan(plan: TrainingPlan, scope = "guest"): Promise<void> {
+export async function persistTrainingPlan(plan: StoredPlan, scope = "guest"): Promise<void> {
   if (isRemoteScope(scope)) {
     try {
       await setDoc(getUserPlanDoc(scope), { plan, updatedAt: serverTimestamp() });
