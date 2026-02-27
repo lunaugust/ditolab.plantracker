@@ -16,11 +16,33 @@ vi.mock("../services/authService", () => ({
  * ================================================================ */
 vi.mock("../services/storageService", async () => {
   const { TRAINING_PLAN } = await vi.importActual("../data/trainingPlan");
+  const mockPlan = {
+    metadata: {
+      id: "plan_test",
+      name: "Test Plan",
+      ownerId: "guest",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      isShared: false,
+      sharedWith: [],
+      source: "manual" as const,
+    },
+    plan: TRAINING_PLAN,
+  };
   return {
     loadLogs: vi.fn().mockResolvedValue({}),
     persistLogs: vi.fn().mockResolvedValue(undefined),
     loadTrainingPlan: vi.fn().mockResolvedValue(TRAINING_PLAN),
     persistTrainingPlan: vi.fn().mockResolvedValue(undefined),
+    // Multi-plan functions
+    getActivePlanId: vi.fn().mockResolvedValue("plan_test"),
+    setActivePlanId: vi.fn().mockResolvedValue(undefined),
+    listPlans: vi.fn().mockResolvedValue([mockPlan.metadata]),
+    loadPlanById: vi.fn().mockResolvedValue(mockPlan),
+    savePlan: vi.fn().mockResolvedValue(undefined),
+    deletePlan: vi.fn().mockResolvedValue(undefined),
+    sharePlan: vi.fn().mockResolvedValue(undefined),
+    copyPlan: vi.fn().mockResolvedValue("plan_copy"),
   };
 });
 
