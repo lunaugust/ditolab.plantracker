@@ -64,6 +64,15 @@ export function PlanView({
   const day = safeActiveDay ? trainingPlan[safeActiveDay] : null;
   const [isEditing, setIsEditing] = useState(false);
   const [draftDay, setDraftDay] = useState<TrainingDay | null>(null);
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const update = () => setIsNarrow(window.innerWidth <= 640);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   useEffect(() => {
     if (!isEditing || !day) return;
@@ -496,6 +505,33 @@ export function PlanView({
           </div>
         ))}
       </div>
+
+      {isNarrow && (
+        <div style={styles.mobileActionBar}>
+          <button
+            onClick={() => {
+              const newDay = addDay();
+              if (newDay) setActiveDay(newDay);
+            }}
+            disabled={readOnly}
+            style={{ ...styles.mobileButton, opacity: readOnly ? 0.4 : 1 }}
+          >
+            {t("plan.addDayShort")}
+          </button>
+          <button
+            onClick={onOpenGenerator}
+            style={{ ...styles.mobileButton, background: colors.accent.blue, color: colors.bg }}
+          >
+            ✦ {t("generator.title")}
+          </button>
+          <button
+            onClick={onOpenImporter}
+            style={styles.mobileButton}
+          >
+            {t("importer.openButton")}
+          </button>
+        </div>
+      )}
     </PageContainer>
   );
 }
@@ -606,5 +642,29 @@ const styles = {
     borderRadius: 12,
     padding: 10,
     marginBottom: 12,
+  },
+  mobileActionBar: {
+    position: "sticky",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: 8,
+    padding: 10,
+    background: colors.bg,
+    borderTop: `1px solid ${colors.borderLight}`,
+    boxShadow: "0 -4px 14px rgba(0,0,0,0.08)",
+    zIndex: 5,
+  },
+  mobileButton: {
+    border: `1px solid ${colors.border}`,
+    background: colors.surface,
+    color: colors.textPrimary,
+    borderRadius: 12,
+    padding: "12px 10px",
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    fontWeight: 600,
   },
 };
