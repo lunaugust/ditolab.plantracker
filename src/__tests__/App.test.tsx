@@ -189,4 +189,27 @@ describe("Exercise Detail", () => {
     await user.click(screen.getByText("-2.5"));
     expect((screen.getAllByRole("spinbutton")[0] as HTMLInputElement).value).toBe("2.5");
   });
+
+  it("starts a workout session, completes an exercise, and moves to the next one after rest", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForPlanLoad();
+
+    await user.click(screen.getByText("▶ Iniciar sesión de entrenamiento"));
+    expect(screen.getByText("SESIÓN ACTIVA")).toBeTruthy();
+    expect(screen.getByText("Ejercicio 1 de 13")).toBeTruthy();
+
+    const [weightInput, repsInput] = screen.getAllByRole("spinbutton");
+    await user.clear(weightInput);
+    await user.clear(repsInput);
+    await user.type(weightInput, "80");
+    await user.type(repsInput, "12");
+    await user.click(screen.getByText("Guardar registro"));
+
+    await user.click(screen.getByText("Finalizar ejercicio"));
+    expect(screen.getAllByText("Descanso").length).toBeGreaterThan(0);
+    await user.click(screen.getByText("Saltar descanso"));
+
+    expect(await screen.findByText("Ejercicio 2 de 13")).toBeTruthy();
+  });
 });

@@ -22,15 +22,36 @@ interface ExerciseDetailViewProps {
   addLog: (exId: string, data: { weight: string; reps: string; notes: string }) => void;
   deleteLog: (exId: string, idx: number) => void;
   onBack: () => void;
+  workoutSession?: {
+    startedAt: number;
+    currentExerciseIndex: number;
+    totalExercises: number;
+    restSecondsLeft: number;
+  } | null;
+  onFinishExercise?: () => void;
+  onSkipRest?: () => void;
+  onEndWorkoutSession?: () => void;
 }
 
-export function ExerciseDetailView({ exercise, accentColor, logs, addLog, deleteLog, onBack }: ExerciseDetailViewProps) {
+export function ExerciseDetailView({
+  exercise,
+  accentColor,
+  logs,
+  addLog,
+  deleteLog,
+  onBack,
+  workoutSession = null,
+  onFinishExercise,
+  onSkipRest,
+  onEndWorkoutSession,
+}: ExerciseDetailViewProps) {
   const { t } = useI18n();
   const gifUrl = useExerciseGif(exercise.exerciseId, exercise.name);
   const localizedName = useLocalizedExerciseName(exercise.name);
   const localizedNote = useLocalizedExerciseNote(exercise);
   const [activeTab, setActiveTab] = useState("log");
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const entries = logs[exercise.id] || [];
 
@@ -43,6 +64,20 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
       notes: "",
     });
   }, [exercise.id]);
+
+  useEffect(() => {
+    if (!workoutSession) {
+      setElapsedSeconds(0);
+      return;
+    }
+
+    const updateElapsed = () => {
+      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - workoutSession.startedAt) / 1000)));
+    };
+    updateElapsed();
+    const timerId = window.setInterval(updateElapsed, 1000);
+    return () => window.clearInterval(timerId);
+  }, [workoutSession?.startedAt]);
 
   const handleSubmit = () => {
     addLog(exercise.id, form);
@@ -66,6 +101,36 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
   return (
     <PageContainer>
       <BackButton onClick={onBack} />
+
+      {workoutSession && (
+        <div style={sessionStyles.card}>
+          <div>
+            <div style={sessionStyles.label}>{t("session.activeTitle")}</div>
+            <div style={{ ...sessionStyles.value, color: accentColor }}>
+              {formatDuration(elapsedSeconds)}
+            </div>
+            <div style={sessionStyles.meta}>
+              {t("session.exerciseProgress", {
+                current: workoutSession.currentExerciseIndex + 1,
+                total: workoutSession.totalExercises,
+              })}
+            </div>
+          </div>
+          <button onClick={onEndWorkoutSession} style={sessionStyles.endButton}>
+            {t("session.endWorkout")}
+          </button>
+        </div>
+      )}
+
+      {workoutSession && workoutSession.restSecondsLeft > 0 && (
+        <div style={sessionStyles.restCard}>
+          <div style={sessionStyles.restTitle}>{t("session.resting")}</div>
+          <div style={sessionStyles.restTime}>{formatDuration(workoutSession.restSecondsLeft)}</div>
+          <button onClick={onSkipRest} style={sessionStyles.skipButton}>
+            {t("session.skipRest")}
+          </button>
+        </div>
+      )}
 
       {/* Exercise header */}
       <div style={{ marginBottom: 20 }}>
@@ -129,6 +194,9 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
             exerciseId={exercise.id}
             accentColor={accentColor}
             t={t}
+            inWorkoutSession={!!workoutSession}
+            isResting={!!workoutSession && workoutSession.restSecondsLeft > 0}
+            onFinishExercise={onFinishExercise}
           />
         )}
 
@@ -160,6 +228,9 @@ interface LogTabProps {
   exerciseId: string;
   accentColor: string;
   t: TFunction;
+  inWorkoutSession: boolean;
+  isResting: boolean;
+  onFinishExercise?: () => void;
 }
 
 function LogTab({
@@ -174,6 +245,9 @@ function LogTab({
   exerciseId,
   accentColor,
   t,
+  inWorkoutSession,
+  isResting,
+  onFinishExercise,
 }: LogTabProps) {
   const repTargets = [8, 10, 15, 20];
 
@@ -246,9 +320,25 @@ function LogTab({
           />
         </div>
 
-        <button onClick={handleSubmit} style={{ ...formStyles.submit, background: accentColor }}>
-          {t("log.saveRecord")}
-        </button>
+        <div style={formStyles.submitRow}>
+          <button onClick={handleSubmit} style={{ ...formStyles.submit, background: accentColor, width: "100%" }}>
+            {t("log.saveRecord")}
+          </button>
+          {inWorkoutSession && (
+            <button
+              onClick={onFinishExercise}
+              disabled={isResting}
+              style={{
+                ...formStyles.submit,
+                width: "100%",
+                background: isResting ? colors.textDisabled : colors.success,
+                color: colors.bg,
+              }}
+            >
+              {isResting ? t("session.resting") : t("session.finishExercise")}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* History */}
@@ -442,7 +532,6 @@ const formStyles: Record<string, CSSProperties> = {
     fontSize: 15,
   },
   submit: {
-    width: "100%",
     padding: 16,
     border: "none",
     borderRadius: 12,
@@ -453,6 +542,11 @@ const formStyles: Record<string, CSSProperties> = {
     cursor: "pointer",
     minHeight: 50,
     WebkitTapHighlightColor: "transparent",
+  },
+  submitRow: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: 8,
   },
   chipRow: {
     display: "flex",
@@ -472,6 +566,86 @@ const formStyles: Record<string, CSSProperties> = {
     WebkitTapHighlightColor: "transparent",
   },
 };
+
+const sessionStyles: Record<string, CSSProperties> = {
+  card: {
+    background: colors.surface,
+    borderRadius: 12,
+    border: `1px solid ${colors.border}`,
+    padding: 12,
+    marginBottom: 12,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  label: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.textMuted,
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  value: {
+    fontFamily: fonts.mono,
+    fontSize: 18,
+    fontWeight: 700,
+  },
+  meta: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  endButton: {
+    border: `1px solid ${colors.border}`,
+    background: colors.bg,
+    color: colors.textSecondary,
+    borderRadius: 8,
+    padding: "8px 10px",
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    cursor: "pointer",
+  },
+  restCard: {
+    background: colors.surface,
+    borderRadius: 12,
+    border: `1px solid ${colors.warning}`,
+    padding: 12,
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  restTitle: {
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    color: colors.warning,
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  restTime: {
+    fontFamily: fonts.mono,
+    fontSize: 22,
+    fontWeight: 700,
+    color: colors.textPrimary,
+    marginBottom: 8,
+  },
+  skipButton: {
+    border: `1px solid ${colors.border}`,
+    background: colors.bg,
+    color: colors.textSecondary,
+    borderRadius: 8,
+    padding: "8px 10px",
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    cursor: "pointer",
+  },
+};
+
+function formatDuration(totalSeconds: number) {
+  const safe = Math.max(0, Math.floor(totalSeconds));
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
 
 const historyStyles: Record<string, CSSProperties> = {
   emptyState: {

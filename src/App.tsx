@@ -33,6 +33,14 @@ export default function App() {
   const [showImporter, setShowImporter] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [workoutSession, setWorkoutSession] = useState<{
+    dayKey: string;
+    startedAt: number;
+    currentExerciseIndex: number;
+    totalExercises: number;
+    restSecondsLeft: number;
+    advanceOnRestEnd: boolean;
+  } | null>(null);
 
   // Show "What's New" once per version, after auth resolves.
   useEffect(() => {
@@ -79,6 +87,38 @@ export default function App() {
       setShowGenerator(true);
     }
   }, [pendingLoginRedirect, planLoading, hasPlan]);
+
+  useEffect(() => {
+    if (!workoutSession || workoutSession.restSecondsLeft <= 0) return;
+
+    const timerId = window.setInterval(() => {
+      setWorkoutSession((prev) => {
+        if (!prev || prev.restSecondsLeft <= 0) return prev;
+        return { ...prev, restSecondsLeft: prev.restSecondsLeft - 1 };
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timerId);
+  }, [workoutSession?.restSecondsLeft]);
+
+  useEffect(() => {
+    if (!workoutSession || !workoutSession.advanceOnRestEnd || workoutSession.restSecondsLeft !== 0) return;
+    const day = trainingPlan[workoutSession.dayKey];
+    if (!day) return;
+    if (workoutSession.currentExerciseIndex >= day.exercises.length - 1) return;
+
+    const nextExercise = day.exercises[workoutSession.currentExerciseIndex + 1];
+    if (!nextExercise) return;
+    nav.selectExercise(nextExercise);
+    setWorkoutSession((prev) => {
+      if (!prev || prev.dayKey !== workoutSession.dayKey) return prev;
+      return {
+        ...prev,
+        currentExerciseIndex: prev.currentExerciseIndex + 1,
+        advanceOnRestEnd: false,
+      };
+    });
+  }, [workoutSession?.advanceOnRestEnd, workoutSession?.restSecondsLeft, workoutSession?.currentExerciseIndex, workoutSession?.dayKey, trainingPlan, nav.selectExercise]);
   // --- End login-redirect logic ---
 
   // Clear selected exercise if it no longer exists in the plan
@@ -91,6 +131,54 @@ export default function App() {
 
     if (!exists) nav.clearExercise();
   }, [trainingPlan, nav.selectedExercise, nav.clearExercise]);
+
+  const startWorkoutSession = (dayKey: string) => {
+    const exercises = trainingPlan[dayKey]?.exercises || [];
+    const firstExercise = exercises[0];
+    if (!firstExercise) return;
+    nav.setActiveDay(dayKey);
+    nav.selectExercise(firstExercise);
+    setWorkoutSession({
+      dayKey,
+      startedAt: Date.now(),
+      currentExerciseIndex: 0,
+      totalExercises: exercises.length,
+      restSecondsLeft: 0,
+      advanceOnRestEnd: false,
+    });
+  };
+
+  const endWorkoutSession = () => {
+    setWorkoutSession(null);
+    nav.clearExercise();
+  };
+
+  const finishSessionExercise = () => {
+    if (!workoutSession) return;
+    const day = trainingPlan[workoutSession.dayKey];
+    const currentExercise = day?.exercises[workoutSession.currentExerciseIndex];
+    if (!day || !currentExercise) {
+      endWorkoutSession();
+      return;
+    }
+    const isLastExercise = workoutSession.currentExerciseIndex >= day.exercises.length - 1;
+    if (isLastExercise) {
+      endWorkoutSession();
+      return;
+    }
+    setWorkoutSession((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        restSecondsLeft: parseRestSeconds(currentExercise.rest),
+        advanceOnRestEnd: true,
+      };
+    });
+  };
+
+  const skipWorkoutRest = () => {
+    setWorkoutSession((prev) => (prev ? { ...prev, restSecondsLeft: 0 } : prev));
+  };
 
   if (auth.loading || logsLoading || planLoading) return <LoadingScreen />;
   if (auth.enabled && !auth.user) {
@@ -148,7 +236,11 @@ export default function App() {
           logs={logs}
           addLog={addLog}
           deleteLog={deleteLog}
-          onBack={nav.clearExercise}
+          onBack={workoutSession ? endWorkoutSession : nav.clearExercise}
+          workoutSession={workoutSession}
+          onFinishExercise={finishSessionExercise}
+          onSkipRest={skipWorkoutRest}
+          onEndWorkoutSession={endWorkoutSession}
         />
       ) : (
         <PlanView
@@ -164,6 +256,7 @@ export default function App() {
           onOpenGenerator={() => setShowGenerator(true)}
           onOpenImporter={() => setShowImporter(true)}
           onExerciseClick={nav.selectExercise}
+          onStartWorkoutSession={startWorkoutSession}
         />
       )}
 
@@ -179,4 +272,12 @@ export default function App() {
       )}
     </div>
   );
+}
+
+function parseRestSeconds(rest: string | undefined) {
+  if (!rest) return 0;
+  const match = rest.match(/(\d+)/);
+  if (!match) return 0;
+  const value = Number(match[1]);
+  return Number.isFinite(value) && value > 0 ? value : 0;
 }

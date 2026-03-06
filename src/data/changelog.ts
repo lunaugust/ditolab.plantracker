@@ -8,7 +8,7 @@
  *     whose stored "gymbuddy_seen_version" differs from APP_VERSION.
  */
 
-export const APP_VERSION = "1.5.0";
+export const APP_VERSION = "1.6.0";
 
 /** localStorage key that tracks the last version the user dismissed. */
 export const WHATS_NEW_STORAGE_KEY = "gymbuddy_seen_version";
@@ -34,6 +34,22 @@ export type ChangelogEntry = {
  * The modal only shows the FIRST (latest) entry.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.6.0",
+    date: "2026-03-06",
+    features: [
+      {
+        icon: "🏋️",
+        es: "Nueva sesión de entrenamiento: iniciá por día, seguí ejercicio por ejercicio y marcá avances en orden.",
+        en: "New workout session mode: start by day, move exercise by exercise, and track progress in sequence.",
+      },
+      {
+        icon: "⏱️",
+        es: "Timer total de sesión y contador de descanso entre ejercicios, con opción para saltar el descanso.",
+        en: "Session timer and rest countdown between exercises, with an option to skip rest.",
+      },
+    ],
+  },
   {
     version: "1.5.0",
     date: "2026-02-26",

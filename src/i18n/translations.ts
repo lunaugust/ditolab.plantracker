@@ -78,6 +78,15 @@ export const translations = {
       lastSession: "Última sesión",
       fillFromLast: "Usar último",
     },
+    session: {
+      startWorkout: "Iniciar sesión de entrenamiento",
+      activeTitle: "SESIÓN ACTIVA",
+      exerciseProgress: "Ejercicio {current} de {total}",
+      finishExercise: "Finalizar ejercicio",
+      resting: "Descanso",
+      skipRest: "Saltar descanso",
+      endWorkout: "Terminar sesión",
+    },
     progress: {
       titleWeight: "PROGRESIÓN DE PESO",
       title: "PROGRESIÓN",
@@ -253,6 +262,15 @@ export const translations = {
       totalSessions: "Total sessions",
       lastSession: "Last session",
       fillFromLast: "Use last",
+    },
+    session: {
+      startWorkout: "Start workout session",
+      activeTitle: "ACTIVE SESSION",
+      exerciseProgress: "Exercise {current} of {total}",
+      finishExercise: "Finish exercise",
+      resting: "Resting",
+      skipRest: "Skip rest",
+      endWorkout: "End session",
     },
     progress: {
       titleWeight: "WEIGHT PROGRESS",
