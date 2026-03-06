@@ -198,6 +198,8 @@ export function ExerciseDetailView({
             t={t}
             inWorkoutSession={!!workoutSession}
             isResting={!!workoutSession && workoutSession.restSecondsLeft > 0}
+            restSecondsLeft={workoutSession?.restSecondsLeft || 0}
+            onSkipRest={onSkipRest}
           />
         )}
 
@@ -231,6 +233,8 @@ interface LogTabProps {
   t: TFunction;
   inWorkoutSession: boolean;
   isResting: boolean;
+  restSecondsLeft: number;
+  onSkipRest?: () => void;
 }
 
 function LogTab({
@@ -247,6 +251,8 @@ function LogTab({
   t,
   inWorkoutSession,
   isResting,
+  restSecondsLeft,
+  onSkipRest,
 }: LogTabProps) {
   const repTargets = [8, 10, 15, 20];
 
@@ -340,7 +346,15 @@ function LogTab({
       {entries.length === 0 ? (
         <div style={historyStyles.emptyState}>{t("log.noRecords")}</div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 12 }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            marginTop: 12,
+            marginBottom: inWorkoutSession && isResting ? 72 : 0,
+          }}
+        >
           {[...entries].reverse().map((entry, ri) => {
             const originalIdx = entries.length - 1 - ri;
             return (
@@ -370,6 +384,26 @@ function LogTab({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {inWorkoutSession && isResting && (
+        <div
+          aria-label={t("session.quickRestControlsLabel")}
+          role="region"
+          style={sessionStyles.quickRestBar}
+        >
+          <div role="status" aria-live="polite" style={sessionStyles.quickRestInfo}>
+            <div style={sessionStyles.quickRestLabel}>{t("session.resting")}</div>
+            <div style={sessionStyles.quickRestTime}>{formatDuration(restSecondsLeft)}</div>
+          </div>
+          <button
+            onClick={onSkipRest}
+            aria-label={t("session.skipRestAriaLabel", { action: t("session.skipRest"), status: t("session.resting") })}
+            style={sessionStyles.quickSkipButton}
+          >
+            {t("session.skipRest")}
+          </button>
         </div>
       )}
     </>
@@ -630,6 +664,49 @@ const sessionStyles: Record<string, CSSProperties> = {
     fontFamily: fonts.mono,
     fontSize: 11,
     cursor: "pointer",
+  },
+  quickRestBar: {
+    position: "sticky",
+    bottom: 10,
+    zIndex: 3,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    background: colors.surface,
+    border: `1px solid ${colors.warning}`,
+    borderRadius: 12,
+    padding: "10px 12px",
+    marginTop: 12,
+  },
+  quickRestInfo: {
+    display: "flex",
+    alignItems: "baseline",
+    gap: 8,
+  },
+  quickRestLabel: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: 1,
+    color: colors.warning,
+    textTransform: "uppercase",
+  },
+  quickRestTime: {
+    fontFamily: fonts.mono,
+    fontSize: 16,
+    fontWeight: 700,
+    color: colors.textPrimary,
+  },
+  quickSkipButton: {
+    border: `1px solid ${colors.border}`,
+    background: colors.bg,
+    color: colors.textSecondary,
+    borderRadius: 8,
+    padding: "8px 10px",
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
   },
 };
 

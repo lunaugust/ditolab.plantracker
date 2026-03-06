@@ -209,7 +209,8 @@ describe("Exercise Detail", () => {
     await user.type(repsInput, "12");
     await user.click(screen.getByText("Guardar registro"));
     expect(screen.getAllByText("Descanso").length).toBeGreaterThan(0);
-    await user.click(screen.getByText("Saltar descanso"));
+    expect(screen.getByLabelText("Controles rápidos de descanso")).toBeTruthy();
+    await user.click(screen.getAllByText("Saltar descanso")[0]);
 
     expect(screen.getByText("Ejercicio 1 de 13")).toBeTruthy();
     expect(persistLogs).toHaveBeenCalledTimes(1);
@@ -220,7 +221,7 @@ describe("Exercise Detail", () => {
     await user.click(screen.getByText("Guardar registro"));
     expect(persistLogs).toHaveBeenCalledTimes(2);
     expect(screen.getAllByText("Descanso").length).toBeGreaterThan(0);
-    await user.click(screen.getByText("Saltar descanso"));
+    await user.click(screen.getAllByText("Saltar descanso")[0]);
 
     expect(await screen.findByText("Ejercicio 2 de 13")).toBeTruthy();
   });
@@ -251,7 +252,7 @@ describe("Exercise Detail", () => {
     await user.type(weightInput, "40");
     await user.type(repsInput, "10");
     await user.click(screen.getByText("Guardar registro"));
-    await user.click(screen.getByText("Saltar descanso"));
+    await user.click(screen.getAllByText("Saltar descanso")[0]);
 
     expect(await screen.findByText("▶ Iniciar sesión de entrenamiento")).toBeTruthy();
   });

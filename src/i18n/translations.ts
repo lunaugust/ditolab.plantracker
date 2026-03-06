@@ -85,6 +85,8 @@ export const translations = {
       finishExercise: "Finalizar ejercicio",
       resting: "Descanso",
       skipRest: "Saltar descanso",
+      quickRestControlsLabel: "Controles rápidos de descanso",
+      skipRestAriaLabel: "{action} ({status})",
       endWorkout: "Terminar sesión",
     },
     progress: {
@@ -270,6 +272,8 @@ export const translations = {
       finishExercise: "Finish exercise",
       resting: "Resting",
       skipRest: "Skip rest",
+      quickRestControlsLabel: "Quick rest controls",
+      skipRestAriaLabel: "{action} ({status})",
       endWorkout: "End session",
     },
     progress: {
