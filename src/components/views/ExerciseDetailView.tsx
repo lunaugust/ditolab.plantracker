@@ -22,15 +22,36 @@ interface ExerciseDetailViewProps {
   addLog: (exId: string, data: { weight: string; reps: string; notes: string }) => void;
   deleteLog: (exId: string, idx: number) => void;
   onBack: () => void;
+  workoutSession?: {
+    startedAt: number;
+    currentExerciseIndex: number;
+    totalExercises: number;
+    restSecondsLeft: number;
+  } | null;
+  onLogSet?: (data: { weight: string; reps: string; notes: string }) => void;
+  onSkipRest?: () => void;
+  onEndWorkoutSession?: () => void;
 }
 
-export function ExerciseDetailView({ exercise, accentColor, logs, addLog, deleteLog, onBack }: ExerciseDetailViewProps) {
+export function ExerciseDetailView({
+  exercise,
+  accentColor,
+  logs,
+  addLog,
+  deleteLog,
+  onBack,
+  workoutSession = null,
+  onLogSet,
+  onSkipRest,
+  onEndWorkoutSession,
+}: ExerciseDetailViewProps) {
   const { t } = useI18n();
   const gifUrl = useExerciseGif(exercise.exerciseId, exercise.name);
   const localizedName = useLocalizedExerciseName(exercise.name);
   const localizedNote = useLocalizedExerciseNote(exercise);
   const [activeTab, setActiveTab] = useState("log");
   const [form, setForm] = useState({ weight: "", reps: "", notes: "" });
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const entries = logs[exercise.id] || [];
 
@@ -44,8 +65,24 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
     });
   }, [exercise.id]);
 
+  useEffect(() => {
+    if (!workoutSession) {
+      setElapsedSeconds(0);
+      return;
+    }
+
+    const updateElapsed = () => {
+      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - workoutSession.startedAt) / 1000)));
+    };
+    updateElapsed();
+    const timerId = window.setInterval(updateElapsed, 1000);
+    return () => window.clearInterval(timerId);
+  }, [workoutSession?.startedAt]);
+
   const handleSubmit = () => {
+    if (!form.weight.trim() && !form.reps.trim()) return;
     addLog(exercise.id, form);
+    onLogSet?.(form);
     setForm((prev) => ({ weight: prev.weight, reps: prev.reps, notes: "" }));
   };
 
@@ -66,6 +103,36 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
   return (
     <PageContainer>
       <BackButton onClick={onBack} />
+
+      {workoutSession && (
+        <div style={sessionStyles.card}>
+          <div>
+            <div style={sessionStyles.label}>{t("session.activeTitle")}</div>
+            <div style={{ ...sessionStyles.value, color: accentColor }}>
+              {formatDuration(elapsedSeconds)}
+            </div>
+            <div style={sessionStyles.meta}>
+              {t("session.exerciseProgress", {
+                current: workoutSession.currentExerciseIndex + 1,
+                total: workoutSession.totalExercises,
+              })}
+            </div>
+          </div>
+          <button onClick={onEndWorkoutSession} style={sessionStyles.endButton}>
+            {t("session.endWorkout")}
+          </button>
+        </div>
+      )}
+
+      {workoutSession && workoutSession.restSecondsLeft > 0 && (
+        <div style={sessionStyles.restCard}>
+          <div style={sessionStyles.restTitle}>{t("session.resting")}</div>
+          <div style={sessionStyles.restTime}>{formatDuration(workoutSession.restSecondsLeft)}</div>
+          <button onClick={onSkipRest} style={sessionStyles.skipButton}>
+            {t("session.skipRest")}
+          </button>
+        </div>
+      )}
 
       {/* Exercise header */}
       <div style={{ marginBottom: 20 }}>
@@ -129,6 +196,10 @@ export function ExerciseDetailView({ exercise, accentColor, logs, addLog, delete
             exerciseId={exercise.id}
             accentColor={accentColor}
             t={t}
+            inWorkoutSession={!!workoutSession}
+            isResting={!!workoutSession && workoutSession.restSecondsLeft > 0}
+            restSecondsLeft={workoutSession?.restSecondsLeft || 0}
+            onSkipRest={onSkipRest}
           />
         )}
 
@@ -160,6 +231,10 @@ interface LogTabProps {
   exerciseId: string;
   accentColor: string;
   t: TFunction;
+  inWorkoutSession: boolean;
+  isResting: boolean;
+  restSecondsLeft: number;
+  onSkipRest?: () => void;
 }
 
 function LogTab({
@@ -174,6 +249,10 @@ function LogTab({
   exerciseId,
   accentColor,
   t,
+  inWorkoutSession,
+  isResting,
+  restSecondsLeft,
+  onSkipRest,
 }: LogTabProps) {
   const repTargets = [8, 10, 15, 20];
 
@@ -246,9 +325,19 @@ function LogTab({
           />
         </div>
 
-        <button onClick={handleSubmit} style={{ ...formStyles.submit, background: accentColor }}>
-          {t("log.saveRecord")}
-        </button>
+        <div style={formStyles.submitRow}>
+          <button
+            onClick={handleSubmit}
+            disabled={inWorkoutSession && isResting}
+            style={{
+              ...formStyles.submit,
+              background: inWorkoutSession && isResting ? colors.textDisabled : accentColor,
+              width: "100%",
+            }}
+          >
+            {t("log.saveRecord")}
+          </button>
+        </div>
       </div>
 
       {/* History */}
@@ -257,7 +346,15 @@ function LogTab({
       {entries.length === 0 ? (
         <div style={historyStyles.emptyState}>{t("log.noRecords")}</div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 12 }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            marginTop: 12,
+            marginBottom: inWorkoutSession && isResting ? 72 : 0,
+          }}
+        >
           {[...entries].reverse().map((entry, ri) => {
             const originalIdx = entries.length - 1 - ri;
             return (
@@ -287,6 +384,26 @@ function LogTab({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {inWorkoutSession && isResting && (
+        <div
+          aria-label={t("session.quickRestControlsLabel")}
+          role="region"
+          style={sessionStyles.quickRestBar}
+        >
+          <div role="status" aria-live="polite" style={sessionStyles.quickRestInfo}>
+            <div style={sessionStyles.quickRestLabel}>{t("session.resting")}</div>
+            <div style={sessionStyles.quickRestTime}>{formatDuration(restSecondsLeft)}</div>
+          </div>
+          <button
+            onClick={onSkipRest}
+            aria-label={t("session.skipRestAriaLabel", { action: t("session.skipRest"), status: t("session.resting") })}
+            style={sessionStyles.quickSkipButton}
+          >
+            {t("session.skipRest")}
+          </button>
         </div>
       )}
     </>
@@ -442,7 +559,6 @@ const formStyles: Record<string, CSSProperties> = {
     fontSize: 15,
   },
   submit: {
-    width: "100%",
     padding: 16,
     border: "none",
     borderRadius: 12,
@@ -453,6 +569,11 @@ const formStyles: Record<string, CSSProperties> = {
     cursor: "pointer",
     minHeight: 50,
     WebkitTapHighlightColor: "transparent",
+  },
+  submitRow: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: 8,
   },
   chipRow: {
     display: "flex",
@@ -472,6 +593,129 @@ const formStyles: Record<string, CSSProperties> = {
     WebkitTapHighlightColor: "transparent",
   },
 };
+
+const sessionStyles: Record<string, CSSProperties> = {
+  card: {
+    background: colors.surface,
+    borderRadius: 12,
+    border: `1px solid ${colors.border}`,
+    padding: 12,
+    marginBottom: 12,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  label: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.textMuted,
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  value: {
+    fontFamily: fonts.mono,
+    fontSize: 18,
+    fontWeight: 700,
+  },
+  meta: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  endButton: {
+    border: `1px solid ${colors.border}`,
+    background: colors.bg,
+    color: colors.textSecondary,
+    borderRadius: 8,
+    padding: "8px 10px",
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    cursor: "pointer",
+  },
+  restCard: {
+    background: colors.surface,
+    borderRadius: 12,
+    border: `1px solid ${colors.warning}`,
+    padding: 12,
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  restTitle: {
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    color: colors.warning,
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  restTime: {
+    fontFamily: fonts.mono,
+    fontSize: 22,
+    fontWeight: 700,
+    color: colors.textPrimary,
+    marginBottom: 8,
+  },
+  skipButton: {
+    border: `1px solid ${colors.border}`,
+    background: colors.bg,
+    color: colors.textSecondary,
+    borderRadius: 8,
+    padding: "8px 10px",
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    cursor: "pointer",
+  },
+  quickRestBar: {
+    position: "sticky",
+    bottom: 10,
+    zIndex: 3,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    background: colors.surface,
+    border: `1px solid ${colors.warning}`,
+    borderRadius: 12,
+    padding: "10px 12px",
+    marginTop: 12,
+  },
+  quickRestInfo: {
+    display: "flex",
+    alignItems: "baseline",
+    gap: 8,
+  },
+  quickRestLabel: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: 1,
+    color: colors.warning,
+    textTransform: "uppercase",
+  },
+  quickRestTime: {
+    fontFamily: fonts.mono,
+    fontSize: 16,
+    fontWeight: 700,
+    color: colors.textPrimary,
+  },
+  quickSkipButton: {
+    border: `1px solid ${colors.border}`,
+    background: colors.bg,
+    color: colors.textSecondary,
+    borderRadius: 8,
+    padding: "8px 10px",
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+};
+
+function formatDuration(totalSeconds: number) {
+  const safe = Math.max(0, Math.floor(totalSeconds));
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
 
 const historyStyles: Record<string, CSSProperties> = {
   emptyState: {

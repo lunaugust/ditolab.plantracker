@@ -21,6 +21,7 @@ interface PlanViewProps {
   onOpenGenerator: () => void;
   onOpenImporter: () => void;
   onExerciseClick?: (exercise: Exercise) => void;
+  onStartWorkoutSession?: (dayKey: string) => void;
 }
 
 export function PlanView({
@@ -36,6 +37,7 @@ export function PlanView({
   onOpenGenerator,
   onOpenImporter,
   onExerciseClick,
+  onStartWorkoutSession,
 }: PlanViewProps) {
   const { t, language } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
@@ -192,6 +194,17 @@ export function PlanView({
           )}
         </div>
       </div>
+
+      {!isEditing && currentDay.exercises.length > 0 && onStartWorkoutSession && (
+        <div style={{ marginBottom: 12 }}>
+          <button
+            onClick={() => onStartWorkoutSession(safeActiveDay)}
+            style={{ ...styles.sessionButton, borderColor: dayColors[safeActiveDay], color: dayColors[safeActiveDay] }}
+          >
+            ▶ {t("session.startWorkout")}
+          </button>
+        </div>
+      )}
 
       {isEditing && (
         <div style={{ marginBottom: 10 }}>
@@ -388,5 +401,16 @@ const styles = {
     padding: "8px 10px",
     fontFamily: fonts.sans,
     fontSize: 12,
+  },
+  sessionButton: {
+    width: "100%",
+    border: `1px solid ${colors.border}`,
+    background: colors.surface,
+    borderRadius: 10,
+    padding: "12px 10px",
+    cursor: "pointer",
+    fontFamily: fonts.mono,
+    fontSize: 12,
+    fontWeight: 600,
   },
 };
