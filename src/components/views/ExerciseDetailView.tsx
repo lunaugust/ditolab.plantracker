@@ -28,7 +28,7 @@ interface ExerciseDetailViewProps {
     totalExercises: number;
     restSecondsLeft: number;
   } | null;
-  onFinishExercise?: () => void;
+  onLogSet?: (data: { weight: string; reps: string; notes: string }) => void;
   onSkipRest?: () => void;
   onEndWorkoutSession?: () => void;
 }
@@ -41,7 +41,7 @@ export function ExerciseDetailView({
   deleteLog,
   onBack,
   workoutSession = null,
-  onFinishExercise,
+  onLogSet,
   onSkipRest,
   onEndWorkoutSession,
 }: ExerciseDetailViewProps) {
@@ -80,7 +80,9 @@ export function ExerciseDetailView({
   }, [workoutSession?.startedAt]);
 
   const handleSubmit = () => {
+    if (!form.weight.trim() && !form.reps.trim()) return;
     addLog(exercise.id, form);
+    onLogSet?.(form);
     setForm((prev) => ({ weight: prev.weight, reps: prev.reps, notes: "" }));
   };
 
@@ -196,7 +198,6 @@ export function ExerciseDetailView({
             t={t}
             inWorkoutSession={!!workoutSession}
             isResting={!!workoutSession && workoutSession.restSecondsLeft > 0}
-            onFinishExercise={onFinishExercise}
           />
         )}
 
@@ -230,7 +231,6 @@ interface LogTabProps {
   t: TFunction;
   inWorkoutSession: boolean;
   isResting: boolean;
-  onFinishExercise?: () => void;
 }
 
 function LogTab({
@@ -247,7 +247,6 @@ function LogTab({
   t,
   inWorkoutSession,
   isResting,
-  onFinishExercise,
 }: LogTabProps) {
   const repTargets = [8, 10, 15, 20];
 
@@ -321,23 +320,17 @@ function LogTab({
         </div>
 
         <div style={formStyles.submitRow}>
-          <button onClick={handleSubmit} style={{ ...formStyles.submit, background: accentColor, width: "100%" }}>
+          <button
+            onClick={handleSubmit}
+            disabled={inWorkoutSession && isResting}
+            style={{
+              ...formStyles.submit,
+              background: inWorkoutSession && isResting ? colors.textDisabled : accentColor,
+              width: "100%",
+            }}
+          >
             {t("log.saveRecord")}
           </button>
-          {inWorkoutSession && (
-            <button
-              onClick={onFinishExercise}
-              disabled={isResting}
-              style={{
-                ...formStyles.submit,
-                width: "100%",
-                background: isResting ? colors.textDisabled : colors.success,
-                color: colors.bg,
-              }}
-            >
-              {isResting ? t("session.resting") : t("session.finishExercise")}
-            </button>
-          )}
         </div>
       </div>
 

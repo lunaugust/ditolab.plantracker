@@ -40,6 +40,8 @@ export default function App() {
     totalExercises: number;
     restSecondsLeft: number;
     advanceOnRestEnd: boolean;
+    endOnRestEnd: boolean;
+    loggedSetsByExercise: Record<string, number>;
   } | null>(null);
 
   // Show "What's New" once per version, after auth resolves.
@@ -102,9 +104,16 @@ export default function App() {
   }, [workoutSession?.restSecondsLeft]);
 
   useEffect(() => {
-    if (!workoutSession || !workoutSession.advanceOnRestEnd || workoutSession.restSecondsLeft !== 0) return;
+    if (!workoutSession || workoutSession.restSecondsLeft !== 0) return;
     const day = trainingPlan[workoutSession.dayKey];
     if (!day) return;
+
+    if (workoutSession.endOnRestEnd) {
+      endWorkoutSession();
+      return;
+    }
+
+    if (!workoutSession.advanceOnRestEnd) return;
     if (workoutSession.currentExerciseIndex >= day.exercises.length - 1) return;
 
     const nextExercise = day.exercises[workoutSession.currentExerciseIndex + 1];
@@ -118,7 +127,7 @@ export default function App() {
         advanceOnRestEnd: false,
       };
     });
-  }, [workoutSession?.advanceOnRestEnd, workoutSession?.restSecondsLeft, workoutSession?.currentExerciseIndex, workoutSession?.dayKey, trainingPlan, nav.selectExercise]);
+  }, [workoutSession?.advanceOnRestEnd, workoutSession?.endOnRestEnd, workoutSession?.restSecondsLeft, workoutSession?.currentExerciseIndex, workoutSession?.dayKey, trainingPlan, nav.selectExercise]);
   // --- End login-redirect logic ---
 
   // Clear selected exercise if it no longer exists in the plan
@@ -145,6 +154,8 @@ export default function App() {
       totalExercises: exercises.length,
       restSecondsLeft: 0,
       advanceOnRestEnd: false,
+      endOnRestEnd: false,
+      loggedSetsByExercise: {},
     });
   };
 
@@ -153,7 +164,7 @@ export default function App() {
     nav.clearExercise();
   };
 
-  const finishSessionExercise = () => {
+  const handleSessionSetLogged = (data: { weight: string; reps: string; notes: string }) => {
     if (!workoutSession) return;
     const day = trainingPlan[workoutSession.dayKey];
     const currentExercise = day?.exercises[workoutSession.currentExerciseIndex];
@@ -161,17 +172,25 @@ export default function App() {
       endWorkoutSession();
       return;
     }
+
+    const setTargetMatch = currentExercise.sets?.match(/(\d+)/);
+    const targetSets = setTargetMatch ? Math.max(1, Number(setTargetMatch[1]) || 1) : 1;
+    const currentSetCount = workoutSession.loggedSetsByExercise[currentExercise.id] || 0;
+    const nextSetCount = currentSetCount + 1;
+    const reachedTargetSets = nextSetCount >= targetSets;
     const isLastExercise = workoutSession.currentExerciseIndex >= day.exercises.length - 1;
-    if (isLastExercise) {
-      endWorkoutSession();
-      return;
-    }
+
     setWorkoutSession((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
         restSecondsLeft: parseRestSeconds(currentExercise.rest),
-        advanceOnRestEnd: true,
+        advanceOnRestEnd: reachedTargetSets && !isLastExercise,
+        endOnRestEnd: reachedTargetSets && isLastExercise,
+        loggedSetsByExercise: {
+          ...prev.loggedSetsByExercise,
+          [currentExercise.id]: nextSetCount,
+        },
       };
     });
   };
@@ -238,7 +257,7 @@ export default function App() {
           deleteLog={deleteLog}
           onBack={workoutSession ? endWorkoutSession : nav.clearExercise}
           workoutSession={workoutSession}
-          onFinishExercise={finishSessionExercise}
+          onLogSet={handleSessionSetLogged}
           onSkipRest={skipWorkoutRest}
           onEndWorkoutSession={endWorkoutSession}
         />
