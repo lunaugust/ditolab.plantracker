@@ -7,7 +7,7 @@ export const translations = {
       plan: "Plan",
       log: "Registrar",
       progress: "Progresión",
-      gif: "GIF",
+      gif: "Demostración",
     },
     header: {
       subtitle: "Entrenamiento",
@@ -195,7 +195,7 @@ export const translations = {
       plan: "Plan",
       log: "Log",
       progress: "Progress",
-      gif: "GIF",
+      gif: "Demonstration",
     },
     header: {
       subtitle: "Training",
