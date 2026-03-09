@@ -370,6 +370,7 @@ function LogTab({
                 </div>
                 <button
                   onClick={() => deleteLog(exerciseId, originalIdx)}
+                  aria-label={t("log.deleteRecord")}
                   style={historyStyles.deleteBtn}
                 >
                   ×
