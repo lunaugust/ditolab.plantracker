@@ -126,6 +126,7 @@ describe("Exercise Detail", () => {
     // ExerciseDetailView should show tabs and the form
     expect(screen.getByText("Registrar")).toBeTruthy();
     expect(screen.getByText("Progresión")).toBeTruthy();
+    expect(screen.getByText("GIF")).toBeTruthy();
     expect(screen.getByText("Guardar registro")).toBeTruthy();
     expect(screen.getByPlaceholderText("Ej: técnica mejorada, RPE 8...")).toBeTruthy();
   });

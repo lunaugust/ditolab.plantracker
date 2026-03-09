@@ -149,23 +149,12 @@ export function ExerciseDetailView({
         )}
       </div>
 
-      {/* Exercise GIF demonstration */}
-      {gifUrl && (
-        <div style={gifStyles.card}>
-          <div style={gifStyles.label}>{t("common.demonstration")}</div>
-          <img
-            src={gifUrl}
-            alt={exercise.name}
-            style={gifStyles.img}
-          />
-        </div>
-      )}
-
       {/* Tabs */}
       <div style={styles.tabs}>
         {[
           { key: "log", label: t("nav.log") },
           { key: "progress", label: t("nav.progress") },
+          { key: "gif", label: t("nav.gif") },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -209,6 +198,10 @@ export function ExerciseDetailView({
             accentColor={accentColor}
             t={t}
           />
+        )}
+
+        {activeTab === "gif" && (
+          <GifTab gifUrl={gifUrl} exerciseName={exercise.name} t={t} />
         )}
       </div>
     </PageContainer>
@@ -473,6 +466,27 @@ function ProgressTab({ entries, accentColor, t }: { entries: LogEntry[]; accentC
         </div>
       )}
     </>
+  );
+}
+
+function GifTab({ gifUrl, exerciseName, t }: { gifUrl?: string; exerciseName: string; t: TFunction }) {
+  if (!gifUrl) {
+    return (
+      <div style={progressStyles.noDataCard}>
+        <div style={progressStyles.noDataText}>{t("common.noData")}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={gifStyles.card}>
+      <div style={gifStyles.label}>{t("common.demonstration")}</div>
+      <img
+        src={gifUrl}
+        alt={exerciseName}
+        style={gifStyles.img}
+      />
+    </div>
   );
 }
 
