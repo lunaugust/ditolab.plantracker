@@ -1,4 +1,5 @@
 import { colors, fonts } from "../../theme";
+import { performancePillStyle } from "../../theme/editorialPerformance";
 import type { CSSProperties } from "react";
 
 interface DayTabsProps {
@@ -19,11 +20,7 @@ export function DayTabs({ days, activeDay, dayColors, onSelect }: DayTabsProps) 
             onClick={() => onSelect(day)}
             style={{
               ...styles.tab,
-              border: isActive
-                ? `2px solid ${dayColors[day]}`
-                : `2px solid ${colors.border}`,
-              background: isActive ? colors.surface : colors.bg,
-              color: isActive ? dayColors[day] : colors.textDim,
+              ...performancePillStyle(isActive, dayColors[day]),
             }}
           >
             {day}
@@ -39,14 +36,17 @@ const styles: Record<string, CSSProperties> = {
     display: "flex",
     gap: 8,
     marginBottom: 20,
+    padding: 6,
+    background: colors.surfaceAlt,
+    borderRadius: 20,
+    border: `1px solid ${colors.border}`,
   },
   tab: {
     flex: 1,
-    padding: "14px 10px",
-    borderRadius: 12,
+    padding: "12px 10px",
     cursor: "pointer",
     fontFamily: fonts.mono,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 500,
     letterSpacing: 1,
     transition: "all 0.15s",

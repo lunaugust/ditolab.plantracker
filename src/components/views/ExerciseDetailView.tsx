@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { colors, fonts } from "../../theme";
+import { performanceGhostButtonStyle, performancePanelStyle, performancePillStyle } from "../../theme/editorialPerformance";
 import { useI18n } from "../../i18n";
 import { useExerciseGif, useLocalizedExerciseName, useLocalizedExerciseNote } from "../../hooks";
 import { formatDate, buildChartData, computeWeightStats } from "../../utils/helpers";
@@ -105,7 +106,7 @@ export function ExerciseDetailView({
       <BackButton onClick={onBack} />
 
       {workoutSession && (
-        <div style={sessionStyles.card}>
+        <div style={{ ...sessionStyles.card, ...performancePanelStyle(accentColor) }}>
           <div>
             <div style={sessionStyles.label}>{t("session.activeTitle")}</div>
             <div style={{ ...sessionStyles.value, color: accentColor }}>
@@ -118,32 +119,32 @@ export function ExerciseDetailView({
               })}
             </div>
           </div>
-          <button onClick={onEndWorkoutSession} style={sessionStyles.endButton}>
+          <button onClick={onEndWorkoutSession} style={{ ...sessionStyles.endButton, ...performanceGhostButtonStyle(colors.textSecondary) }}>
             {t("session.endWorkout")}
           </button>
         </div>
       )}
 
       {workoutSession && workoutSession.restSecondsLeft > 0 && (
-        <div style={sessionStyles.restCard}>
+        <div style={{ ...sessionStyles.restCard, ...performancePanelStyle(colors.warning) }}>
           <div style={sessionStyles.restTitle}>{t("session.resting")}</div>
           <div style={sessionStyles.restTime}>{formatDuration(workoutSession.restSecondsLeft)}</div>
-          <button onClick={onSkipRest} style={sessionStyles.skipButton}>
+          <button onClick={onSkipRest} style={{ ...sessionStyles.skipButton, ...performanceGhostButtonStyle(colors.warning) }}>
             {t("session.skipRest")}
           </button>
         </div>
       )}
 
       {/* Exercise header */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6, color: colors.textPrimary }}>
+      <div style={{ ...headerStyles.card, ...performancePanelStyle(accentColor) }}>
+        <div style={headerStyles.title}>
           {localizedName}
         </div>
-        <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textMuted }}>
+        <div style={headerStyles.meta}>
           {exercise.sets} {t("common.series")} · {exercise.reps} {t("common.reps")} · {exercise.rest}
         </div>
         {localizedNote && (
-          <div style={{ fontSize: 11, color: colors.warning, marginTop: 6, fontStyle: "italic" }}>
+          <div style={headerStyles.note}>
             ⚠ {localizedNote}
           </div>
         )}
@@ -161,8 +162,7 @@ export function ExerciseDetailView({
             onClick={() => setActiveTab(key)}
             style={{
               ...styles.tab,
-              color: activeTab === key ? accentColor : colors.textMuted,
-              borderBottomColor: activeTab === key ? accentColor : "transparent",
+              ...performancePillStyle(activeTab === key, accentColor),
             }}
           >
             {label}
@@ -495,31 +495,29 @@ function GifTab({ gifUrl, exerciseName, t }: { gifUrl?: string; exerciseName: st
 const styles: Record<string, CSSProperties> = {
   tabs: {
     display: "flex",
-    gap: 4,
-    borderBottom: `1px solid ${colors.border}`,
+    gap: 8,
+    padding: 6,
+    background: colors.surfaceAlt,
+    borderRadius: 20,
+    border: `1px solid ${colors.border}`,
   },
   tab: {
     flex: 1,
-    background: "none",
-    border: "none",
-    borderBottom: "2px solid transparent",
-    padding: "12px 8px",
     cursor: "pointer",
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: 600,
     fontFamily: fonts.sans,
-    transition: "color 0.2s, border-color 0.2s",
+    transition: "all 0.2s",
     WebkitTapHighlightColor: "transparent",
   },
 };
 
 const formStyles: Record<string, CSSProperties> = {
   card: {
-    background: colors.surface,
-    borderRadius: 14,
+    ...performancePanelStyle(),
+    borderRadius: 18,
     padding: 18,
     marginBottom: 24,
-    border: `1px solid ${colors.border}`,
   },
   grid: {
     display: "grid",
@@ -597,24 +595,16 @@ const formStyles: Record<string, CSSProperties> = {
     marginTop: 8,
   },
   chip: {
-    border: `1px solid ${colors.border}`,
-    background: colors.surface,
-    color: colors.textPrimary,
+    ...performanceGhostButtonStyle(colors.textSecondary),
     borderRadius: 999,
-    padding: "8px 12px",
-    fontFamily: fonts.mono,
     fontSize: 12,
-    cursor: "pointer",
-    WebkitTapHighlightColor: "transparent",
   },
 };
 
 const sessionStyles: Record<string, CSSProperties> = {
   card: {
-    background: colors.surface,
-    borderRadius: 12,
-    border: `1px solid ${colors.border}`,
-    padding: 12,
+    borderRadius: 18,
+    padding: 16,
     marginBottom: 12,
     display: "flex",
     alignItems: "center",
@@ -649,10 +639,8 @@ const sessionStyles: Record<string, CSSProperties> = {
     cursor: "pointer",
   },
   restCard: {
-    background: colors.surface,
-    borderRadius: 12,
-    border: `1px solid ${colors.warning}`,
-    padding: 12,
+    borderRadius: 18,
+    padding: 16,
     marginBottom: 12,
     textAlign: "center",
   },
@@ -689,10 +677,11 @@ const sessionStyles: Record<string, CSSProperties> = {
     justifyContent: "space-between",
     gap: 12,
     background: colors.surface,
-    border: `1px solid ${colors.warning}`,
-    borderRadius: 12,
+    border: `1px solid ${colors.warning}55`,
+    borderRadius: 18,
     padding: "10px 12px",
     marginTop: 12,
+    boxShadow: "0 18px 40px rgba(0, 0, 0, 0.22)",
   },
   quickRestInfo: {
     display: "flex",
@@ -713,14 +702,7 @@ const sessionStyles: Record<string, CSSProperties> = {
     color: colors.textPrimary,
   },
   quickSkipButton: {
-    border: `1px solid ${colors.border}`,
-    background: colors.bg,
-    color: colors.textSecondary,
-    borderRadius: 8,
-    padding: "8px 10px",
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    cursor: "pointer",
+    ...performanceGhostButtonStyle(colors.warning),
     whiteSpace: "nowrap",
   },
 };
@@ -741,13 +723,12 @@ const historyStyles: Record<string, CSSProperties> = {
     padding: "30px 0",
   },
   logEntry: {
-    background: colors.surface,
-    borderRadius: 10,
+    ...performancePanelStyle(undefined, true),
+    borderRadius: 16,
     padding: "14px 14px",
     display: "flex",
     alignItems: "center",
     gap: 12,
-    border: `1px solid ${colors.borderLight}`,
   },
   deleteBtn: {
     background: "none",
@@ -770,11 +751,10 @@ const historyStyles: Record<string, CSSProperties> = {
 
 const gifStyles = {
   card: {
-    background: colors.surface,
-    borderRadius: 14,
+    ...performancePanelStyle(),
+    borderRadius: 18,
     padding: 14,
     marginBottom: 20,
-    border: `1px solid ${colors.border}`,
     textAlign: "center" as const,
   },
   label: {
@@ -795,11 +775,10 @@ const gifStyles = {
 
 const progressStyles: Record<string, CSSProperties> = {
   noDataCard: {
-    background: colors.surface,
-    borderRadius: 12,
+    ...performancePanelStyle(),
+    borderRadius: 18,
     padding: 40,
     textAlign: "center",
-    border: `1px solid ${colors.border}`,
     marginBottom: 20,
   },
   noDataText: {
@@ -808,15 +787,41 @@ const progressStyles: Record<string, CSSProperties> = {
     fontStyle: "italic",
   },
   chartCard: {
-    background: colors.surface,
-    borderRadius: 12,
+    ...performancePanelStyle(),
+    borderRadius: 18,
     padding: 20,
-    border: `1px solid ${colors.border}`,
     marginBottom: 20,
   },
   statsGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr 1fr",
     gap: 10,
+  },
+};
+
+const headerStyles: Record<string, CSSProperties> = {
+  card: {
+    marginBottom: 20,
+    padding: 18,
+    borderRadius: 18,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 700,
+    marginBottom: 8,
+    color: colors.textPrimary,
+    letterSpacing: -0.8,
+  },
+  meta: {
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    color: colors.textMuted,
+    letterSpacing: 0.4,
+  },
+  note: {
+    fontSize: 11,
+    color: colors.warning,
+    marginTop: 8,
+    fontStyle: "italic",
   },
 };

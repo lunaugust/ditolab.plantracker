@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BackButton, PageContainer, SectionLabel } from "../ui";
 import { colors, fonts } from "../../theme";
+import { performanceHeroStyle, performancePanelStyle } from "../../theme/editorialPerformance";
 import { useI18n } from "../../i18n";
 import type { CSSProperties, ReactNode } from "react";
 import type { WorkoutHistoryEntry } from "../../services/types";
@@ -22,7 +23,7 @@ export function SessionHistoryView({ sessions, onBack }: SessionHistoryViewProps
     <PageContainer>
       <BackButton onClick={onBack} />
 
-      <div style={styles.heroCard}>
+      <div style={{ ...styles.heroCard, ...performanceHeroStyle(colors.accent.blue) }}>
         <div style={styles.eyebrow}>{t("history.eyebrow")}</div>
         <div style={styles.heroTitle}>{t("history.title")}</div>
         <div style={styles.heroSubtitle}>{t("history.subtitle")}</div>
@@ -37,7 +38,7 @@ export function SessionHistoryView({ sessions, onBack }: SessionHistoryViewProps
 
       {sessions.length === 0 ? (
         <div style={styles.emptyCard}>
-          <SectionLabel>{t("history.emptyTitle")}</SectionLabel>
+          <SectionLabel color={colors.accent.blue}>{t("history.emptyTitle")}</SectionLabel>
           <div style={styles.emptyText}>{t("history.emptySubtitle")}</div>
         </div>
       ) : (
@@ -45,7 +46,7 @@ export function SessionHistoryView({ sessions, onBack }: SessionHistoryViewProps
           {sessions.map((session) => {
             const expanded = expandedSessionId === session.id;
             return (
-              <div key={session.id} style={styles.sessionCard}>
+              <div key={session.id} style={{ ...styles.sessionCard, ...performancePanelStyle(session.completed ? colors.accent.green : colors.warning) }}>
                 <button
                   onClick={() => setExpandedSessionId((prev) => (prev === session.id ? null : session.id))}
                   style={styles.sessionHeaderButton}
@@ -137,9 +138,7 @@ function formatDateTime(value: string, t: (key: string) => string) {
 
 const styles: Record<string, CSSProperties> = {
   heroCard: {
-    background: colors.surface,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 18,
     marginBottom: 18,
   },
@@ -168,9 +167,8 @@ const styles: Record<string, CSSProperties> = {
     marginBottom: 18,
   },
   metricCard: {
-    background: colors.surface,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 12,
+    ...performancePanelStyle(undefined, true),
+    borderRadius: 18,
     padding: 14,
   },
   metricValue: {
@@ -185,9 +183,8 @@ const styles: Record<string, CSSProperties> = {
     fontFamily: fonts.mono,
   },
   emptyCard: {
-    background: colors.surface,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 16,
+    ...performancePanelStyle(),
+    borderRadius: 20,
     padding: 18,
   },
   emptyText: {
@@ -201,9 +198,7 @@ const styles: Record<string, CSSProperties> = {
     gap: 10,
   },
   sessionCard: {
-    background: colors.surface,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 14,
+    borderRadius: 20,
     overflow: "hidden",
   },
   sessionHeaderButton: {
@@ -237,13 +232,16 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 10,
     letterSpacing: 1,
     textTransform: "uppercase",
+    border: `1px solid ${colors.border}`,
+    borderRadius: 999,
+    padding: "6px 10px",
   },
   sessionMeta: {
     display: "flex",
     gap: 10,
     flexWrap: "wrap",
     fontSize: 11,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     fontFamily: fonts.mono,
     textAlign: "left",
   },
@@ -278,9 +276,8 @@ const styles: Record<string, CSSProperties> = {
     justifyContent: "space-between",
     gap: 12,
     alignItems: "center",
-    background: colors.surfaceAlt,
-    border: `1px solid ${colors.borderLight}`,
-    borderRadius: 10,
+    ...performancePanelStyle(undefined, true),
+    borderRadius: 16,
     padding: 10,
   },
   exerciseName: {

@@ -12,6 +12,12 @@ import {
   DEFAULT_GENERATOR_FORM,
 } from "../../data/planGeneratorConfig";
 import type { TrainingPlan, Exercise } from "../../services/types";
+import {
+  performanceGhostButtonStyle,
+  performanceHeroStyle,
+  performancePanelStyle,
+  performancePillStyle,
+} from "../../theme/editorialPerformance";
 
 interface PlanGeneratorWizardProps {
   onApply: (plan: TrainingPlan) => void;
@@ -488,22 +494,28 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
         ) : (
           <div />
         )}
-        <button onClick={onClose} style={styles.ghostBtn}>
+        <button onClick={onClose} style={{ ...styles.ghostBtn, ...performanceGhostButtonStyle(colors.accent.orange) }}>
           {t("generator.discard")}
         </button>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <SectionLabel color={colors.accent.orange}>{t("generator.title")}</SectionLabel>
+      <div style={{ ...styles.heroCard, ...performanceHeroStyle(colors.accent.orange) }}>
+        <div style={styles.heroTopRow}>
+          <div>
+            <SectionLabel color={colors.accent.orange}>{t("generator.title")}</SectionLabel>
+            <div style={styles.heroTitle}>{t("generator.subtitle")}</div>
+          </div>
+          <div style={styles.heroMetric}>{step === 4 ? t("generator.preview") : `${step + 1}/4`}</div>
+        </div>
         {!isAIAvailable() && step < 4 && (
-          <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textDim, marginBottom: 8 }}>
+          <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textDim, marginTop: 10 }}>
             {t("generator.sourceRules")}
           </div>
         )}
       </div>
 
       {/* Step progress dots */}
-      <div style={styles.progressDots}>
+      <div style={{ ...styles.progressDots, ...performancePanelStyle(colors.accent.orange, true) }}>
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
@@ -518,7 +530,9 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
         ))}
       </div>
 
-      {steps[step]()}
+      <div style={{ ...styles.stepPanel, ...performancePanelStyle(colors.accent.orange) }}>
+        {steps[step]()}
+      </div>
     </PageContainer>
   );
 }
@@ -530,10 +544,7 @@ function OptionButton({ label, active, onClick, compact = false }: { label: stri
     <button
       onClick={onClick}
       style={{
-        border: `2px solid ${active ? colors.accent.orange : colors.border}`,
-        background: active ? `${colors.accent.orange}15` : colors.surface,
-        color: active ? colors.accent.orange : colors.textSecondary,
-        borderRadius: 12,
+        ...performancePillStyle(active, colors.accent.orange),
         padding: compact ? "12px 16px" : "16px 18px",
         cursor: "pointer",
         fontFamily: fonts.sans,
@@ -562,6 +573,32 @@ const styles: Record<string, import("react").CSSProperties> = {
     gap: 8,
     flexWrap: "wrap",
   },
+  heroCard: {
+    marginBottom: 14,
+  },
+  heroTopRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  heroTitle: {
+    color: colors.textPrimary,
+    fontSize: 24,
+    lineHeight: 1.05,
+    fontWeight: 700,
+    letterSpacing: -0.8,
+  },
+  heroMetric: {
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    color: colors.textPrimary,
+    padding: "8px 10px",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.7)",
+    border: `1px solid ${colors.borderLight}`,
+    whiteSpace: "nowrap",
+  },
   fieldLabel: {
     fontFamily: fonts.mono,
     fontSize: 10,
@@ -572,40 +609,45 @@ const styles: Record<string, import("react").CSSProperties> = {
   },
   textarea: {
     width: "100%",
-    background: colors.surface,
+    background: colors.bg,
     border: `1px solid ${colors.border}`,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: "14px 14px",
     color: colors.textPrimary,
     fontFamily: fonts.sans,
     fontSize: 14,
     resize: "vertical",
     minHeight: 80,
+    boxSizing: "border-box",
   },
   primaryBtn: {
     width: "100%",
     padding: 16,
     border: "none",
-    borderRadius: 12,
-    background: colors.surface,
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
-    fontSize: 15,
+    borderRadius: 14,
+    background: colors.accent.orange,
+    color: colors.bg,
+    fontFamily: fonts.mono,
+    fontSize: 13,
     fontWeight: 700,
     cursor: "pointer",
     minHeight: 50,
     WebkitTapHighlightColor: "transparent",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
   },
   ghostBtn: {
     border: `1px solid ${colors.border}`,
     background: colors.surface,
     color: colors.textSecondary,
-    borderRadius: 10,
-    padding: "8px 10px",
+    borderRadius: 999,
+    padding: "10px 14px",
     cursor: "pointer",
     fontFamily: fonts.mono,
     fontSize: 11,
     WebkitTapHighlightColor: "transparent",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
   },
   errorMsg: {
     marginTop: 12,
@@ -617,20 +659,25 @@ const styles: Record<string, import("react").CSSProperties> = {
   sourceBadge: {
     fontFamily: fonts.mono,
     fontSize: 10,
-    color: colors.textDim,
+    color: colors.textPrimary,
     border: `1px solid ${colors.border}`,
-    borderRadius: 8,
-    padding: "4px 8px",
+    borderRadius: 999,
+    padding: "6px 10px",
+    background: colors.surfaceElevated,
   },
   progressDots: {
     display: "flex",
     gap: 6,
     marginBottom: 20,
     alignItems: "center",
+    padding: "14px 16px",
+  },
+  stepPanel: {
+    padding: 18,
   },
   previewDay: {
-    background: colors.surface,
-    borderRadius: 12,
+    background: colors.surfaceElevated,
+    borderRadius: 18,
     padding: 14,
     border: `1px solid ${colors.borderLight}`,
   },
@@ -642,10 +689,10 @@ const styles: Record<string, import("react").CSSProperties> = {
     borderBottom: `1px solid ${colors.borderDim}`,
   },
   editInput: {
-    background: colors.bg,
+    background: colors.surface,
     border: `1px solid ${colors.border}`,
-    borderRadius: 8,
-    padding: "8px 10px",
+    borderRadius: 12,
+    padding: "10px 12px",
     color: colors.textPrimary,
     fontFamily: fonts.sans,
     fontSize: 13,
@@ -655,8 +702,8 @@ const styles: Record<string, import("react").CSSProperties> = {
   inlineInput: {
     background: "transparent",
     border: `1px solid ${colors.border}`,
-    borderRadius: 6,
-    padding: "2px 6px",
+    borderRadius: 999,
+    padding: "6px 10px",
     color: colors.textSecondary,
     fontFamily: fonts.sans,
     fontSize: 11,
@@ -669,13 +716,15 @@ const styles: Record<string, import("react").CSSProperties> = {
     gap: 4,
     background: "transparent",
     border: `1px solid ${colors.border}`,
-    borderRadius: 8,
-    padding: "6px 12px",
+    borderRadius: 999,
+    padding: "8px 12px",
     color: colors.textSecondary,
     fontFamily: fonts.mono,
     fontSize: 11,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
   },
   editIconBtn: {
     background: "transparent",

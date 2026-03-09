@@ -8,7 +8,7 @@
  *     whose stored "gymbuddy_seen_version" differs from APP_VERSION.
  */
 
-export const APP_VERSION = "1.7.0";
+export const APP_VERSION = "1.9.0";
 
 /** localStorage key that tracks the last version the user dismissed. */
 export const WHATS_NEW_STORAGE_KEY = "gymbuddy_seen_version";
@@ -31,9 +31,41 @@ export type ChangelogEntry = {
 
 /**
  * Full release history — newest first.
- * The modal only shows the FIRST (latest) entry.
+ * The modal shows the FIRST (latest) entry and the immediately previous entry.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.9.0",
+    date: "2026-03-09",
+    features: [
+      {
+        icon: "📰",
+        es: "Nuevo rediseño Editorial Performance en toda la app con jerarquía más clara, métricas destacadas y superficies más legibles en móvil.",
+        en: "New Editorial Performance redesign across the app with clearer hierarchy, stronger metrics, and more legible mobile surfaces.",
+      },
+      {
+        icon: "📱",
+        es: "Plan, detalle, historial, generador, importador y modales ahora comparten el mismo lenguaje visual para una experiencia más consistente.",
+        en: "Plan, detail, history, generator, importer, and modal flows now share the same visual language for a more consistent experience.",
+      },
+    ],
+  },
+  {
+    version: "1.8.0",
+    date: "2026-03-09",
+    features: [
+      {
+        icon: "🎨",
+        es: "Nueva galeria de rediseno con cuatro conceptos mobile-first para comparar estilos y jerarquias completas de la app.",
+        en: "New redesign gallery with four mobile-first concepts so you can compare full app styles and hierarchy directions.",
+      },
+      {
+        icon: "🧭",
+        es: "Los mocks cubren plan, detalle de ejercicio, historial, generador, importador y overlays para evaluar la experiencia completa.",
+        en: "The mocks now cover plan, exercise detail, history, generator, importer, and overlays so you can review the full experience.",
+      },
+    ],
+  },
   {
     version: "1.7.0",
     date: "2026-03-09",

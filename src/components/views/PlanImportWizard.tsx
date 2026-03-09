@@ -4,6 +4,11 @@ import { SectionLabel, PageContainer, BackButton } from "../ui";
 import { useI18n } from "../../i18n";
 import { importPlanFromFile, isImportAvailable, detectMimeType } from "../../services/planImporter";
 import type { TrainingPlan } from "../../services/types";
+import {
+  performanceGhostButtonStyle,
+  performanceHeroStyle,
+  performancePanelStyle,
+} from "../../theme/editorialPerformance";
 
 /**
  * Full-screen overlay wizard that lets users import a training plan
@@ -156,13 +161,23 @@ export function PlanImportWizard({
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
         <BackButton onClick={onClose} />
-        <SectionLabel>{t("importer.title")}</SectionLabel>
+        <SectionLabel color={colors.accent.blue}>{t("importer.title")}</SectionLabel>
+      </div>
+
+      <div style={{ ...styles.heroCard, ...performanceHeroStyle(colors.accent.blue) }}>
+        <div style={styles.heroTopRow}>
+          <div>
+            <div style={styles.heroTitle}>{t("importer.subtitle")}</div>
+            <div style={styles.heroSubtitle}>{fileName || t("importer.supported")}</div>
+          </div>
+          <div style={styles.heroMetric}>{step === 2 ? t("generator.preview") : `${step + 1}/3`}</div>
+        </div>
       </div>
 
       {/* ── Step 0: Drop Zone ── */}
       {step === 0 && (
         <div>
-          <p style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+          <p style={styles.supportText}>
             {t("importer.subtitle")}
           </p>
 
@@ -181,8 +196,9 @@ export function PlanImportWizard({
             onDrop={onDrop}
             style={{
               ...styles.dropZone,
+              ...performancePanelStyle(colors.accent.blue),
               borderColor: dragActive ? colors.accent.blue : colors.border,
-              background: dragActive ? colors.surface : colors.bg,
+              background: dragActive ? "rgba(26, 115, 232, 0.08)" : colors.surfaceElevated,
             }}
           >
             <div style={{ fontSize: 32, marginBottom: 12 }}>📂</div>
@@ -229,7 +245,7 @@ export function PlanImportWizard({
 
       {/* ── Step 1: Loading ── */}
       {step === 1 && (
-        <div style={styles.loadingContainer}>
+        <div style={{ ...styles.loadingContainer, ...performancePanelStyle(colors.accent.blue) }}>
           <div style={styles.spinner} />
           <div style={{ color: colors.textSecondary, fontSize: 14, marginTop: 20 }}>
             {t("importer.analysing")}
@@ -247,7 +263,7 @@ export function PlanImportWizard({
       {step === 2 && preview && (
         <div>
           {/* Summary bar */}
-          <div style={styles.summaryBar}>
+          <div style={{ ...styles.summaryBar, ...performancePanelStyle(colors.accent.blue, true) }}>
             <span style={{ color: colors.textSecondary }}>
               <strong style={{ color: colors.textPrimary }}>{previewDays.length}</strong>{" "}
               {t("importer.days")} · <strong style={{ color: colors.textPrimary }}>{totalExercises}</strong>{" "}
@@ -263,7 +279,7 @@ export function PlanImportWizard({
               const isOpen = !!openDays[dayKey];
 
               return (
-                <div key={dayKey} style={styles.dayCard}>
+                <div key={dayKey} style={{ ...styles.dayCard, ...performancePanelStyle(color) }}>
                   {/* Day header — tap to expand/collapse */}
                   <button
                     onClick={() => toggleDay(dayKey)}
@@ -336,7 +352,7 @@ export function PlanImportWizard({
               {t("importer.apply")}
             </button>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={handleTryAnother} style={{ ...styles.ghostButton, flex: 1 }}>
+              <button onClick={handleTryAnother} style={{ ...styles.ghostButton, ...performanceGhostButtonStyle(colors.accent.blue), flex: 1 }}>
                 {t("importer.tryAnother")}
               </button>
               <button onClick={onClose} style={{ ...styles.ghostButton, flex: 1 }}>
@@ -355,9 +371,47 @@ export function PlanImportWizard({
 // ---------------------------------------------------------------------------
 
 const styles: Record<string, React.CSSProperties> = {
+  heroCard: {
+    marginBottom: 16,
+  },
+  heroTopRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 12,
+    alignItems: "flex-start",
+  },
+  heroTitle: {
+    color: colors.textPrimary,
+    fontSize: 24,
+    lineHeight: 1.08,
+    fontWeight: 700,
+    letterSpacing: -0.8,
+  },
+  heroSubtitle: {
+    marginTop: 8,
+    color: colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 1.45,
+  },
+  heroMetric: {
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    color: colors.textPrimary,
+    padding: "8px 10px",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.75)",
+    border: `1px solid ${colors.borderLight}`,
+    whiteSpace: "nowrap",
+  },
+  supportText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    marginBottom: 24,
+    lineHeight: 1.6,
+  },
   dropZone: {
     border: `2px dashed ${colors.border}`,
-    borderRadius: 16,
+    borderRadius: 24,
     padding: "40px 24px",
     display: "flex",
     flexDirection: "column",
@@ -370,39 +424,42 @@ const styles: Record<string, React.CSSProperties> = {
     background: colors.accent.blue,
     color: colors.textOnAccent,
     border: "none",
-    borderRadius: 12,
+    borderRadius: 14,
     padding: "14px 20px",
     fontFamily: fonts.mono,
     fontSize: 13,
     fontWeight: 700,
     cursor: "pointer",
     letterSpacing: "0.04em",
+    textTransform: "uppercase",
   },
   ghostButton: {
     border: `1px solid ${colors.border}`,
     background: colors.surface,
     color: colors.textSecondary,
-    borderRadius: 10,
+    borderRadius: 999,
     padding: "10px 14px",
     cursor: "pointer",
     fontFamily: fonts.mono,
     fontSize: 11,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
   },
   errorBanner: {
     marginTop: 16,
     padding: "12px 16px",
-    background: colors.surface,
+    background: colors.surfaceElevated,
     border: `1px solid ${colors.border}`,
-    borderRadius: 10,
+    borderRadius: 16,
     color: colors.danger,
     fontSize: 13,
   },
   warningBanner: {
     marginBottom: 16,
     padding: "12px 16px",
-    background: colors.surface,
+    background: colors.surfaceElevated,
     border: `1px solid ${colors.border}`,
-    borderRadius: 10,
+    borderRadius: 16,
     color: colors.textSecondary,
     fontSize: 13,
   },
@@ -411,7 +468,7 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: 60,
+    padding: "48px 24px",
   },
   spinner: {
     width: 40,
@@ -424,10 +481,11 @@ const styles: Record<string, React.CSSProperties> = {
   summaryBar: {
     marginBottom: 16,
     fontSize: 14,
+    padding: "14px 16px",
   },
   dayCard: {
     background: colors.surface,
-    borderRadius: 12,
+    borderRadius: 20,
     border: `1px solid ${colors.borderLight ?? colors.border}`,
     overflow: "hidden",
   },

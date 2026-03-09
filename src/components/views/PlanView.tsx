@@ -5,6 +5,7 @@ import { applyCatalogNoteSelection, applyManualNote } from "../../utils/exercise
 import { DayTabs, SectionLabel, PageContainer, ExerciseNameInput } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
+import { performanceGhostButtonStyle, performanceHeroStyle, performancePanelStyle } from "../../theme/editorialPerformance";
 import { useI18n } from "../../i18n";
 import type { Exercise, TrainingDay, TrainingPlan, LogsByExercise, WorkoutSession } from "../../services/types";
 
@@ -92,6 +93,7 @@ export function PlanView({
   };
 
   const currentDay = isEditing && draftDay ? draftDay : day;
+  const activeAccent = dayColors[safeActiveDay];
 
   const updateExercise = (exerciseId: string, updater: (ex: Exercise) => Exercise) => {
     if (!draftDay) return;
@@ -139,7 +141,22 @@ export function PlanView({
         onSelect={setActiveDay}
       />
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+      <div style={{ ...styles.heroCard, ...performanceHeroStyle(activeAccent) }}>
+        <div style={styles.heroTopRow}>
+          <div>
+            <SectionLabel color={activeAccent}>{safeActiveDay}</SectionLabel>
+            <div style={styles.heroTitle}>{day.label}</div>
+          </div>
+          <div style={styles.heroMetric}>{currentDay.exercises.length} ex</div>
+        </div>
+        <div style={styles.heroSubtitle}>
+          {workoutSession
+            ? `${activeSessionExerciseName || t("session.resumeWorkout")} · ${t("session.exerciseProgress", { current: workoutSession.currentExerciseIndex + 1, total: workoutSession.totalExercises })}`
+            : `${currentDay.exercises.length} ${t("plan.addExercise").replace("+ ", "").toLowerCase()} · ${t("plan.editPlan")}`}
+        </div>
+      </div>
+
+      <div style={styles.actionRow}>
         <button
           onClick={() => {
             const newDay = addDay();
@@ -158,13 +175,13 @@ export function PlanView({
         </button>
         <button
           onClick={onOpenGenerator}
-          style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}
+          style={{ ...styles.ghostButton, ...performanceGhostButtonStyle(colors.accent.blue) }}
         >
           ✦ {t("generator.title")}
         </button>
         <button
           onClick={onOpenImporter}
-          style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue, marginLeft: "auto" }}
+          style={{ ...styles.ghostButton, ...performanceGhostButtonStyle(colors.accent.blue) }}
         >
           {t("importer.openButton")}
         </button>
@@ -176,9 +193,8 @@ export function PlanView({
       </div>
 
       {/* Day info header */}
-      <div style={{ marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+      <div style={styles.dayHeaderRow}>
         <div style={{ flex: 1 }}>
-          <SectionLabel color={dayColors[safeActiveDay]}>{safeActiveDay}</SectionLabel>
           {isEditing ? (
             <input
               value={currentDay.label}
@@ -186,7 +202,7 @@ export function PlanView({
               style={styles.dayLabelInput}
             />
           ) : (
-            <div style={{ fontSize: 15, color: colors.textSecondary, fontWeight: 300 }}>
+            <div style={styles.daySubtitle}>
               {day.label}
             </div>
           )}
@@ -203,7 +219,7 @@ export function PlanView({
               <button onClick={cancelEditing} style={styles.ghostButton}>
                 {t("common.cancel")}
               </button>
-              <button onClick={saveEditing} style={{ ...styles.ghostButton, color: dayColors[safeActiveDay], borderColor: dayColors[safeActiveDay] }}>
+              <button onClick={saveEditing} style={{ ...styles.ghostButton, ...performanceGhostButtonStyle(activeAccent) }}>
                 {t("common.save")}
               </button>
             </>
@@ -212,7 +228,7 @@ export function PlanView({
       </div>
 
       {!isEditing && workoutSession && (
-        <div style={styles.sessionCard}>
+        <div style={{ ...styles.sessionCard, ...performancePanelStyle(activeAccent) }}>
           <div style={{ flex: 1 }}>
             <div style={styles.sessionLabel}>{t("session.activeTitle")}</div>
             <div style={styles.sessionExerciseName}>{activeSessionExerciseName || t("session.resumeWorkout")}</div>
@@ -224,7 +240,7 @@ export function PlanView({
             </div>
           </div>
           <div style={styles.sessionActions}>
-            <button onClick={onResumeWorkoutSession} style={{ ...styles.ghostButton, color: dayColors[safeActiveDay], borderColor: dayColors[safeActiveDay] }}>
+            <button onClick={onResumeWorkoutSession} style={{ ...styles.ghostButton, ...performanceGhostButtonStyle(activeAccent) }}>
               {t("session.resumeWorkout")}
             </button>
             <button onClick={onEndWorkoutSession} style={styles.ghostButton}>
@@ -238,7 +254,7 @@ export function PlanView({
         <div style={{ marginBottom: 12 }}>
           <button
             onClick={() => onStartWorkoutSession(safeActiveDay)}
-            style={{ ...styles.sessionButton, borderColor: dayColors[safeActiveDay], color: dayColors[safeActiveDay] }}
+            style={{ ...styles.sessionButton, background: `${activeAccent}18`, borderColor: `${activeAccent}66`, color: activeAccent }}
           >
             ▶ {t("session.startWorkout")}
           </button>
@@ -371,14 +387,54 @@ export function PlanView({
 
 const styles = {
   ghostButton: {
-    border: `1px solid ${colors.border}`,
-    background: colors.surface,
+    ...performanceGhostButtonStyle(colors.textSecondary),
+  },
+  heroCard: {
+    marginBottom: 16,
+  },
+  heroTopRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 10,
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontWeight: 700,
+    letterSpacing: -0.8,
+  },
+  heroSubtitle: {
     color: colors.textSecondary,
-    borderRadius: 10,
-    padding: "8px 10px",
-    cursor: "pointer",
+    fontSize: 14,
+    lineHeight: 1.5,
+  },
+  heroMetric: {
     fontFamily: fonts.mono,
-    fontSize: 11,
+    fontSize: 12,
+    color: colors.accent.blue,
+    padding: "10px 12px",
+    borderRadius: 999,
+    border: `1px solid ${colors.accent.blue}55`,
+    background: `${colors.accent.blue}12`,
+  },
+  actionRow: {
+    display: "flex",
+    gap: 8,
+    marginBottom: 12,
+    flexWrap: "wrap" as const,
+  },
+  dayHeaderRow: {
+    marginBottom: 20,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  daySubtitle: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    fontWeight: 400,
   },
   dayLabelInput: {
     width: "100%",
@@ -391,9 +447,8 @@ const styles = {
     fontSize: 14,
   },
   editCard: {
-    background: colors.surface,
-    borderRadius: 12,
-    border: `1px solid ${colors.borderLight}`,
+    ...performancePanelStyle(undefined, true),
+    borderRadius: 18,
     padding: 12,
     display: "flex",
     gap: 10,
@@ -444,20 +499,18 @@ const styles = {
   sessionButton: {
     width: "100%",
     border: `1px solid ${colors.border}`,
-    background: colors.surface,
-    borderRadius: 10,
-    padding: "12px 10px",
+    borderRadius: 18,
+    padding: "15px 12px",
     cursor: "pointer",
     fontFamily: fonts.mono,
     fontSize: 12,
     fontWeight: 600,
+    boxShadow: "0 18px 40px rgba(0, 0, 0, 0.22)",
   },
   sessionCard: {
     marginBottom: 12,
-    border: `1px solid ${colors.border}`,
-    background: colors.surface,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 18,
+    padding: 16,
     display: "flex",
     gap: 12,
     alignItems: "center",
@@ -466,13 +519,13 @@ const styles = {
   sessionLabel: {
     fontFamily: fonts.mono,
     fontSize: 10,
-    color: colors.textMuted,
-    letterSpacing: 1,
+    color: colors.accent.blue,
+    letterSpacing: 2,
     marginBottom: 4,
   },
   sessionExerciseName: {
     color: colors.textPrimary,
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: 700,
     marginBottom: 4,
   },
