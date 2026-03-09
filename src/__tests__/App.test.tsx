@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import App from "../App";
 import type { Mock } from "vitest";
 import type { ReactNode } from "react";
+import { TRAINING_PLAN } from "../data/trainingPlan";
 
 vi.mock("../services/authService", () => ({
   isAuthEnabled: vi.fn(() => false),
@@ -21,13 +22,17 @@ vi.mock("../services/storageService", async () => {
     persistLogs: vi.fn().mockResolvedValue(undefined),
     loadTrainingPlan: vi.fn().mockResolvedValue(TRAINING_PLAN),
     persistTrainingPlan: vi.fn().mockResolvedValue(undefined),
+    loadWorkoutSessions: vi.fn().mockResolvedValue([]),
+    persistWorkoutSessions: vi.fn().mockResolvedValue(undefined),
   };
 });
 
-import { loadLogs, persistLogs } from "../services/storageService";
+import { loadLogs, persistLogs, loadTrainingPlan, persistWorkoutSessions } from "../services/storageService";
 
 const mockLoadLogs = loadLogs as unknown as Mock;
 const mockPersistLogs = persistLogs as unknown as Mock;
+const mockLoadTrainingPlan = loadTrainingPlan as unknown as Mock;
+const mockPersistWorkoutSessions = persistWorkoutSessions as unknown as Mock;
 
 /* Mock recharts ResponsiveContainer (it needs a real DOM size) */
 vi.mock("recharts", async () => {
@@ -45,6 +50,7 @@ vi.mock("recharts", async () => {
 beforeEach(() => {
   vi.clearAllMocks();
   mockLoadLogs.mockResolvedValue({});
+  mockLoadTrainingPlan.mockResolvedValue(TRAINING_PLAN);
 });
 
 /** Wait for the plan to load by looking for exercise metadata (sets/reps are never localized). */
@@ -106,6 +112,20 @@ describe("App", () => {
       { timeout: 3000 },
     );
   });
+
+  it("opens the session history screen from the plan view", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForPlanLoad();
+
+    await user.click(screen.getByText("Historial"));
+
+    expect(screen.getByText("HISTORIAL DE SESIONES")).toBeTruthy();
+    expect(screen.getByText("Sin sesiones todavía")).toBeTruthy();
+
+    await user.click(screen.getByText("← volver"));
+    expect(screen.getAllByText("Día 1").length).toBeGreaterThan(0);
+  });
 });
 
 /* ================================================================
@@ -123,6 +143,7 @@ describe("Exercise Detail", () => {
     // ExerciseDetailView should show tabs and the form
     expect(screen.getByText("Registrar")).toBeTruthy();
     expect(screen.getByText("Progresión")).toBeTruthy();
+    expect(screen.getByText("Demostración")).toBeTruthy();
     expect(screen.getByText("Guardar registro")).toBeTruthy();
     expect(screen.getByPlaceholderText("Ej: técnica mejorada, RPE 8...")).toBeTruthy();
   });
@@ -188,5 +209,115 @@ describe("Exercise Detail", () => {
     // Click -2.5
     await user.click(screen.getByText("-2.5"));
     expect((screen.getAllByRole("spinbutton")[0] as HTMLInputElement).value).toBe("2.5");
+  });
+
+  it("starts rest after each logged set and advances after completing the last set", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForPlanLoad();
+
+    await user.click(screen.getByText("▶ Iniciar sesión de entrenamiento"));
+    expect(screen.getByText("SESIÓN ACTIVA")).toBeTruthy();
+    expect(screen.getByText("Ejercicio 1 de 13")).toBeTruthy();
+
+    const [weightInput, repsInput] = screen.getAllByRole("spinbutton");
+    await user.clear(weightInput);
+    await user.clear(repsInput);
+    await user.type(weightInput, "80");
+    await user.type(repsInput, "12");
+    await user.click(screen.getByText("Guardar registro"));
+    expect(screen.getAllByText("Descanso").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("Controles rápidos de descanso")).toBeTruthy();
+    await user.click(screen.getAllByText("Saltar descanso")[0]);
+
+    expect(screen.getByText("Ejercicio 1 de 13")).toBeTruthy();
+    expect(persistLogs).toHaveBeenCalledTimes(1);
+    await user.clear(weightInput);
+    await user.clear(repsInput);
+    await user.type(weightInput, "80");
+    await user.type(repsInput, "12");
+    await user.click(screen.getByText("Guardar registro"));
+    expect(persistLogs).toHaveBeenCalledTimes(2);
+    expect(screen.getAllByText("Descanso").length).toBeGreaterThan(0);
+    await user.click(screen.getAllByText("Saltar descanso")[0]);
+
+    expect(await screen.findByText("Ejercicio 2 de 13")).toBeTruthy();
+  });
+
+  it("keeps the workout session active after going back to the plan view", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForPlanLoad();
+
+    await user.click(screen.getByText("▶ Iniciar sesión de entrenamiento"));
+    expect(screen.getByText("SESIÓN ACTIVA")).toBeTruthy();
+    expect(screen.getByText("Ejercicio 1 de 13")).toBeTruthy();
+
+    await user.click(screen.getByText("← volver"));
+
+    expect(screen.getAllByText("Día 1").length).toBeGreaterThan(0);
+    expect(screen.getByText("SESIÓN ACTIVA")).toBeTruthy();
+    expect(screen.getByText("Reanudar sesión")).toBeTruthy();
+
+    await user.click(screen.getByText("Reanudar sesión"));
+
+    expect(screen.getByText("Guardar registro")).toBeTruthy();
+    expect(screen.getByText("Ejercicio 1 de 13")).toBeTruthy();
+  });
+
+  it("stores a session and shows it in history after ending the workout", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForPlanLoad();
+
+    await user.click(screen.getByText("▶ Iniciar sesión de entrenamiento"));
+
+    const [weightInput, repsInput] = screen.getAllByRole("spinbutton");
+    await user.clear(weightInput);
+    await user.clear(repsInput);
+    await user.type(weightInput, "70");
+    await user.type(repsInput, "10");
+    await user.click(screen.getByText("Guardar registro"));
+    await user.click(screen.getByText("Terminar sesión"));
+
+    expect(mockPersistWorkoutSessions).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByText("Historial"));
+
+    expect(screen.getByText("HISTORIAL DE SESIONES")).toBeTruthy();
+    expect(screen.getByText("CORTA")).toBeTruthy();
+    expect(screen.getByText(/0 de 13 ejercicios/)).toBeTruthy();
+    expect(screen.getByText("Inicio")).toBeTruthy();
+  });
+
+  it("ends workout session automatically after final set of final exercise", async () => {
+    mockLoadTrainingPlan.mockResolvedValue({
+      "Día 1": {
+        label: "Test",
+        color: "#e8643a",
+        exercises: [
+          {
+            id: "test_ex_1",
+            name: "test exercise",
+            sets: "1x10",
+            reps: "10",
+            rest: "1s",
+          },
+        ],
+      },
+    });
+
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("▶ Iniciar sesión de entrenamiento");
+    await user.click(screen.getByText("▶ Iniciar sesión de entrenamiento"));
+
+    const [weightInput, repsInput] = screen.getAllByRole("spinbutton");
+    await user.type(weightInput, "40");
+    await user.type(repsInput, "10");
+    await user.click(screen.getByText("Guardar registro"));
+    await user.click(screen.getAllByText("Saltar descanso")[0]);
+
+    expect(await screen.findByText("▶ Iniciar sesión de entrenamiento")).toBeTruthy();
   });
 });

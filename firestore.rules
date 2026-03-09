@@ -17,6 +17,10 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
+    match /users/{userId}/appData/workoutSessions {
+      allow read, write: if isOwner(userId);
+    }
+
     // Feedback — authenticated users can only create their own entries (append-only)
     match /feedback/{docId} {
       allow create: if isSignedIn()

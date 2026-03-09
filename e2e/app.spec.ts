@@ -1,14 +1,18 @@
 import { test, expect } from "@playwright/test";
+import { APP_VERSION, WHATS_NEW_STORAGE_KEY } from "../src/data/changelog";
 
 test.describe("GymBuddy AI — E2E", () => {
+  const dayOneExerciseName = "Sentadilla hack en prensa";
+
   test.beforeEach(async ({ page }) => {
-    // Clear any leftover localStorage before each test
     await page.goto("/");
-    await page.evaluate(() => {
+    await page.evaluate(({ seenVersion, seenKey }) => {
       localStorage.clear();
       localStorage.setItem("gymbuddy_lang", "es");
-    });
+      localStorage.setItem(seenKey, seenVersion);
+    }, { seenVersion: APP_VERSION, seenKey: WHATS_NEW_STORAGE_KEY });
     await page.reload();
+
     // Wait for the app to load — header shows "GymBuddy"
     await expect(page.getByText("GymBuddy")).toBeVisible();
   });
@@ -19,21 +23,21 @@ test.describe("GymBuddy AI — E2E", () => {
   test("renders the plan view by default with Day 1 exercises", async ({ page }) => {
     // Day 1 label and first exercise from the default training plan
     await expect(page.getByText("Cuádriceps · Femoral · Glúteos · Pantorrillas")).toBeVisible();
-    await expect(page.getByText("sled hack squat").first()).toBeVisible();
+    await expect(page.getByText(dayOneExerciseName).first()).toBeVisible();
   });
 
   test("switches between day tabs", async ({ page }) => {
     // Day 2
     await page.getByText("Día 2").click();
-    await expect(page.getByText("cable supine reverse fly").first()).toBeVisible();
+    await expect(page.getByText("Espalda · Hombros Post. · Trapecio · Bíceps · Tríceps")).toBeVisible();
 
     // Day 3
     await page.getByText("Día 3").click();
-    await expect(page.getByText("barbell bench press").first()).toBeVisible();
+    await expect(page.getByText("Pecho · Hombros · Femoral · Pantorrillas")).toBeVisible();
 
     // Back to Day 1
     await page.getByText("Día 1").click();
-    await expect(page.getByText("sled hack squat").first()).toBeVisible();
+    await expect(page.getByText("Cuádriceps · Femoral · Glúteos · Pantorrillas")).toBeVisible();
   });
 
   /* ================================================================
@@ -41,7 +45,7 @@ test.describe("GymBuddy AI — E2E", () => {
    * ================================================================ */
   test("clicking an exercise opens the full-screen detail view", async ({ page }) => {
     // Click the first exercise row in Day 1
-    await page.getByText("sled hack squat").first().click();
+    await page.getByText(dayOneExerciseName).first().click();
 
     // The detail view shows the exercise name and Log tab content
     await expect(page.getByText("Guardar registro")).toBeVisible();
@@ -51,7 +55,7 @@ test.describe("GymBuddy AI — E2E", () => {
   });
 
   test("back button returns to plan view from exercise detail", async ({ page }) => {
-    await page.getByText("sled hack squat").first().click();
+    await page.getByText(dayOneExerciseName).first().click();
     await expect(page.getByText("Guardar registro")).toBeVisible();
 
     // Back button text comes from t("common.back") = "← volver"
@@ -64,7 +68,7 @@ test.describe("GymBuddy AI — E2E", () => {
    * ================================================================ */
   test("full log workflow: record → appears in history → persists on reload", async ({ page }) => {
     // Navigate to exercise detail
-    await page.getByText("sled hack squat").first().click();
+    await page.getByText(dayOneExerciseName).first().click();
     await expect(page.getByText("Guardar registro")).toBeVisible();
 
     // Fill in weight and reps
@@ -85,7 +89,7 @@ test.describe("GymBuddy AI — E2E", () => {
     // Reload and verify persistence
     await page.reload();
     await expect(page.getByText("GymBuddy")).toBeVisible();
-    await page.getByText("sled hack squat").first().click();
+    await page.getByText(dayOneExerciseName).first().click();
 
     await expect(page.getByText("80 kg")).toBeVisible();
     await expect(page.getByText("× 12 reps")).toBeVisible();
@@ -93,7 +97,7 @@ test.describe("GymBuddy AI — E2E", () => {
 
   test("delete button removes a log entry", async ({ page }) => {
     // Add a log first
-    await page.getByText("sled hack squat").first().click();
+    await page.getByText(dayOneExerciseName).first().click();
 
     const inputs = page.locator('input[type="number"]');
     await inputs.nth(0).fill("50");
@@ -113,7 +117,7 @@ test.describe("GymBuddy AI — E2E", () => {
    * Progress tab
    * ================================================================ */
   test("progress tab shows 'sin datos' when there are no weight logs", async ({ page }) => {
-    await page.getByText("sled hack squat").first().click();
+    await page.getByText(dayOneExerciseName).first().click();
 
     // Switch to Progress tab
     await page.getByText("Progresión").click();
@@ -135,8 +139,8 @@ test.describe("GymBuddy AI — E2E", () => {
     await page.reload();
     await expect(page.getByText("GymBuddy")).toBeVisible();
 
-    // Open the d1_hack exercise (second "sled hack squat" row — first is the warmup)
-    await page.getByText("sled hack squat").nth(1).click();
+    // Open the d1_hack exercise (second warmup/main row pair)
+    await page.getByText(dayOneExerciseName).nth(1).click();
 
     // Switch to Progress tab
     await page.getByText("Progresión").click();

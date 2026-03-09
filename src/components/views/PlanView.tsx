@@ -6,7 +6,7 @@ import { DayTabs, SectionLabel, PageContainer, ExerciseNameInput } from "../ui";
 import { ExerciseRow } from "../exercises";
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
-import type { Exercise, TrainingDay, TrainingPlan, LogsByExercise } from "../../services/types";
+import type { Exercise, TrainingDay, TrainingPlan, LogsByExercise, WorkoutSession } from "../../services/types";
 
 interface PlanViewProps {
   activeDay: string;
@@ -20,7 +20,13 @@ interface PlanViewProps {
   removeDay: (dayKey: string) => void;
   onOpenGenerator: () => void;
   onOpenImporter: () => void;
+  onOpenSessionHistory?: () => void;
   onExerciseClick?: (exercise: Exercise) => void;
+  workoutSession?: WorkoutSession | null;
+  activeSessionExerciseName?: string;
+  onStartWorkoutSession?: (dayKey: string) => void;
+  onResumeWorkoutSession?: () => void;
+  onEndWorkoutSession?: () => void;
 }
 
 export function PlanView({
@@ -35,7 +41,13 @@ export function PlanView({
   removeDay,
   onOpenGenerator,
   onOpenImporter,
+  onOpenSessionHistory,
   onExerciseClick,
+  workoutSession,
+  activeSessionExerciseName,
+  onStartWorkoutSession,
+  onResumeWorkoutSession,
+  onEndWorkoutSession,
 }: PlanViewProps) {
   const { t, language } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
@@ -57,6 +69,7 @@ export function PlanView({
           <button onClick={addDay} style={styles.ghostButton}>{t("plan.addDay")}</button>
           <button onClick={onOpenGenerator} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>✦ {t("generator.title")}</button>
           <button onClick={onOpenImporter} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>{t("importer.openButton")}</button>
+          {onOpenSessionHistory && <button onClick={onOpenSessionHistory} style={styles.ghostButton}>{t("history.openButton")}</button>}
         </div>
       </PageContainer>
     );
@@ -155,6 +168,11 @@ export function PlanView({
         >
           {t("importer.openButton")}
         </button>
+        {onOpenSessionHistory && (
+          <button onClick={onOpenSessionHistory} style={styles.ghostButton}>
+            {t("history.openButton")}
+          </button>
+        )}
       </div>
 
       {/* Day info header */}
@@ -192,6 +210,40 @@ export function PlanView({
           )}
         </div>
       </div>
+
+      {!isEditing && workoutSession && (
+        <div style={styles.sessionCard}>
+          <div style={{ flex: 1 }}>
+            <div style={styles.sessionLabel}>{t("session.activeTitle")}</div>
+            <div style={styles.sessionExerciseName}>{activeSessionExerciseName || t("session.resumeWorkout")}</div>
+            <div style={styles.sessionMeta}>
+              {workoutSession.dayKey} · {t("session.exerciseProgress", {
+                current: workoutSession.currentExerciseIndex + 1,
+                total: workoutSession.totalExercises,
+              })}
+            </div>
+          </div>
+          <div style={styles.sessionActions}>
+            <button onClick={onResumeWorkoutSession} style={{ ...styles.ghostButton, color: dayColors[safeActiveDay], borderColor: dayColors[safeActiveDay] }}>
+              {t("session.resumeWorkout")}
+            </button>
+            <button onClick={onEndWorkoutSession} style={styles.ghostButton}>
+              {t("session.endWorkout")}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!isEditing && !workoutSession && currentDay.exercises.length > 0 && onStartWorkoutSession && (
+        <div style={{ marginBottom: 12 }}>
+          <button
+            onClick={() => onStartWorkoutSession(safeActiveDay)}
+            style={{ ...styles.sessionButton, borderColor: dayColors[safeActiveDay], color: dayColors[safeActiveDay] }}
+          >
+            ▶ {t("session.startWorkout")}
+          </button>
+        </div>
+      )}
 
       {isEditing && (
         <div style={{ marginBottom: 10 }}>
@@ -388,5 +440,50 @@ const styles = {
     padding: "8px 10px",
     fontFamily: fonts.sans,
     fontSize: 12,
+  },
+  sessionButton: {
+    width: "100%",
+    border: `1px solid ${colors.border}`,
+    background: colors.surface,
+    borderRadius: 10,
+    padding: "12px 10px",
+    cursor: "pointer",
+    fontFamily: fonts.mono,
+    fontSize: 12,
+    fontWeight: 600,
+  },
+  sessionCard: {
+    marginBottom: 12,
+    border: `1px solid ${colors.border}`,
+    background: colors.surface,
+    borderRadius: 12,
+    padding: 12,
+    display: "flex",
+    gap: 12,
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sessionLabel: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.textMuted,
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  sessionExerciseName: {
+    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: 700,
+    marginBottom: 4,
+  },
+  sessionMeta: {
+    color: colors.textSecondary,
+    fontSize: 12,
+  },
+  sessionActions: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap" as const,
+    justifyContent: "flex-end" as const,
   },
 };
