@@ -1,9 +1,10 @@
-import { loadLogs, persistLogs } from "../services/storageService";
+import { loadLogs, persistLogs, loadWorkoutSessions, persistWorkoutSessions } from "../services/storageService";
 
 /* ================================================================
  * Mock localStorage (jsdom provides one, but we want fine control)
  * ================================================================ */
 const STORAGE_KEY = "gymbuddy_logs";
+const WORKOUT_SESSIONS_STORAGE_KEY = "gymbuddy_workout_sessions";
 
 beforeEach(() => {
   localStorage.clear();
@@ -70,5 +71,25 @@ describe("persistLogs", () => {
     await expect(persistLogs({}, "guest")).rejects.toThrow();
     expect(setItemSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
+  });
+});
+
+describe("loadWorkoutSessions", () => {
+  it("returns empty array when nothing is stored", async () => {
+    expect(await loadWorkoutSessions()).toEqual([]);
+  });
+
+  it("parses stored workout sessions correctly", async () => {
+    const data = [{ id: "s1", dayKey: "Día 1", dayLabel: "Push", startedAt: "2026-03-09T18:00:00.000Z", endedAt: "2026-03-09T18:30:00.000Z", durationSeconds: 1800, totalExercises: 3, completedExercises: 2, totalLoggedSets: 8, completed: false, exercises: [] }];
+    localStorage.setItem(WORKOUT_SESSIONS_STORAGE_KEY, JSON.stringify(data));
+    expect(await loadWorkoutSessions()).toEqual(data);
+  });
+});
+
+describe("persistWorkoutSessions", () => {
+  it("writes sessions JSON to localStorage", async () => {
+    const data = [{ id: "s1", dayKey: "Día 1", dayLabel: "Push", startedAt: "2026-03-09T18:00:00.000Z", endedAt: "2026-03-09T18:30:00.000Z", durationSeconds: 1800, totalExercises: 3, completedExercises: 3, totalLoggedSets: 9, completed: true, exercises: [] }];
+    await persistWorkoutSessions(data);
+    expect(JSON.parse(localStorage.getItem(WORKOUT_SESSIONS_STORAGE_KEY) ?? "null")).toEqual(data);
   });
 });

@@ -30,3 +30,36 @@ export type LogEntry = {
 };
 
 export type LogsByExercise = Record<string, LogEntry[]>;
+
+export type WorkoutSession = {
+	dayKey: string;
+	startedAt: number;
+	currentExerciseIndex: number;
+	totalExercises: number;
+	restSecondsLeft: number;
+	advanceOnRestEnd: boolean;
+	endOnRestEnd: boolean;
+	loggedSetsByExercise: Record<string, number>;
+};
+
+export type WorkoutSessionExerciseSummary = {
+	exerciseId: string;
+	name: string;
+	plannedSets: number;
+	completedSets: number;
+	rest?: string;
+};
+
+export type WorkoutHistoryEntry = {
+	id: string;
+	dayKey: string;
+	dayLabel: string;
+	startedAt: string;
+	endedAt: string;
+	durationSeconds: number;
+	totalExercises: number;
+	completedExercises: number;
+	totalLoggedSets: number;
+	completed: boolean;
+	exercises: WorkoutSessionExerciseSummary[];
+};

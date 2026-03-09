@@ -8,7 +8,7 @@
  *     whose stored "gymbuddy_seen_version" differs from APP_VERSION.
  */
 
-export const APP_VERSION = "1.6.0";
+export const APP_VERSION = "1.7.0";
 
 /** localStorage key that tracks the last version the user dismissed. */
 export const WHATS_NEW_STORAGE_KEY = "gymbuddy_seen_version";
@@ -34,6 +34,22 @@ export type ChangelogEntry = {
  * The modal only shows the FIRST (latest) entry.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.7.0",
+    date: "2026-03-09",
+    features: [
+      {
+        icon: "📚",
+        es: "Nuevo historial de sesiones con pantalla dedicada: revisá entrenamientos anteriores, duración y progreso por ejercicio.",
+        en: "New dedicated session history screen: review previous workouts, duration, and per-exercise progress.",
+      },
+      {
+        icon: "↩",
+        es: "Las sesiones activas ahora sobreviven al volver al plan y se pueden reanudar después.",
+        en: "Active sessions now survive going back to the plan and can be resumed later.",
+      },
+    ],
+  },
   {
     version: "1.6.0",
     date: "2026-03-06",

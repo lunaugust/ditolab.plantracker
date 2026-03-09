@@ -7,10 +7,11 @@
 
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebaseClient";
-import type { LogsByExercise, TrainingPlan } from "./types";
+import type { LogsByExercise, TrainingPlan, WorkoutHistoryEntry } from "./types";
 
 const STORAGE_KEY = "gymbuddy_logs";
 const PLAN_STORAGE_KEY = "gymbuddy_plan";
+const WORKOUT_SESSIONS_STORAGE_KEY = "gymbuddy_workout_sessions";
 
 function getStorageKey(scope = "guest"): string {
   return scope === "guest" ? STORAGE_KEY : `${STORAGE_KEY}:${scope}`;
@@ -30,6 +31,14 @@ function getUserPlanDoc(scope: string) {
 
 function getPlanStorageKey(scope = "guest"): string {
   return scope === "guest" ? PLAN_STORAGE_KEY : `${PLAN_STORAGE_KEY}:${scope}`;
+}
+
+function getWorkoutSessionsStorageKey(scope = "guest"): string {
+  return scope === "guest" ? WORKOUT_SESSIONS_STORAGE_KEY : `${WORKOUT_SESSIONS_STORAGE_KEY}:${scope}`;
+}
+
+function getUserWorkoutSessionsDoc(scope: string) {
+  return doc(db!, "users", scope, "appData", "workoutSessions");
 }
 
 /**
@@ -150,6 +159,55 @@ export async function persistTrainingPlan(plan: TrainingPlan, scope = "guest"): 
     localStorage.setItem(getPlanStorageKey(scope), JSON.stringify(plan));
   } catch (error) {
     console.error("[StorageService] Failed to persist plan:", error);
+    throw error;
+  }
+}
+
+export async function loadWorkoutSessions(scope = "guest"): Promise<WorkoutHistoryEntry[]> {
+  if (isRemoteScope(scope)) {
+    try {
+      const snap = await getDoc(getUserWorkoutSessionsDoc(scope));
+      const remoteSessions = snap.exists() ? snap.data()?.sessions : null;
+      if (Array.isArray(remoteSessions)) {
+        localStorage.setItem(getWorkoutSessionsStorageKey(scope), JSON.stringify(remoteSessions));
+        return remoteSessions;
+      }
+      return [];
+    } catch (error) {
+      console.error("[StorageService] Failed to load Firestore workout sessions:", error);
+    }
+  }
+
+  try {
+    const raw = localStorage.getItem(getWorkoutSessionsStorageKey(scope));
+    return raw ? JSON.parse(raw) : [];
+  } catch (error) {
+    console.error("[StorageService] Failed to load workout sessions:", error);
+    return [];
+  }
+}
+
+export async function persistWorkoutSessions(sessions: WorkoutHistoryEntry[], scope = "guest"): Promise<void> {
+  if (isRemoteScope(scope)) {
+    try {
+      await setDoc(getUserWorkoutSessionsDoc(scope), { sessions, updatedAt: serverTimestamp() });
+    } catch (error) {
+      console.error("[StorageService] Failed to persist Firestore workout sessions:", error);
+      throw error;
+    }
+
+    try {
+      localStorage.setItem(getWorkoutSessionsStorageKey(scope), JSON.stringify(sessions));
+    } catch (error) {
+      console.error("[StorageService] Failed to cache workout sessions locally:", error);
+    }
+    return;
+  }
+
+  try {
+    localStorage.setItem(getWorkoutSessionsStorageKey(scope), JSON.stringify(sessions));
+  } catch (error) {
+    console.error("[StorageService] Failed to persist workout sessions:", error);
     throw error;
   }
 }
