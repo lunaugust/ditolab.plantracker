@@ -4,16 +4,16 @@
   z-index: 100;
   width: min(760px, calc(100% - 24px));
   margin: 10px auto 0;
-  border: 1px solid rgba(240, 237, 232, 0.06);
+  border: 1px solid rgba(240, 237, 232, 0.08);
   border-radius: 26px;
-  padding: 14px 16px;
+  padding: 13px 15px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(180deg, rgba(240, 237, 232, 0.05) 0%, rgba(17, 17, 17, 0.9) 100%);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.30);
+  background: linear-gradient(165deg, rgba(240, 237, 232, 0.08) 0%, rgba(20, 20, 22, 0.84) 56%, rgba(15, 15, 17, 0.94) 100%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  backdrop-filter: blur(14px) saturate(130%);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.30);
   animation: quietGlassSheetIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -23,17 +23,18 @@
 
 .subtitle {
   font-family: "DM Mono", monospace;
-  font-size: 11px;
-  color: #3ab8e8;
-  letter-spacing: 2.1px;
+  font-size: 10px;
+  color: #4dc5ef;
+  letter-spacing: 1.8px;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .title {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
-  letter-spacing: -1.1px;
+  line-height: 0.95;
+  letter-spacing: -1.3px;
   color: #f0ede8;
 }
 
@@ -48,48 +49,54 @@
 .langSwitch {
   display: flex;
   gap: 4px;
+  padding: 2px;
+  border-radius: 999px;
+  border: 1px solid rgba(240, 237, 232, 0.08);
+  background: linear-gradient(180deg, rgba(240, 237, 232, 0.06) 0%, rgba(15, 15, 15, 0.8) 100%);
 }
 
 .langBtn {
-  border: 1px solid rgba(240, 237, 232, 0.06);
-  background: linear-gradient(180deg, rgba(240, 237, 232, 0.03) 0%, rgba(15, 15, 15, 0.85) 100%);
+  border: 1px solid transparent;
+  background: transparent;
   border-radius: 999px;
-  min-width: 36px;
+  min-width: 38px;
   min-height: 34px;
   font-size: 11px;
   font-family: "DM Mono", monospace;
-  padding: 0 10px;
-  color: #555555;
+  padding: 0 11px;
+  color: #7f8488;
 }
 
 .langBtnActive {
   color: #f0ede8;
-  border-color: #e8643a;
+  border-color: rgba(232, 100, 58, 0.55);
+  background: linear-gradient(180deg, rgba(232, 100, 58, 0.22) 0%, rgba(232, 100, 58, 0.08) 100%);
+  box-shadow: 0 6px 16px rgba(232, 100, 58, 0.24);
 }
 
 .saveMsg {
   font-family: "DM Mono", monospace;
-  font-size: 12px;
-  color: #f0ede8;
-  background: linear-gradient(180deg, rgba(240, 237, 232, 0.06) 0%, rgba(58, 184, 232, 0.08) 100%);
-  padding: 6px 12px;
+  font-size: 11px;
+  color: #e6f8ff;
+  background: linear-gradient(180deg, rgba(58, 184, 232, 0.16) 0%, rgba(58, 184, 232, 0.08) 100%);
+  padding: 6px 10px;
   border-radius: 20px;
-  border: 1px solid rgba(58, 184, 232, 0.22);
+  border: 1px solid rgba(58, 184, 232, 0.3);
 }
 
 .ghostBase {
   border-radius: 999px;
-  min-height: 42px;
-  padding: 10px 14px;
+  min-height: 40px;
+  padding: 9px 13px;
   font-family: "DM Mono", monospace;
-  font-size: 12px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
-  background: linear-gradient(180deg, rgba(240, 237, 232, 0.05) 0%, rgba(15, 15, 15, 0.86) 100%);
-  border: 1px solid rgba(240, 237, 232, 0.08);
+  font-size: 11px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(180deg, rgba(240, 237, 232, 0.06) 0%, rgba(15, 15, 15, 0.83) 100%);
+  border: 1px solid rgba(240, 237, 232, 0.1);
 }
 
 .ghostNeutral {
-  color: #888888;
+  color: #a5a9ad;
 }
 
 .ghostOrange {
@@ -98,19 +105,19 @@
 }
 
 .feedbackBtn {
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 40px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1;
-  padding: 0 10px;
+  padding: 0 11px;
 }
 
 .installBtn {
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 40px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,15 +127,15 @@
 @media (max-width: 640px) {
   .topBar {
     align-items: flex-start;
-    gap: 10px;
-    padding: 13px 13px 12px;
+    gap: 9px;
+    padding: 12px 12px 11px;
     border-radius: 22px;
     width: calc(100% - 18px);
     margin-top: 8px;
   }
 
   .title {
-    font-size: 26px;
+    font-size: 27px;
   }
 
   .actions {
@@ -140,6 +147,10 @@
   }
 
   .actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .saveMsg {
     display: none;
   }
 }

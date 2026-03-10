@@ -26,8 +26,8 @@
 
 /* ── Hero card ── */
 .heroCard {
-  margin-bottom: 12px;
-  padding: 20px;
+  margin-bottom: 14px;
+  padding: 21px;
   border-radius: 26px;
   animation: quietGlassCardIn 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -46,9 +46,9 @@
 }
 
 .heroTitle {
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: -1px;
+  letter-spacing: -1.15px;
   color: var(--color-text-primary);
 }
 
@@ -60,9 +60,9 @@
   background: transparent;
   color: var(--color-text-primary);
   font-family: "DM Sans", sans-serif;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: -1px;
+  letter-spacing: -1.15px;
 }
 
 .heroTitleInput:focus {
@@ -70,9 +70,9 @@
 }
 
 .heroSubtitle {
-  color: #9a9a9a;
+  color: #aeb3b7;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 .heroAside {
@@ -84,29 +84,29 @@
 
 .heroActions {
   display: flex;
-  gap: 6px;
+  gap: 7px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .heroMetric {
   font-family: "DM Mono", monospace;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-primary);
-  padding: 8px 12px;
+  padding: 8px 13px;
   border-radius: 999px;
   border: 1px solid var(--glass-border);
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* ── Action row ── */
 .actionRow {
   display: flex;
-  gap: 8px;
+  gap: 9px;
   margin-bottom: 12px;
   flex-wrap: wrap;
-  padding: 12px;
-  border-radius: 20px;
+  padding: 13px;
+  border-radius: 22px;
   animation: quietGlassCardIn 440ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -119,17 +119,17 @@
   letter-spacing: 0.05em;
   font-size: 12px;
   padding: 10px 15px;
-  min-height: 40px;
+  min-height: 41px;
   border: 1px solid var(--glass-border);
   background: rgba(255, 255, 255, 0.05);
-  color: #a0a0a0;
+  color: #a7acb0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
 }
 
 .accentGhostButton {
   color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .disabledButton {
@@ -324,7 +324,7 @@
 @media (max-width: 640px) {
   .heroCard {
     padding: 16px;
-    border-radius: 22px;
+    border-radius: 23px;
   }
 
   .heroTitle,
@@ -347,6 +347,10 @@
     grid-template-columns: 1fr 1fr;
     gap: 8px;
     border-radius: 18px;
+  }
+
+  .actionRow > button:nth-child(n + 3) {
+    grid-column: 1 / -1;
   }
 
   .actionRow > button {
