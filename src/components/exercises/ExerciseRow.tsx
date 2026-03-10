@@ -1,4 +1,5 @@
 import { colors, fonts } from "../../theme";
+import { performancePanelStyle } from "../../theme/editorialPerformance";
 import { padIndex } from "../../utils/helpers";
 import { useI18n } from "../../i18n";
 import { useLocalizedExerciseName } from "../../hooks";
@@ -37,39 +38,48 @@ export function ExerciseRow({
     <div
       onClick={interactive ? onClick : undefined}
       style={{
-        background: disabled ? colors.surfaceAlt : colors.surface,
-        borderRadius: 12,
-        padding: "16px 16px",
+        ...performancePanelStyle(interactive ? accentColor : undefined, disabled),
+        background: disabled
+          ? `linear-gradient(180deg, ${colors.textPrimary}04 0%, ${colors.surfaceAlt}d8 100%)`
+          : `linear-gradient(180deg, ${colors.textPrimary}08 0%, ${colors.surface}f0 100%)`,
+        borderRadius: 24,
+        padding: "18px 18px",
         display: "flex",
         alignItems: "center",
         gap: 12,
         cursor: interactive ? "pointer" : "default",
-        border: `1px solid ${disabled ? colors.borderDim : colors.borderLight}`,
+        border: `1px solid ${disabled ? colors.borderDim : interactive ? `${accentColor}2f` : `${colors.textPrimary}10`}`,
         opacity: disabled ? 0.4 : 1,
-        transition: "background 0.1s",
-        minHeight: 56,
+        transition: "background 0.14s, border-color 0.14s, transform 0.14s",
+        minHeight: 64,
         WebkitTapHighlightColor: "transparent",
       }}
       onMouseEnter={(e) => {
-        if (interactive) e.currentTarget.style.background = "#1a1a1a";
+        if (interactive) {
+          e.currentTarget.style.background = `linear-gradient(180deg, ${colors.textPrimary}10 0%, ${colors.surfaceAlt}f4 100%)`;
+          e.currentTarget.style.transform = "translateY(-1px)";
+        }
       }}
       onMouseLeave={(e) => {
-        if (interactive) e.currentTarget.style.background = colors.surface;
+        if (interactive) {
+          e.currentTarget.style.background = `linear-gradient(180deg, ${colors.textPrimary}08 0%, ${colors.surface}f0 100%)`;
+          e.currentTarget.style.transform = "translateY(0)";
+        }
       }}
     >
       {/* Index */}
-      <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textGhost, minWidth: 22 }}>
+      <div style={{ fontFamily: fonts.mono, fontSize: 10, color: accentColor, minWidth: 28 }}>
         {padIndex(index)}
       </div>
 
       {/* Name + meta */}
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 500, marginBottom: showDetails ? 3 : 0, color: disabled ? colors.textDim : colors.textPrimary }}>
+        <div style={{ fontSize: 15, fontWeight: 600, marginBottom: showDetails ? 4 : 0, color: disabled ? colors.textDim : colors.textPrimary }}>
           {localizedName}
         </div>
 
         {showDetails && (
-          <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textMuted }}>
+          <div style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textMuted, letterSpacing: 0.4 }}>
             {exercise.sets} {t("common.series")} · {exercise.reps} {t("common.reps")} · {exercise.rest}
           </div>
         )}
@@ -89,9 +99,9 @@ export function ExerciseRow({
 
       {/* Right side: last log / progress */}
       {lastLog && progressDiff === null && (
-        <div style={{ textAlign: "right", minWidth: 70 }}>
+        <div style={{ textAlign: "right", minWidth: 78 }}>
           {lastLog.weight && (
-            <div style={{ fontFamily: fonts.mono, fontSize: 13, color: accentColor, fontWeight: 500 }}>
+            <div style={{ fontFamily: fonts.mono, fontSize: 14, color: accentColor, fontWeight: 700 }}>
               {lastLog.weight} kg
             </div>
           )}
@@ -136,7 +146,7 @@ export function ExerciseRow({
         </div>
       )}
 
-      {showChevron && <div style={{ color: colors.textGhost, fontSize: 16 }}>›</div>}
+      {showChevron && <div style={{ color: accentColor, fontSize: 16 }}>›</div>}
     </div>
   );
 }

@@ -126,6 +126,16 @@ describe("App", () => {
     await user.click(screen.getByText("← volver"));
     expect(screen.getAllByText("Día 1").length).toBeGreaterThan(0);
   });
+
+  it("shows the redesigned header controls", async () => {
+    render(<App />);
+    await waitForPlanLoad();
+
+    expect(screen.getByText("Entrenamiento")).toBeTruthy();
+    expect(screen.getByText("ES")).toBeTruthy();
+    expect(screen.getByText("EN")).toBeTruthy();
+    expect(screen.getByTitle("Enviar comentarios")).toBeTruthy();
+  });
 });
 
 /* ================================================================

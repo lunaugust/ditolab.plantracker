@@ -1,9 +1,10 @@
 import { useState, useCallback, useRef, DragEvent, ChangeEvent } from "react";
-import { colors, fonts } from "../../theme";
+import { colors } from "../../theme";
 import { SectionLabel, PageContainer, BackButton } from "../ui";
 import { useI18n } from "../../i18n";
 import { importPlanFromFile, isImportAvailable, detectMimeType } from "../../services/planImporter";
 import type { TrainingPlan } from "../../services/types";
+import classes from "./PlanImportWizard.module.css";
 
 /**
  * Full-screen overlay wizard that lets users import a training plan
@@ -153,22 +154,33 @@ export function PlanImportWizard({
 
   return (
     <PageContainer>
+      <div className={classes.shell}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+      <div className={classes.headerRow}>
         <BackButton onClick={onClose} />
-        <SectionLabel>{t("importer.title")}</SectionLabel>
+        <SectionLabel color={colors.accent.blue}>{t("importer.title")}</SectionLabel>
+      </div>
+
+      <div className={classes.heroCard}>
+        <div className={classes.heroTopRow}>
+          <div>
+            <div className={classes.heroTitle}>{t("importer.subtitle")}</div>
+            <div className={classes.heroSubtitle}>{fileName || t("importer.supported")}</div>
+          </div>
+          <div className={classes.heroMetric}>{step === 2 ? t("generator.preview") : `${step + 1}/3`}</div>
+        </div>
       </div>
 
       {/* ── Step 0: Drop Zone ── */}
       {step === 0 && (
         <div>
-          <p style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+          <p className={classes.supportText}>
             {t("importer.subtitle")}
           </p>
 
           {/* Guest warning */}
           {!aiAvailable && (
-            <div style={styles.warningBanner}>
+            <div className={classes.warningBanner}>
               {t("importer.guestNote")}
             </div>
           )}
@@ -179,17 +191,13 @@ export function PlanImportWizard({
             onDragLeave={onDragLeave}
             onDragOver={onDragOver}
             onDrop={onDrop}
-            style={{
-              ...styles.dropZone,
-              borderColor: dragActive ? colors.accent.blue : colors.border,
-              background: dragActive ? colors.surface : colors.bg,
-            }}
+            className={`${classes.dropZone}${dragActive ? ` ${classes.dropZoneActive}` : ""}`}
           >
-            <div style={{ fontSize: 32, marginBottom: 12 }}>📂</div>
-            <div style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 6 }}>
+            <div className={classes.dropIcon}>📂</div>
+            <div className={classes.dropHint}>
               {t("importer.dropHint")}
             </div>
-            <div style={{ color: colors.textGhost, fontSize: 12, marginBottom: 20 }}>
+            <div className={classes.orLabel}>
               {t("importer.orLabel")}
             </div>
 
@@ -199,47 +207,42 @@ export function PlanImportWizard({
               type="file"
               accept=".pdf,.csv,.txt,application/pdf,text/plain,text/csv"
               aria-label={t("importer.selectFile")}
-              style={{ display: "none" }}
+              className={classes.fileInput}
               onChange={onFileChange}
               disabled={!aiAvailable}
             />
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={!aiAvailable}
-              style={{
-                ...styles.primaryButton,
-                opacity: aiAvailable ? 1 : 0.4,
-                cursor: aiAvailable ? "pointer" : "not-allowed",
-              }}
+              className={`${classes.primaryButton}${!aiAvailable ? ` ${classes.primaryButtonDisabled}` : ""}`}
             >
               {t("importer.selectFile")}
             </button>
 
-            <div style={{ color: colors.textGhost, fontSize: 11, marginTop: 16 }}>
+            <div className={classes.supportedText}>
               {t("importer.supported")}
             </div>
           </div>
 
           {/* Inline error */}
           {error && (
-            <div style={styles.errorBanner}>{error}</div>
+            <div className={classes.errorBanner}>{error}</div>
           )}
         </div>
       )}
 
       {/* ── Step 1: Loading ── */}
       {step === 1 && (
-        <div style={styles.loadingContainer}>
-          <div style={styles.spinner} />
-          <div style={{ color: colors.textSecondary, fontSize: 14, marginTop: 20 }}>
+        <div className={classes.loadingContainer}>
+          <div className={classes.spinner} />
+          <div className={classes.loadingLabel}>
             {t("importer.analysing")}
           </div>
           {fileName && (
-            <div style={{ color: colors.textGhost, fontSize: 12, marginTop: 6 }}>
+            <div className={classes.loadingFileName}>
               {fileName}
             </div>
           )}
-          <style>{`@keyframes _spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       )}
 
@@ -247,56 +250,49 @@ export function PlanImportWizard({
       {step === 2 && preview && (
         <div>
           {/* Summary bar */}
-          <div style={styles.summaryBar}>
-            <span style={{ color: colors.textSecondary }}>
-              <strong style={{ color: colors.textPrimary }}>{previewDays.length}</strong>{" "}
-              {t("importer.days")} · <strong style={{ color: colors.textPrimary }}>{totalExercises}</strong>{" "}
+          <div className={classes.summaryBar}>
+            <span className={classes.summaryText}>
+              <strong className={classes.summaryStrong}>{previewDays.length}</strong>{" "}
+              {t("importer.days")} · <strong className={classes.summaryStrong}>{totalExercises}</strong>{" "}
               {t("importer.exercises")}
             </span>
           </div>
 
           {/* Day list */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+          <div className={classes.dayList}>
             {previewDays.map((dayKey, i) => {
               const day = preview[dayKey];
               const color = day.color ?? colors.accent.blue;
               const isOpen = !!openDays[dayKey];
 
               return (
-                <div key={dayKey} style={styles.dayCard}>
+                <div key={dayKey} className={`${classes.dayCard} ${classes.dayCardTone}`}>
                   {/* Day header — tap to expand/collapse */}
                   <button
                     onClick={() => toggleDay(dayKey)}
-                    style={styles.dayHeader}
+                    className={classes.dayHeader}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div className={classes.dayHeaderInfo}>
                       <span
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: "50%",
-                          background: color,
-                          display: "inline-block",
-                          flexShrink: 0,
-                        }}
+                        className={`${classes.dayDot} ${getToneClass(color)}`}
                       />
-                      <span style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textGhost }}>
+                      <span className={classes.dayIndex}>
                         {String(i + 1).padStart(2, "0")}
                       </span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>
+                      <span className={classes.dayName}>
                         {dayKey}
                       </span>
                       {day.label && (
-                        <span style={{ fontSize: 12, color: colors.textSecondary }}>
+                        <span className={classes.dayLabel}>
                           — {day.label}
                         </span>
                       )}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 11, color: colors.textGhost, fontFamily: fonts.mono }}>
+                    <div className={classes.dayHeaderMeta}>
+                      <span className={classes.dayCount}>
                         {day.exercises.length}x
                       </span>
-                      <span style={{ color: colors.textGhost, fontSize: 12 }}>
+                      <span className={classes.dayChevron}>
                         {isOpen ? "▲" : "▼"}
                       </span>
                     </div>
@@ -304,19 +300,19 @@ export function PlanImportWizard({
 
                   {/* Exercise list (collapsible) */}
                   {isOpen && (
-                    <div style={{ padding: "4px 14px 12px" }}>
+                    <div className={classes.exerciseList}>
                       {day.exercises.map((ex, j) => (
-                        <div key={ex.id} style={styles.exRow}>
-                          <span style={styles.exIndex}>{String(j + 1).padStart(2, "0")}</span>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 13, color: colors.textPrimary }}>{ex.name || "—"}</div>
+                        <div key={ex.id} className={classes.exerciseRow}>
+                          <span className={classes.exerciseIndex}>{String(j + 1).padStart(2, "0")}</span>
+                          <div className={classes.exerciseContent}>
+                            <div className={classes.exerciseName}>{ex.name || "—"}</div>
                             {(ex.sets || ex.reps || ex.rest) && (
-                              <div style={{ fontSize: 11, color: colors.textGhost, fontFamily: fonts.mono, marginTop: 2 }}>
+                              <div className={classes.exerciseMeta}>
                                 {[ex.sets && `${ex.sets}s`, ex.reps && `${ex.reps}r`, ex.rest].filter(Boolean).join(" · ")}
                               </div>
                             )}
                             {ex.note && (
-                              <div style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2, fontStyle: "italic" }}>
+                              <div className={classes.exerciseNote}>
                                 {ex.note}
                               </div>
                             )}
@@ -331,130 +327,41 @@ export function PlanImportWizard({
           </div>
 
           {/* Actions */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <button onClick={handleApply} style={styles.primaryButton}>
+          <div className={classes.actions}>
+            <button onClick={handleApply} className={classes.primaryButton}>
               {t("importer.apply")}
             </button>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={handleTryAnother} style={{ ...styles.ghostButton, flex: 1 }}>
+            <div className={classes.secondaryActions}>
+              <button onClick={handleTryAnother} className={`${classes.ghostButton} ${classes.ghostButtonAccent}`}>
                 {t("importer.tryAnother")}
               </button>
-              <button onClick={onClose} style={{ ...styles.ghostButton, flex: 1 }}>
+              <button onClick={onClose} className={classes.ghostButton}>
                 {t("importer.discard")}
               </button>
             </div>
           </div>
         </div>
       )}
+      </div>
     </PageContainer>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
-
-const styles: Record<string, React.CSSProperties> = {
-  dropZone: {
-    border: `2px dashed ${colors.border}`,
-    borderRadius: 16,
-    padding: "40px 24px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    textAlign: "center",
-    transition: "border-color 0.2s, background 0.2s",
-  },
-  primaryButton: {
-    width: "100%",
-    background: colors.accent.blue,
-    color: colors.textOnAccent,
-    border: "none",
-    borderRadius: 12,
-    padding: "14px 20px",
-    fontFamily: fonts.mono,
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: "pointer",
-    letterSpacing: "0.04em",
-  },
-  ghostButton: {
-    border: `1px solid ${colors.border}`,
-    background: colors.surface,
-    color: colors.textSecondary,
-    borderRadius: 10,
-    padding: "10px 14px",
-    cursor: "pointer",
-    fontFamily: fonts.mono,
-    fontSize: 11,
-  },
-  errorBanner: {
-    marginTop: 16,
-    padding: "12px 16px",
-    background: colors.surface,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 10,
-    color: colors.danger,
-    fontSize: 13,
-  },
-  warningBanner: {
-    marginBottom: 16,
-    padding: "12px 16px",
-    background: colors.surface,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 10,
-    color: colors.textSecondary,
-    fontSize: 13,
-  },
-  loadingContainer: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 60,
-  },
-  spinner: {
-    width: 40,
-    height: 40,
-    border: `3px solid ${colors.border}`,
-    borderTop: `3px solid ${colors.accent.blue}`,
-    borderRadius: "50%",
-    animation: "_spin 0.9s linear infinite",
-  },
-  summaryBar: {
-    marginBottom: 16,
-    fontSize: 14,
-  },
-  dayCard: {
-    background: colors.surface,
-    borderRadius: 12,
-    border: `1px solid ${colors.borderLight ?? colors.border}`,
-    overflow: "hidden",
-  },
-  dayHeader: {
-    width: "100%",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "12px 14px",
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    textAlign: "left",
-  },
-  exRow: {
-    display: "flex",
-    gap: 10,
-    alignItems: "flex-start",
-    paddingTop: 8,
-    borderTop: `1px solid ${colors.borderLight ?? colors.border}`,
-    marginTop: 4,
-  },
-  exIndex: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.textGhost,
-    minWidth: 20,
-    paddingTop: 3,
-  },
-};
+function getToneClass(color?: string) {
+  switch ((color || "").toLowerCase()) {
+    case "#e8643a":
+      return classes.orangeTone;
+    case "#3ab8e8":
+      return classes.blueTone;
+    case "#7de83a":
+      return classes.greenTone;
+    case "#e8c93a":
+      return classes.yellowTone;
+    case "#c83ae8":
+      return classes.violetTone;
+    case "#e83a7d":
+      return classes.pinkTone;
+    default:
+      return classes.defaultTone;
+  }
+}

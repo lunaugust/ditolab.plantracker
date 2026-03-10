@@ -12,6 +12,7 @@ import {
   DEFAULT_GENERATOR_FORM,
 } from "../../data/planGeneratorConfig";
 import type { TrainingPlan, Exercise } from "../../services/types";
+import classes from "./PlanGeneratorWizard.module.css";
 
 interface PlanGeneratorWizardProps {
   onApply: (plan: TrainingPlan) => void;
@@ -172,7 +173,7 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
     () => (
       <>
         <SectionLabel>{t("generator.stepExperience")}</SectionLabel>
-        <div style={styles.optionsGrid}>
+        <div className={classes.optionsGrid}>
           {EXPERIENCE_OPTIONS.map(({ key, labelKey }) => (
             <OptionButton
               key={key}
@@ -189,7 +190,7 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
     () => (
       <>
         <SectionLabel>{t("generator.stepGoal")}</SectionLabel>
-        <div style={styles.optionsGrid}>
+        <div className={classes.optionsGrid}>
           {GOAL_OPTIONS.map(({ key, labelKey }) => (
             <OptionButton
               key={key}
@@ -211,14 +212,14 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
           onChange={(e) => update("limitations", e.target.value)}
           placeholder={t("generator.limitationsPlaceholder")}
           rows={3}
-          style={styles.textarea}
+          className={classes.textarea}
         />
-        <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textDim, marginTop: 8, lineHeight: 1.4 }}>
+        <div className={classes.privacyNotice}>
           🔒 {t("generator.limitationsPrivacyNotice")}
         </div>
         <button
           onClick={() => setStep(3)}
-          style={{ ...styles.primaryBtn, marginTop: 12 }}
+          className={`${classes.primaryButton} ${classes.primaryButtonSpaced}`}
         >
           {form.limitations.trim() ? t("common.save") : t("generator.limitationsNone")}
         </button>
@@ -230,9 +231,9 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
       <>
         <SectionLabel>{t("generator.stepSchedule")}</SectionLabel>
 
-        <div style={{ marginBottom: 16 }}>
-          <div style={styles.fieldLabel}>{t("generator.daysPerWeek")}</div>
-          <div style={styles.optionsRow}>
+        <div className={classes.fieldBlock}>
+          <div className={classes.fieldLabel}>{t("generator.daysPerWeek")}</div>
+          <div className={classes.optionsRow}>
             {DAYS_PER_WEEK_OPTIONS.map((n) => (
               <OptionButton
                 key={n}
@@ -245,9 +246,9 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
           </div>
         </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <div style={styles.fieldLabel}>{t("generator.minutesPerSession")}</div>
-          <div style={styles.optionsRow}>
+        <div className={classes.fieldBlockWide}>
+          <div className={classes.fieldLabel}>{t("generator.minutesPerSession")}</div>
+          <div className={classes.optionsRow}>
             {MINUTES_OPTIONS.map((n) => (
               <OptionButton
                 key={n}
@@ -263,37 +264,32 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
         <button
           onClick={handleGenerate}
           disabled={generating}
-          style={{
-            ...styles.primaryBtn,
-            background: colors.accent.orange,
-            color: colors.bg,
-            opacity: generating ? 0.6 : 1,
-          }}
+          className={`${classes.primaryButton}${generating ? ` ${classes.primaryButtonDisabled}` : ""}`}
         >
           {generating ? t("generator.generating") : t("generator.generate")}
         </button>
 
-        {error && <div style={styles.errorMsg}>{error}</div>}
+        {error && <div className={classes.errorMsg}>{error}</div>}
       </>
     ),
 
     /* 4: Preview (editable) */
     () => (
       <>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div className={classes.previewHeader}>
           <SectionLabel>{t("generator.preview")}</SectionLabel>
-          <div style={styles.sourceBadge}>
+          <div className={classes.sourceBadge}>
             {source === "ai" ? t("generator.sourceAI") : t("generator.sourceRules")}
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+        <div className={classes.previewList}>
           {preview && Object.entries(preview).map(([dayKey, day]) => (
-            <div key={dayKey} style={styles.previewDay}>
+            <div key={dayKey} className={classes.previewDay}>
               {/* Day header */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                <div style={{ width: 10, height: 10, borderRadius: 5, background: day.color, flexShrink: 0 }} />
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{dayKey}</div>
+              <div className={classes.dayHeader}>
+                <div className={`${classes.dayDot} ${getToneClass(day.color)}`} />
+                <div className={classes.dayKey}>{dayKey}</div>
                 {editingDayLabel === dayKey ? (
                   <input
                     autoFocus
@@ -301,12 +297,13 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
                     onChange={(e) => updateDayLabelPreview(dayKey, e.target.value)}
                     onBlur={() => setEditingDayLabel(null)}
                     onKeyDown={(e) => e.key === "Enter" && setEditingDayLabel(null)}
-                    style={styles.inlineInput}
+                    aria-label={t("generator.stepSchedule")}
+                    className={classes.inlineInput}
                   />
                 ) : (
                   <div
                     onClick={() => setEditingDayLabel(dayKey)}
-                    style={{ fontSize: 11, color: colors.textMuted, flex: 1, cursor: "text", padding: "2px 4px", borderRadius: 4, border: `1px dashed ${colors.borderDim}` }}
+                    className={classes.dayLabelDisplay}
                   >
                     {day.label || "—"}
                   </div>
@@ -314,15 +311,15 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
               </div>
 
               {/* Exercise list */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <div className={classes.exerciseList}>
                 {day.exercises.map((ex, i) => {
                   const compositeId = `${dayKey}|||${ex.id}`;
                   const isEditing = editingExId === compositeId;
                   return (
-                    <div key={ex.id} style={{ ...styles.previewExercise, flexDirection: "column", alignItems: "stretch", padding: "8px 0", gap: 0 }}>
+                    <div key={ex.id} className={classes.previewExercise}>
                       {isEditing ? (
                         /* Expanded edit form */
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <div className={classes.editForm}>
                           <ExerciseNameInput
                             autoFocus
                             value={ex.name}
@@ -331,51 +328,51 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
                               if (catalogId) updatePreviewEx(dayKey, ex.id, "exerciseId", catalogId);
                             }}
                             placeholder={t("plan.exerciseNameTemplate", { n: i + 1 })}
-                            style={styles.editInput}
+                            inputClassName={classes.editInput}
                           />
-                          <div style={{ display: "flex", gap: 6 }}>
+                          <div className={classes.editRow}>
                             <input
                               value={ex.sets}
                               onChange={(e) => updatePreviewEx(dayKey, ex.id, "sets", e.target.value)}
                               placeholder={t("plan.setsPlaceholder")}
-                              style={{ ...styles.editInput, flex: 1 }}
+                              className={`${classes.editInput} ${classes.flexOne}`}
                             />
                             <input
                               value={ex.reps}
                               onChange={(e) => updatePreviewEx(dayKey, ex.id, "reps", e.target.value)}
                               placeholder={t("plan.repsPlaceholder")}
-                              style={{ ...styles.editInput, flex: 2 }}
+                              className={`${classes.editInput} ${classes.flexTwo}`}
                             />
                             <input
                               value={ex.rest}
                               onChange={(e) => updatePreviewEx(dayKey, ex.id, "rest", e.target.value)}
                               placeholder={t("plan.restPlaceholder")}
-                              style={{ ...styles.editInput, flex: 1 }}
+                              className={`${classes.editInput} ${classes.flexOne}`}
                             />
                           </div>
                           <input
                             value={ex.note}
                             onChange={(e) => updatePreviewEx(dayKey, ex.id, "note", e.target.value)}
                             placeholder={t("plan.notePlaceholder")}
-                            style={styles.editInput}
+                            className={classes.editInput}
                           />
-                          <div style={{ display: "flex", gap: 6, marginTop: 2 }}>
+                          <div className={classes.editActions}>
                             <button
                               onClick={() => cancelEditEx(dayKey, ex.id)}
-                              style={styles.editActionBtn}
+                              className={classes.editActionBtn}
                             >
                               {t("common.cancel")}
                             </button>
                             <button
                               onClick={() => { editSnapshot.current = null; setEditingExId(null); }}
-                              style={{ ...styles.editActionBtn, color: colors.accent.orange, borderColor: colors.accent.orange }}
+                              className={`${classes.editActionBtn} ${classes.editActionAccent}`}
                             >
                               {t("common.save")}
                             </button>
                             <button
                               onClick={() => removePreviewEx(dayKey, ex.id)}
                               disabled={day.exercises.length <= 1}
-                              style={{ ...styles.editActionBtn, marginLeft: "auto", color: colors.warning, borderColor: colors.warning, opacity: day.exercises.length <= 1 ? 0.35 : 1 }}
+                              className={`${classes.editActionBtn} ${classes.editActionWarning}`}
                             >
                               ✕
                             </button>
@@ -386,21 +383,12 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
                         <div
                           data-exidx={i}
                           data-daykey={dayKey}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            borderRadius: 8,
-                            background: dragOver?.dayKey === dayKey && dragOver?.toIdx === i
-                              ? `${colors.accent.orange}20`
-                              : "transparent",
-                            transition: "background 0.12s",
-                          }}
+                          className={`${classes.collapsedRow}${dragOver?.dayKey === dayKey && dragOver?.toIdx === i ? ` ${classes.collapsedRowDrop}` : ""}`}
                         >
                           {/* Drag handle — large touch target, pointer-event based */}
                           <button
                             aria-label={t("generator.dragToReorder")}
-                            style={styles.dragHandle}
+                            className={classes.dragHandle}
                             onPointerDown={(e) => {
                               e.currentTarget.setPointerCapture(e.pointerId);
                               dragRef.current = { dayKey, fromIdx: i };
@@ -425,21 +413,21 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
                           >
                             ⠿
                           </button>
-                          <span style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textGhost, minWidth: 20 }}>
+                          <span className={classes.indexText}>
                             {String(i + 1).padStart(2, "0")}
                           </span>
                           <span
                             onClick={() => openEditEx(dayKey, ex)}
-                            style={{ flex: 1, fontSize: 13, cursor: "pointer" }}
+                            className={classes.exerciseName}
                           >
-                            {ex.name || <span style={{ color: colors.textMuted, fontStyle: "italic" }}>—</span>}
+                            {ex.name || <span className={classes.exerciseNameEmpty}>—</span>}
                           </span>
-                          <span style={{ fontFamily: fonts.mono, fontSize: 11, color: colors.textDim }}>
+                          <span className={classes.exerciseMeta}>
                             {ex.sets}×{ex.reps}
                           </span>
                           <button
                             onClick={() => openEditEx(dayKey, ex)}
-                            style={styles.editIconBtn}
+                            className={classes.editIconBtn}
                           >
                             ✏
                           </button>
@@ -453,7 +441,7 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
               {/* Add exercise */}
               <button
                 onClick={() => addPreviewEx(dayKey)}
-                style={{ ...styles.editActionBtn, marginTop: 8, width: "100%", justifyContent: "center" }}
+                className={`${classes.editActionBtn} ${classes.addExerciseBtn}`}
               >
                 {t("generator.addExercise")}
               </button>
@@ -461,13 +449,13 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={handleRegenerate} style={styles.ghostBtn}>
+        <div className={classes.previewActions}>
+          <button onClick={handleRegenerate} className={classes.ghostButton}>
             {t("generator.regenerate")}
           </button>
           <button
             onClick={handleApply}
-            style={{ ...styles.primaryBtn, flex: 1, background: colors.accent.orange, color: colors.bg }}
+            className={`${classes.primaryButton} ${classes.previewApply}`}
           >
             {t("generator.apply")}
           </button>
@@ -477,10 +465,10 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
   ];
 
   const canGoBack = step > 0 && step < 4;
-
   return (
     <PageContainer>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+      <div className={classes.shell}>
+      <div className={classes.headerRow}>
         {canGoBack ? (
           <BackButton onClick={() => setStep((s) => s - 1)} />
         ) : step === 4 ? (
@@ -488,39 +476,66 @@ export function PlanGeneratorWizard({ onApply, onClose }: PlanGeneratorWizardPro
         ) : (
           <div />
         )}
-        <button onClick={onClose} style={styles.ghostBtn}>
+        <button onClick={onClose} className={`${classes.ghostButton} ${classes.ghostButtonAccent}`}>
           {t("generator.discard")}
         </button>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <SectionLabel color={colors.accent.orange}>{t("generator.title")}</SectionLabel>
+      <div className={classes.heroCard}>
+        <div className={classes.heroTopRow}>
+          <div>
+            <SectionLabel color={colors.accent.orange}>{t("generator.title")}</SectionLabel>
+            <div className={classes.heroTitle}>{t("generator.subtitle")}</div>
+          </div>
+          <div className={classes.heroMetric}>{step === 4 ? t("generator.preview") : `${step + 1}/4`}</div>
+        </div>
         {!isAIAvailable() && step < 4 && (
-          <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textDim, marginBottom: 8 }}>
+          <div className={classes.heroSource}>
             {t("generator.sourceRules")}
           </div>
         )}
       </div>
 
       {/* Step progress dots */}
-      <div style={styles.progressDots}>
+      <div className={classes.progressDots}>
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
-            style={{
-              width: step >= 4 ? 20 : step === i ? 20 : 8,
-              height: 4,
-              borderRadius: 2,
-              background: (step >= 4 || step >= i) ? colors.accent.orange : colors.border,
-              transition: "all 0.2s",
-            }}
+            className={[
+              classes.progressDot,
+              step >= 4 || step > i ? classes.progressDotDone : "",
+              step === i ? classes.progressDotCurrent : "",
+              step !== i && step < 4 && step < i ? classes.progressDotPending : "",
+            ].filter(Boolean).join(" ")}
           />
         ))}
       </div>
 
-      {steps[step]()}
+      <div className={classes.stepPanel}>
+        {steps[step]()}
+      </div>
+      </div>
     </PageContainer>
   );
+}
+
+function getToneClass(color?: string) {
+  switch ((color || "").toLowerCase()) {
+    case "#e8643a":
+      return classes.orangeTone;
+    case "#3ab8e8":
+      return classes.blueTone;
+    case "#7de83a":
+      return classes.greenTone;
+    case "#e8c93a":
+      return classes.yellowTone;
+    case "#c83ae8":
+      return classes.violetTone;
+    case "#e83a7d":
+      return classes.pinkTone;
+    default:
+      return classes.defaultTone;
+  }
 }
 
 /* ---- Sub-components ---- */
@@ -529,179 +544,13 @@ function OptionButton({ label, active, onClick, compact = false }: { label: stri
   return (
     <button
       onClick={onClick}
-      style={{
-        border: `2px solid ${active ? colors.accent.orange : colors.border}`,
-        background: active ? `${colors.accent.orange}15` : colors.surface,
-        color: active ? colors.accent.orange : colors.textSecondary,
-        borderRadius: 12,
-        padding: compact ? "12px 16px" : "16px 18px",
-        cursor: "pointer",
-        fontFamily: fonts.sans,
-        fontSize: compact ? 14 : 15,
-        fontWeight: active ? 600 : 400,
-        transition: "all 0.15s",
-        minHeight: 48,
-        WebkitTapHighlightColor: "transparent",
-      }}
+      className={[
+        classes.optionButton,
+        compact ? classes.optionButtonCompact : "",
+        active ? classes.optionButtonActive : "",
+      ].filter(Boolean).join(" ")}
     >
       {label}
     </button>
   );
 }
-
-/* ---- Styles ---- */
-
-const styles: Record<string, import("react").CSSProperties> = {
-  optionsGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 8,
-  },
-  optionsRow: {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  fieldLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.textMuted,
-    letterSpacing: 1,
-    textTransform: "uppercase",
-    marginBottom: 8,
-  },
-  textarea: {
-    width: "100%",
-    background: colors.surface,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 12,
-    padding: "14px 14px",
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
-    fontSize: 14,
-    resize: "vertical",
-    minHeight: 80,
-  },
-  primaryBtn: {
-    width: "100%",
-    padding: 16,
-    border: "none",
-    borderRadius: 12,
-    background: colors.surface,
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
-    fontSize: 15,
-    fontWeight: 700,
-    cursor: "pointer",
-    minHeight: 50,
-    WebkitTapHighlightColor: "transparent",
-  },
-  ghostBtn: {
-    border: `1px solid ${colors.border}`,
-    background: colors.surface,
-    color: colors.textSecondary,
-    borderRadius: 10,
-    padding: "8px 10px",
-    cursor: "pointer",
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    WebkitTapHighlightColor: "transparent",
-  },
-  errorMsg: {
-    marginTop: 12,
-    color: colors.warning,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    textAlign: "center",
-  },
-  sourceBadge: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.textDim,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 8,
-    padding: "4px 8px",
-  },
-  progressDots: {
-    display: "flex",
-    gap: 6,
-    marginBottom: 20,
-    alignItems: "center",
-  },
-  previewDay: {
-    background: colors.surface,
-    borderRadius: 12,
-    padding: 14,
-    border: `1px solid ${colors.borderLight}`,
-  },
-  previewExercise: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "6px 0",
-    borderBottom: `1px solid ${colors.borderDim}`,
-  },
-  editInput: {
-    background: colors.bg,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 8,
-    padding: "8px 10px",
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
-    fontSize: 13,
-    width: "100%",
-    boxSizing: "border-box",
-  },
-  inlineInput: {
-    background: "transparent",
-    border: `1px solid ${colors.border}`,
-    borderRadius: 6,
-    padding: "2px 6px",
-    color: colors.textSecondary,
-    fontFamily: fonts.sans,
-    fontSize: 11,
-    flex: 1,
-    minWidth: 0,
-  },
-  editActionBtn: {
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    background: "transparent",
-    border: `1px solid ${colors.border}`,
-    borderRadius: 8,
-    padding: "6px 12px",
-    color: colors.textSecondary,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    cursor: "pointer",
-    WebkitTapHighlightColor: "transparent",
-  },
-  editIconBtn: {
-    background: "transparent",
-    border: "none",
-    color: colors.textDim,
-    fontSize: 12,
-    cursor: "pointer",
-    padding: "4px 6px",
-    WebkitTapHighlightColor: "transparent",
-  },
-  dragHandle: {
-    background: "transparent",
-    border: "none",
-    color: colors.textDim,
-    fontSize: 20,
-    lineHeight: 1,
-    cursor: "grab",
-    padding: "4px 4px",
-    touchAction: "none",      // prevents scroll hijacking the drag gesture
-    userSelect: "none",
-    WebkitUserSelect: "none",
-    WebkitTapHighlightColor: "transparent",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: 36,
-    minHeight: 44,             // 44 px minimum touch target
-  },
-};

@@ -8,7 +8,7 @@
  *     whose stored "gymbuddy_seen_version" differs from APP_VERSION.
  */
 
-export const APP_VERSION = "1.7.0";
+export const APP_VERSION = "1.10.0";
 
 /** localStorage key that tracks the last version the user dismissed. */
 export const WHATS_NEW_STORAGE_KEY = "gymbuddy_seen_version";
@@ -31,9 +31,57 @@ export type ChangelogEntry = {
 
 /**
  * Full release history — newest first.
- * The modal only shows the FIRST (latest) entry.
+ * The modal shows the FIRST (latest) entry and the immediately previous entry.
  */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.10.0",
+    date: "2026-03-09",
+    features: [
+      {
+        icon: "🫧",
+        es: "Rediseño Quiet Glass aplicado a la app completa con superficies translúcidas, jerarquía más calmada y mejor lectura en móvil.",
+        en: "Quiet Glass redesign applied across the full app with translucent surfaces, calmer hierarchy, and better mobile readability.",
+      },
+      {
+        icon: "✨",
+        es: "Nuevas transiciones de entrada, mejor espaciado tipográfico y overlays más fluidos para que la experiencia se sienta más pulida y consistente.",
+        en: "New entry transitions, tighter typographic spacing, and smoother overlays make the experience feel more polished and consistent.",
+      },
+    ],
+  },
+  {
+    version: "1.9.0",
+    date: "2026-03-09",
+    features: [
+      {
+        icon: "🏋️",
+        es: "Las sesiones activas mantienen el contexto del ejercicio actual y muestran progreso más claro mientras navegás entre plan y detalle.",
+        en: "Active workout sessions now keep current exercise context and show clearer progress while moving between plan and detail.",
+      },
+      {
+        icon: "📚",
+        es: "El historial de sesiones resume duración, sets y estado de finalización para revisar entrenamientos anteriores más rápido.",
+        en: "Session history now summarises duration, sets, and completion state so previous workouts are faster to review.",
+      },
+    ],
+  },
+  {
+    version: "1.8.0",
+    date: "2026-03-09",
+    features: [
+      {
+        icon: "🎨",
+        es: "Nueva galeria de rediseno con cuatro conceptos mobile-first para comparar estilos y jerarquias completas de la app.",
+        en: "New redesign gallery with four mobile-first concepts so you can compare full app styles and hierarchy directions.",
+      },
+      {
+        icon: "🧭",
+        es: "Los mocks cubren plan, detalle de ejercicio, historial, generador, importador y overlays para evaluar la experiencia completa.",
+        en: "The mocks now cover plan, exercise detail, history, generator, importer, and overlays so you can review the full experience.",
+      },
+    ],
+  },
   {
     version: "1.7.0",
     date: "2026-03-09",

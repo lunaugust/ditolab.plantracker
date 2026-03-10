@@ -1,0 +1,6 @@
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 16px 28px;
+  animation: quietGlassPageIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}

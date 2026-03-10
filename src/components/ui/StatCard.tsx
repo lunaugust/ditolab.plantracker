@@ -1,4 +1,5 @@
 import { colors, fonts } from "../../theme";
+import { performancePanelStyle } from "../../theme/editorialPerformance";
 import type { CSSProperties } from "react";
 
 interface StatCardProps {
@@ -18,23 +19,22 @@ export function StatCard({ label, value, color = colors.textPrimary }: StatCardP
 
 const styles: Record<string, CSSProperties> = {
   card: {
-    background: colors.surface,
-    borderRadius: 12,
-    padding: "18px 14px",
-    border: `1px solid ${colors.borderLight}`,
+    ...performancePanelStyle(undefined, true),
+    borderRadius: 22,
+    padding: "20px 14px",
     textAlign: "center",
     flex: 1,
   },
   label: {
     fontFamily: fonts.mono,
     fontSize: 9,
-    color: colors.textDim,
+    color: colors.textMuted,
     letterSpacing: 2,
     marginBottom: 8,
   },
   value: {
     fontFamily: fonts.mono,
-    fontSize: 17,
+    fontSize: 19,
     fontWeight: 600,
   },
 };

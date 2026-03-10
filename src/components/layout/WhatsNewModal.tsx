@@ -1,11 +1,16 @@
 import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
 import { CHANGELOG, APP_VERSION } from "../../data/changelog";
+import {
+  performanceGhostButtonStyle,
+  performanceHeroStyle,
+  performancePanelStyle,
+} from "../../theme/editorialPerformance";
 
 /**
  * "What's New" bottom-sheet modal.
  *
- * Shows the features from the latest CHANGELOG entry.
+ * Shows the features from the latest CHANGELOG entry and the immediately previous one.
  * Dismissing it persists APP_VERSION to localStorage so it won't
  * appear again until the next release.
  *
@@ -14,8 +19,8 @@ import { CHANGELOG, APP_VERSION } from "../../data/changelog";
 export function WhatsNewModal({ onDismiss }: { onDismiss: () => void }) {
   const { t, language } = useI18n();
 
-  const latest = CHANGELOG[0];
-  if (!latest) return null;
+  const visibleEntries = CHANGELOG.slice(0, 2);
+  if (visibleEntries.length === 0) return null;
 
   const lang = language === "en" ? "en" : "es";
 
@@ -28,27 +33,38 @@ export function WhatsNewModal({ onDismiss }: { onDismiss: () => void }) {
         <div style={styles.handle} />
 
         {/* Title row */}
-        <div style={styles.titleRow}>
-          <div>
-            <div style={styles.title}>{t("whatsNew.title")}</div>
-            <div style={styles.versionBadge}>
-              {t("whatsNew.version")} {APP_VERSION} · {latest.date}
+        <div style={{ ...styles.heroCard, ...performanceHeroStyle(colors.accent.blue) }}>
+          <div style={styles.titleRow}>
+            <div>
+              <div style={styles.title}>{t("whatsNew.title")}</div>
+              <div style={styles.versionBadge}>
+                {t("whatsNew.version")} {APP_VERSION}
+              </div>
             </div>
+            <button onClick={onDismiss} style={styles.closeBtn} aria-label={t("common.close")}>
+              ✕
+            </button>
           </div>
-          <button onClick={onDismiss} style={styles.closeBtn} aria-label={t("common.close")}>
-            ✕
-          </button>
         </div>
 
-        {/* Feature list */}
-        <ul style={styles.featureList}>
-          {latest.features.map((feat, i) => (
-            <li key={i} style={styles.featureItem}>
-              <span style={styles.featureIcon}>{feat.icon}</span>
-              <span style={styles.featureText}>{feat[lang]}</span>
-            </li>
-          ))}
-        </ul>
+        {visibleEntries.map((entry, entryIndex) => (
+          <div key={entry.version} style={{ ...styles.entryCard, ...performancePanelStyle(entryIndex === 0 ? colors.accent.blue : undefined) }}>
+            <div style={styles.entryHeader}>
+              <div style={styles.entryVersion}>
+                {t("whatsNew.version")} {entry.version}
+              </div>
+              <div style={styles.entryDate}>{entry.date}</div>
+            </div>
+            <ul style={styles.featureList}>
+              {entry.features.map((feat, i) => (
+                <li key={`${entry.version}-${i}`} style={styles.featureItem}>
+                  <span style={styles.featureIcon}>{feat.icon}</span>
+                  <span style={styles.featureText}>{feat[lang]}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
 
         {/* Dismiss button */}
         <button onClick={onDismiss} style={styles.dismissBtn}>
@@ -64,20 +80,25 @@ const styles: Record<string, React.CSSProperties> = {
     position: "fixed",
     inset: 0,
     zIndex: 300,
-    background: "rgba(0,0,0,0.65)",
+    background: "rgba(0,0,0,0.58)",
     display: "flex",
     alignItems: "flex-end",
+    backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
   },
   sheet: {
     width: "100%",
-    background: colors.bg,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    background: `linear-gradient(180deg, ${colors.textPrimary}0a 0%, ${colors.surface}f2 100%)`,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
     padding: "16px 20px max(28px, env(safe-area-inset-bottom))",
-    borderTop: `1px solid ${colors.border}`,
+    borderTop: `1px solid ${colors.textPrimary}10`,
     boxSizing: "border-box",
     maxHeight: "85dvh",
     overflowY: "auto",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    animation: "quietGlassSheetIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both",
   },
   handle: {
     width: 40,
@@ -86,39 +107,67 @@ const styles: Record<string, React.CSSProperties> = {
     background: colors.border,
     margin: "0 auto 20px",
   },
+  heroCard: {
+    marginBottom: 18,
+  },
   titleRow: {
     display: "flex",
     alignItems: "flex-start",
     justifyContent: "space-between",
-    marginBottom: 20,
+    gap: 12,
   },
   title: {
-    fontFamily: fonts.mono,
-    fontSize: 13,
+    fontFamily: fonts.sans,
+    fontSize: 28,
     fontWeight: 700,
-    letterSpacing: 2,
-    textTransform: "uppercase" as const,
-    color: colors.accent.blue,
+    letterSpacing: -1.1,
+    color: colors.textPrimary,
+    lineHeight: 1.05,
   },
   versionBadge: {
     fontFamily: fonts.mono,
     fontSize: 10,
     color: colors.textMuted,
-    marginTop: 4,
-    letterSpacing: 0.5,
+    marginTop: 8,
+    letterSpacing: 1,
   },
   closeBtn: {
-    background: "transparent",
-    border: "none",
-    color: colors.textDim,
-    fontSize: 16,
+    ...performanceGhostButtonStyle(colors.accent.blue),
+    background: colors.surfaceElevated,
+    color: colors.textSecondary,
+    fontSize: 14,
     cursor: "pointer",
-    padding: "4px 8px",
+    padding: "8px 12px",
     WebkitTapHighlightColor: "transparent",
+  },
+  entryCard: {
+    marginBottom: 16,
+    padding: 20,
+    borderRadius: 26,
+  },
+  entryHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 14,
+  },
+  entryVersion: {
+    fontFamily: fonts.mono,
+    fontSize: 11,
+    color: colors.textPrimary,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  entryDate: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.textMuted,
+    whiteSpace: "nowrap",
   },
   featureList: {
     listStyle: "none",
-    margin: "0 0 24px",
+    margin: 0,
     padding: 0,
     display: "flex",
     flexDirection: "column",
@@ -148,7 +197,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: colors.accent.blue,
     color: colors.bg,
     border: "none",
-    borderRadius: 14,
+    borderRadius: 20,
     padding: "15px 20px",
     fontFamily: fonts.mono,
     fontSize: 13,

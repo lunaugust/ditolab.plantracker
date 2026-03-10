@@ -3,6 +3,12 @@ import { colors, fonts } from "../../theme";
 import { useI18n } from "../../i18n";
 import { saveFeedback } from "../../services/feedbackService";
 import type { CSSProperties } from "react";
+import {
+  performanceGhostButtonStyle,
+  performanceHeroStyle,
+  performancePanelStyle,
+  performancePillStyle,
+} from "../../theme/editorialPerformance";
 
 const CATEGORIES = ["bug", "suggestion", "general", "plan"];
 
@@ -54,16 +60,18 @@ export function FeedbackModal({ scope, currentView, onClose }: FeedbackModalProp
         {/* Handle bar */}
         <div style={styles.handle} />
 
-        <div style={styles.titleRow}>
-          <div>
-            <div style={styles.title}>{t("feedback.title")}</div>
-            <div style={styles.subtitle}>{t("feedback.subtitle")}</div>
+        <div style={{ ...styles.heroCard, ...performanceHeroStyle(colors.accent.orange) }}>
+          <div style={styles.titleRow}>
+            <div>
+              <div style={styles.title}>{t("feedback.title")}</div>
+              <div style={styles.subtitle}>{t("feedback.subtitle")}</div>
+            </div>
+            <button onClick={onClose} style={styles.closeBtn}>✕</button>
           </div>
-          <button onClick={onClose} style={styles.closeBtn}>✕</button>
         </div>
 
         {done ? (
-          <div style={styles.successMsg}>{t("feedback.success")}</div>
+          <div style={{ ...styles.successMsg, ...performancePanelStyle(colors.accent.orange) }}>{t("feedback.success")}</div>
         ) : (
           <>
             {/* Star rating */}
@@ -94,9 +102,7 @@ export function FeedbackModal({ scope, currentView, onClose }: FeedbackModalProp
                   onClick={() => setCategory(cat)}
                   style={{
                     ...styles.chip,
-                    borderColor: category === cat ? colors.accent.orange : colors.border,
-                    background: category === cat ? `${colors.accent.orange}18` : colors.surface,
-                    color: category === cat ? colors.accent.orange : colors.textSecondary,
+                    ...performancePillStyle(category === cat, colors.accent.orange),
                   }}
                 >
                   {t(`feedback.categories.${cat}`)}
@@ -106,18 +112,20 @@ export function FeedbackModal({ scope, currentView, onClose }: FeedbackModalProp
 
             {/* Message */}
             <div style={styles.fieldLabel}>{t("feedback.messageLabel")}</div>
-            <textarea
-              value={message}
-              onChange={(e) => { setMessage(e.target.value); setError(""); }}
-              placeholder={t("feedback.messagePlaceholder")}
-              rows={4}
-              style={styles.textarea}
-            />
-            {error && <div style={styles.errorMsg}>{error}</div>}
+            <div style={{ ...styles.formCard, ...performancePanelStyle(colors.accent.orange) }}>
+              <textarea
+                value={message}
+                onChange={(e) => { setMessage(e.target.value); setError(""); }}
+                placeholder={t("feedback.messagePlaceholder")}
+                rows={4}
+                style={styles.textarea}
+              />
+              {error && <div style={styles.errorMsg}>{error}</div>}
 
-            {/* Privacy notice */}
-            <div style={{ fontFamily: fonts.mono, fontSize: 10, color: colors.textDim, marginTop: 12, lineHeight: 1.4 }}>
-              🔒 {t("feedback.privacyNotice")}
+              {/* Privacy notice */}
+              <div style={styles.privacyNote}>
+                🔒 {t("feedback.privacyNotice")}
+              </div>
             </div>
 
             {/* Actions */}
@@ -145,20 +153,25 @@ const styles: Record<string, CSSProperties> = {
     position: "fixed",
     inset: 0,
     zIndex: 200,
-    background: "rgba(0,0,0,0.6)",
+    background: "rgba(0,0,0,0.55)",
     display: "flex",
     alignItems: "flex-end",
+    backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
   },
   sheet: {
     width: "100%",
-    background: colors.bg,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    background: `linear-gradient(180deg, ${colors.textPrimary}0a 0%, ${colors.surface}f2 100%)`,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
     padding: "16px 20px max(24px, env(safe-area-inset-bottom))",
-    borderTop: `1px solid ${colors.border}`,
+    borderTop: `1px solid ${colors.textPrimary}10`,
     boxSizing: "border-box",
     maxHeight: "90dvh",
     overflowY: "auto",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    animation: "quietGlassSheetIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both",
   },
   handle: {
     width: 40,
@@ -167,32 +180,36 @@ const styles: Record<string, CSSProperties> = {
     background: colors.border,
     margin: "0 auto 20px",
   },
+  heroCard: {
+    marginBottom: 18,
+  },
   titleRow: {
     display: "flex",
     alignItems: "flex-start",
     justifyContent: "space-between",
-    marginBottom: 20,
+    gap: 12,
   },
   title: {
-    fontSize: 18,
+    fontSize: 28,
     fontWeight: 700,
-    letterSpacing: -0.3,
+    letterSpacing: -1.1,
     color: colors.textPrimary,
+    lineHeight: 1.05,
   },
   subtitle: {
     fontFamily: fonts.mono,
     fontSize: 10,
     color: colors.textMuted,
-    marginTop: 2,
-    letterSpacing: 0.5,
+    marginTop: 8,
+    letterSpacing: 1,
   },
   closeBtn: {
-    background: "transparent",
-    border: "none",
-    color: colors.textDim,
-    fontSize: 16,
+    ...performanceGhostButtonStyle(colors.accent.orange),
+    background: colors.surfaceElevated,
+    color: colors.textSecondary,
+    fontSize: 14,
     cursor: "pointer",
-    padding: "4px 8px",
+    padding: "8px 12px",
     WebkitTapHighlightColor: "transparent",
   },
   fieldLabel: {
@@ -231,7 +248,7 @@ const styles: Record<string, CSSProperties> = {
   },
   chip: {
     border: `1px solid ${colors.border}`,
-    borderRadius: 20,
+    borderRadius: 999,
     padding: "8px 14px",
     fontFamily: fonts.sans,
     fontSize: 13,
@@ -242,11 +259,15 @@ const styles: Record<string, CSSProperties> = {
     whiteSpace: "nowrap",
     minHeight: 36,
   },
+  formCard: {
+    padding: 16,
+    borderRadius: 24,
+  },
   textarea: {
     width: "100%",
-    background: colors.surface,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 12,
+    background: `linear-gradient(180deg, ${colors.textPrimary}08 0%, ${colors.surfaceAlt}e8 100%)`,
+    border: `1px solid ${colors.textPrimary}12`,
+    borderRadius: 18,
     padding: "12px 14px",
     color: colors.textPrimary,
     fontFamily: fonts.sans,
@@ -261,14 +282,23 @@ const styles: Record<string, CSSProperties> = {
     fontFamily: fonts.mono,
     fontSize: 11,
   },
+  privacyNote: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    color: colors.textDim,
+    marginTop: 12,
+    lineHeight: 1.4,
+  },
   cancelBtn: {
+    ...performanceGhostButtonStyle(colors.accent.orange),
     border: `1px solid ${colors.border}`,
-    background: colors.surface,
+    background: colors.surfaceElevated,
     color: colors.textSecondary,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: "14px 20px",
-    fontFamily: fonts.sans,
-    fontSize: 14,
+    fontFamily: fonts.mono,
+    fontSize: 12,
+    fontWeight: 700,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
   },
@@ -277,19 +307,22 @@ const styles: Record<string, CSSProperties> = {
     border: "none",
     background: colors.accent.orange,
     color: colors.bg,
-    borderRadius: 12,
+    borderRadius: 18,
     padding: "14px 20px",
-    fontFamily: fonts.sans,
-    fontSize: 14,
+    fontFamily: fonts.mono,
+    fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
   },
   successMsg: {
     textAlign: "center",
-    padding: "32px 0",
+    padding: "28px 18px",
     fontSize: 18,
     fontWeight: 600,
-    color: colors.success,
+    color: colors.textPrimary,
+    borderRadius: 26,
   },
 };

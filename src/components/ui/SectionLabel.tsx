@@ -1,4 +1,5 @@
 import { colors, fonts } from "../../theme";
+import { performanceEyebrowStyle } from "../../theme/editorialPerformance";
 import type { CSSProperties, ReactNode } from "react";
 
 interface SectionLabelProps {
@@ -10,11 +11,8 @@ export function SectionLabel({ children, color = colors.textMuted }: SectionLabe
   return (
     <div
       style={{
-        fontFamily: fonts.mono,
-        fontSize: 10,
-        color,
-        letterSpacing: 3,
-        textTransform: "uppercase" as CSSProperties["textTransform"],
+        ...performanceEyebrowStyle(color),
+        letterSpacing: 2.6,
         marginBottom: 12,
       }}
     >
