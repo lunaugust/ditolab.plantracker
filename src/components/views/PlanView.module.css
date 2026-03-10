@@ -1,32 +1,35 @@
+/* ── Accent tone ── */
 .shell {
   --accent: var(--color-accent-blue);
 }
 
-.orangeTone { --accent: #e8643a; }
-.blueTone { --accent: #3ab8e8; }
-.greenTone { --accent: #7de83a; }
+.orangeTone { --accent: #ff6b35; }
+.blueTone   { --accent: #40c8f4; }
+.greenTone  { --accent: #7de83a; }
 .yellowTone { --accent: #e8c93a; }
 .violetTone { --accent: #c83ae8; }
-.pinkTone { --accent: #e83a7d; }
+.pinkTone   { --accent: #e83a7d; }
 .defaultTone { --accent: var(--color-accent-blue); }
 
+/* ── Shared glass surface ── */
 .heroCard,
 .actionRow,
 .sessionCard,
 .editCard,
 .emptyCard {
-  border: 1px solid rgba(240, 237, 232, 0.08);
-  background: linear-gradient(180deg, rgba(240, 237, 232, 0.05) 0%, rgba(17, 17, 17, 0.94) 100%);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
 }
 
+/* ── Hero card ── */
 .heroCard {
-  margin-bottom: 18px;
-  padding: 22px 20px;
-  border-radius: 28px;
-  animation: quietGlassCardIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  margin-bottom: 10px;
+  padding: 20px;
+  border-radius: 26px;
+  animation: quietGlassCardIn 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .heroTopRow {
@@ -34,7 +37,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .heroMain {
@@ -43,9 +46,9 @@
 }
 
 .heroTitle {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
-  letter-spacing: -1.2px;
+  letter-spacing: -1px;
   color: var(--color-text-primary);
 }
 
@@ -57,9 +60,9 @@
   background: transparent;
   color: var(--color-text-primary);
   font-family: "DM Sans", sans-serif;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
-  letter-spacing: -1.2px;
+  letter-spacing: -1px;
 }
 
 .heroTitleInput:focus {
@@ -67,78 +70,76 @@
 }
 
 .heroSubtitle {
-  color: #888;
-  font-size: 14px;
-  line-height: 1.5;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .heroAside {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
 
 .heroActions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .heroMetric {
   font-family: "DM Mono", monospace;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-text-primary);
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(240, 237, 232, 0.08);
-  background: linear-gradient(180deg, rgba(240, 237, 232, 0.06) 0%, rgba(58, 184, 232, 0.12) 100%);
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.07);
 }
 
+/* ── Action row ── */
 .actionRow {
   display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 6px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
-  padding: 12px;
-  border-radius: 24px;
-  animation: quietGlassCardIn 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  padding: 10px;
+  border-radius: 20px;
+  animation: quietGlassCardIn 440ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.ghostButton,
-.accentGhostButton,
-.compactAction,
-.startButton {
-  border-radius: 999px;
-  font-family: "DM Mono", monospace;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
+/* ── Buttons ── */
 .ghostButton,
 .accentGhostButton,
 .compactAction {
-  border: 1px solid rgba(240, 237, 232, 0.08);
-  background: linear-gradient(180deg, rgba(240, 237, 232, 0.03) 0%, rgba(15, 15, 15, 0.88) 100%);
-  color: #888;
-  padding: 10px 14px;
+  border-radius: 999px;
+  font-family: "DM Mono", monospace;
+  letter-spacing: 0.06em;
   font-size: 11px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  padding: 9px 14px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: #888;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
 }
 
 .accentGhostButton {
   color: var(--accent);
-  border-color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .disabledButton {
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
+/* ── Empty state ── */
 .noDaysText {
   color: #666;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  font-size: 14px;
 }
 
 .noDaysActions {
@@ -147,14 +148,15 @@
   flex-wrap: wrap;
 }
 
+/* ── Edit form inputs ── */
 .nameInput,
 .metaInput,
 .noteInput {
   width: 100%;
-  border: 1px solid rgba(240, 237, 232, 0.08);
-  background: linear-gradient(180deg, rgba(240, 237, 232, 0.03) 0%, rgba(15, 15, 15, 0.92) 100%);
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--color-text-primary);
-  border-radius: 16px;
+  border-radius: 14px;
 }
 
 .nameInput {
@@ -178,75 +180,96 @@
   font-size: 12px;
 }
 
-.sessionActions,
-.editActions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
+/* ── Session card ── */
 .sessionCard {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   border-radius: 24px;
-  padding: 18px;
+  padding: 16px 18px;
   display: flex;
   gap: 12px;
   align-items: center;
   justify-content: space-between;
+  animation: quietGlassCardIn 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .sessionMain {
   flex: 1;
+  min-width: 0;
 }
 
 .sessionLabel {
   font-family: "DM Mono", monospace;
   font-size: 10px;
   color: var(--accent);
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
   margin-bottom: 4px;
 }
 
 .sessionExerciseName {
   color: var(--color-text-primary);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
-  margin-bottom: 4px;
+  letter-spacing: -0.4px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sessionMeta {
-  color: #888;
+  color: #666;
   font-size: 12px;
 }
 
+.sessionActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ── Start workout button ── */
 .sessionStartWrap {
   margin-bottom: 12px;
 }
 
 .startButton {
   width: 100%;
-  border: 1px solid rgba(240, 237, 232, 0.08);
-  border-color: rgba(58, 184, 232, 0.38);
-  background: linear-gradient(180deg, rgba(58, 184, 232, 0.16) 0%, rgba(17, 17, 17, 0.92) 100%);
-  color: var(--accent);
-  padding: 16px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.26);
+  border-radius: 24px;
+  border: none;
+  padding: 20px 18px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #000;
+  background: var(--accent);
+  min-height: 64px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 60%, transparent),
+    0 16px 48px color-mix(in srgb, var(--accent) 30%, rgba(0, 0, 0, 0.4));
+  animation: quietGlassCardIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.startButton:active {
+  transform: scale(0.98);
+}
+
+/* ── Add exercise in edit mode ── */
 .addExerciseWrap {
   margin-bottom: 10px;
 }
 
+/* ── Exercise list ── */
 .exerciseList {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
+/* ── Edit card ── */
 .editCard {
-  border-radius: 24px;
+  border-radius: 22px;
   padding: 14px;
   display: flex;
   gap: 10px;
@@ -271,19 +294,26 @@
 .metaGrid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
+}
+
+.editActions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .compactAction {
   font-size: 10px;
-  padding: 6px 8px;
+  padding: 6px 10px;
 }
 
 .emptyCard {
-  border-radius: 24px;
+  border-radius: 22px;
   padding: 18px;
 }
 
+/* ── Responsive ── */
 @media (max-width: 640px) {
   .heroTopRow,
   .sessionCard {
