@@ -180,6 +180,14 @@ export const translations = {
       skipRestAriaLabel: "{action} ({status})",
       endWorkout: "Terminar sesión",
     },
+    widget: {
+      ariaLabel: "Widget de sesión activa",
+      expand: "Expandir widget de entrenamiento",
+      minimize: "Minimizar widget",
+      readyToLog: "Listo para registrar",
+      goToExercise: "Ir al ejercicio",
+      restingHint: "Próxima serie · {sets} series",
+    },
     progress: {
       titleWeight: "PROGRESIÓN DE PESO",
       title: "PROGRESIÓN",
@@ -399,6 +407,14 @@ export const translations = {
       quickRestControlsLabel: "Quick rest controls",
       skipRestAriaLabel: "{action} ({status})",
       endWorkout: "End session",
+    },
+    widget: {
+      ariaLabel: "Active workout widget",
+      expand: "Expand workout widget",
+      minimize: "Minimise widget",
+      readyToLog: "Ready to log",
+      goToExercise: "Go to exercise",
+      restingHint: "Next set · {sets} sets",
     },
     history: {
       openButton: "History",

@@ -4,3 +4,4 @@ export { BackButton } from "./BackButton";
 export { PageContainer } from "./PageContainer";
 export { StatCard } from "./StatCard";
 export { ExerciseNameInput } from "./ExerciseNameInput";
+export { WorkoutWidget } from "./WorkoutWidget";
