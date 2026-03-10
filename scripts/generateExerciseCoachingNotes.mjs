@@ -57,6 +57,30 @@ const equipmentCueEs = {
   "smith machine": "Define postura y recorrido antes de cada repetición para una trayectoria segura.",
 };
 
+const targetMuscleEs = {
+  abs: "abdominales",
+  abductors: "abductores",
+  adductors: "aductores",
+  biceps: "bíceps",
+  brachialis: "braquial anterior",
+  brachioradialis: "braquiorradial",
+  calves: "pantorrillas",
+  "cardiovascular system": "sistema cardiovascular",
+  delts: "deltoides",
+  forearms: "antebrazos",
+  glutes: "glúteos",
+  hamstrings: "isquiotibiales",
+  lats: "dorsales",
+  "levator scapulae": "elevador de la escápula",
+  pectorals: "pectorales",
+  quads: "cuádriceps",
+  "serratus anterior": "serrato anterior",
+  spine: "musculatura de la columna",
+  traps: "trapecios",
+  triceps: "tríceps",
+  "upper back": "espalda alta",
+};
+
 function firstFrom(array, fallback = "") {
   if (!Array.isArray(array) || array.length === 0) return fallback;
   return String(array[0] || fallback).trim();
@@ -85,7 +109,9 @@ function makeNote(entry, lang) {
     return `${bodyCue} ${equipmentCue} ${targetText} Stop immediately if you feel sharp pain.`;
   }
 
-  const targetText = target ? `Enfócate en activar ${target}.` : "Enfócate en activar el músculo objetivo.";
+  const targetText = target
+    ? `Enfócate en activar ${targetMuscleEs[target.toLowerCase()] ?? `el músculo objetivo (${target})`}.`
+    : "Enfócate en activar el músculo objetivo.";
   return `${bodyCue} ${equipmentCue} ${targetText} Detente de inmediato si sientes dolor agudo.`;
 }
 
