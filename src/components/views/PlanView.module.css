@@ -26,7 +26,7 @@
 
 /* ── Hero card ── */
 .heroCard {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   padding: 20px;
   border-radius: 26px;
   animation: quietGlassCardIn 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -70,8 +70,8 @@
 }
 
 .heroSubtitle {
-  color: #666;
-  font-size: 13px;
+  color: #9a9a9a;
+  font-size: 14px;
   line-height: 1.4;
 }
 
@@ -102,10 +102,10 @@
 /* ── Action row ── */
 .actionRow {
   display: flex;
-  gap: 6px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
-  padding: 10px;
+  padding: 12px;
   border-radius: 20px;
   animation: quietGlassCardIn 440ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -116,12 +116,13 @@
 .compactAction {
   border-radius: 999px;
   font-family: "DM Mono", monospace;
-  letter-spacing: 0.06em;
-  font-size: 11px;
-  padding: 9px 14px;
+  letter-spacing: 0.05em;
+  font-size: 12px;
+  padding: 10px 15px;
+  min-height: 40px;
   border: 1px solid var(--glass-border);
   background: rgba(255, 255, 255, 0.05);
-  color: #888;
+  color: #a0a0a0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
 }
 
@@ -218,8 +219,8 @@
 }
 
 .sessionMeta {
-  color: #666;
-  font-size: 12px;
+  color: #969696;
+  font-size: 13px;
 }
 
 .sessionActions {
@@ -310,7 +311,7 @@
 }
 
 .compactAction {
-  font-size: 10px;
+  font-size: 11px;
   padding: 6px 10px;
 }
 
@@ -321,6 +322,54 @@
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
+  .heroCard {
+    padding: 16px;
+    border-radius: 22px;
+  }
+
+  .heroTitle,
+  .heroTitleInput {
+    font-size: 22px;
+    letter-spacing: -0.7px;
+  }
+
+  .heroSubtitle {
+    font-size: 13px;
+  }
+
+  .heroMetric {
+    font-size: 12px;
+    padding: 8px 13px;
+  }
+
+  .actionRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    border-radius: 18px;
+  }
+
+  .actionRow > button {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .ghostButton,
+  .accentGhostButton {
+    min-height: 42px;
+    padding: 10px 12px;
+  }
+
+  .sessionCard {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .sessionExerciseName {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
   .heroTopRow,
   .sessionCard {
     flex-direction: column;

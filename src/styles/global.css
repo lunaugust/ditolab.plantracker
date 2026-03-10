@@ -71,6 +71,8 @@ body {
   overflow-y: auto;
   overscroll-behavior-y: contain;
   background-attachment: fixed;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 @keyframes quietGlassPageIn {
@@ -178,6 +180,19 @@ input[type="number"]::-webkit-outer-spin-button {
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+}
+
+@supports (-webkit-touch-callout: none) {
+  :root {
+    --glass-blur: blur(16px) saturate(150%);
+    --glass-bg: linear-gradient(
+      140deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.05) 58%,
+      rgba(255, 255, 255, 0.03) 100%
+    );
+    --glass-border: rgba(255, 255, 255, 0.16);
+  }
 }
 
 /* ---- Selection colour ---- */

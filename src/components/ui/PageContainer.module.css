@@ -1,6 +1,12 @@
 .container {
   max-width: 760px;
   margin: 0 auto;
-  padding: 20px 16px 28px;
+  padding: 18px clamp(12px, 4vw, 18px) calc(28px + env(safe-area-inset-bottom));
   animation: quietGlassPageIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-top: 14px;
+  }
 }
