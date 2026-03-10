@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -11,7 +11,7 @@ import { colors } from "../../theme";
 import { useI18n } from "../../i18n";
 import { useExerciseGif, useLocalizedExerciseName, useLocalizedExerciseNote } from "../../hooks";
 import { formatDate, buildChartData, computeWeightStats } from "../../utils/helpers";
-import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
+import { StatCard, PageContainer } from "../ui";
 import type { Exercise, LogEntry, LogsByExercise } from "../../services/types";
 import classes from "./ExerciseDetailView.module.css";
 
@@ -36,6 +36,10 @@ interface ExerciseDetailViewProps {
 type FormState = { weight: string; reps: string; notes: string };
 type TFunction = (key: string, params?: Record<string, string | number>) => string;
 
+// Swipe-back detection constants
+const SWIPE_THRESHOLD = 80;
+const EDGE_ZONE = 44;
+
 export function ExerciseDetailView({
   exercise,
   accentColor,
@@ -55,7 +59,9 @@ export function ExerciseDetailView({
   const [activeTab, setActiveTab] = useState("log");
   const [form, setForm] = useState<FormState>({ weight: "", reps: "", notes: "" });
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const touchStartX = useRef<number | null>(null);
   const entries = logs[exercise.id] || [];
+  const isResting = !!workoutSession && workoutSession.restSecondsLeft > 0;
 
   useEffect(() => {
     const latest = entries[entries.length - 1];
@@ -102,16 +108,68 @@ export function ExerciseDetailView({
     setForm((prev) => ({ ...prev, reps: String(next) }));
   };
 
+  // Swipe-back gesture: initiated from left edge (≤44px), triggers when distance ≥ 80px
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const x = e.touches[0].clientX;
+    touchStartX.current = x <= EDGE_ZONE ? x : null;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    if (e.changedTouches[0].clientX - touchStartX.current >= SWIPE_THRESHOLD) {
+      onBack();
+    }
+    touchStartX.current = null;
+  };
+
+  const toneClass = getToneClass(accentColor);
+
+  // Determine current set info from today's logs
+  const setTargetMatch = exercise.sets?.match(/(\d+)/);
+  const targetSets = setTargetMatch ? Math.max(1, Number(setTargetMatch[1]) || 1) : 1;
+  const today = new Date().toDateString();
+  const loggedSetsToday = entries.filter((e) => new Date(e.date).toDateString() === today).length;
+  const currentSetDisplay = Math.min(loggedSetsToday + 1, targetSets);
+
   return (
     <PageContainer>
-      <div className={`${classes.shell} ${getToneClass(accentColor)}`}>
-        <BackButton onClick={onBack} />
+      <div
+        className={`${classes.shell} ${toneClass}`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* ── Header: back + exercise info ── */}
+        <div className={classes.headerRow}>
+          <button
+            onClick={onBack}
+            aria-label={t("common.back")}
+            className={classes.backBtn}
+          >
+            {t("common.back")}
+          </button>
+          <div className={classes.headerCenter}>
+            <div className={classes.exerciseName}>{localizedName}</div>
+            <div className={classes.exerciseMeta}>
+              {exercise.sets} {t("common.series")} · {exercise.reps} {t("common.reps")} · {exercise.rest}
+            </div>
+          </div>
+        </div>
 
+        {localizedNote && (
+          <div className={classes.noteBar}>⚠ {localizedNote}</div>
+        )}
+
+        {/* ── Workout session bar ── */}
         {workoutSession && (
           <div className={classes.sessionCard}>
             <div className={classes.sessionMain}>
               <div className={classes.sessionLabel}>{t("session.activeTitle")}</div>
-              <div className={classes.sessionValue}>{formatDuration(elapsedSeconds)}</div>
+              <div className={classes.sessionSetRow}>
+                <span className={classes.sessionSetBadge}>
+                  {t("session.setOf", { current: currentSetDisplay, total: targetSets })}
+                </span>
+                <span className={classes.sessionTimer}>{formatDuration(elapsedSeconds)}</span>
+              </div>
               <div className={classes.sessionMeta}>
                 {t("session.exerciseProgress", {
                   current: workoutSession.currentExerciseIndex + 1,
@@ -119,30 +177,32 @@ export function ExerciseDetailView({
                 })}
               </div>
             </div>
-            <button onClick={onEndWorkoutSession} className={classes.ghostButton}>
+            <button onClick={onEndWorkoutSession} className={classes.endBtn}>
               {t("session.endWorkout")}
             </button>
           </div>
         )}
 
-        {workoutSession && workoutSession.restSecondsLeft > 0 && (
-          <div className={classes.restCard}>
-            <div className={classes.restTitle}>{t("session.resting")}</div>
-            <div className={classes.restTime}>{formatDuration(workoutSession.restSecondsLeft)}</div>
-            <button onClick={onSkipRest} className={classes.warningButton}>
+        {/* ── Rest card (shown when resting) ── */}
+        {isResting && (
+          <div
+            aria-label={t("session.quickRestControlsLabel")}
+            role="region"
+            className={classes.restCard}
+            aria-live="polite"
+          >
+            <div className={classes.restLabel}>{t("session.resting")}</div>
+            <div className={classes.restTime}>{formatDuration(workoutSession!.restSecondsLeft)}</div>
+            <div className={classes.restSubLabel}>
+              {t("session.nextSet", { set: currentSetDisplay, total: targetSets })}
+            </div>
+            <button onClick={onSkipRest} className={classes.skipRestBtn}>
               {t("session.skipRest")}
             </button>
           </div>
         )}
 
-        <div className={classes.headerCard}>
-          <div className={classes.headerTitle}>{localizedName}</div>
-          <div className={classes.headerMeta}>
-            {exercise.sets} {t("common.series")} · {exercise.reps} {t("common.reps")} · {exercise.rest}
-          </div>
-          {localizedNote && <div className={classes.headerNote}>⚠ {localizedNote}</div>}
-        </div>
-
+        {/* ── Compact tab strip ── */}
         <div className={classes.tabs}>
           {[
             { key: "log", label: t("nav.log") },
@@ -159,6 +219,7 @@ export function ExerciseDetailView({
           ))}
         </div>
 
+        {/* ── Tab content ── */}
         <div className={classes.contentSection}>
           {activeTab === "log" && (
             <LogTab
@@ -172,15 +233,17 @@ export function ExerciseDetailView({
               exerciseId={exercise.id}
               t={t}
               inWorkoutSession={!!workoutSession}
-              isResting={!!workoutSession && workoutSession.restSecondsLeft > 0}
-              restSecondsLeft={workoutSession?.restSecondsLeft || 0}
-              onSkipRest={onSkipRest}
+              isResting={isResting}
             />
           )}
 
-          {activeTab === "progress" && <ProgressTab entries={entries} accentColor={accentColor} t={t} />}
+          {activeTab === "progress" && (
+            <ProgressTab entries={entries} accentColor={accentColor} t={t} />
+          )}
 
-          {activeTab === "gif" && <GifTab gifUrl={gifUrl} exerciseName={exercise.name} t={t} />}
+          {activeTab === "gif" && (
+            <GifTab gifUrl={gifUrl} exerciseName={exercise.name} t={t} />
+          )}
         </div>
       </div>
     </PageContainer>
@@ -199,8 +262,6 @@ interface LogTabProps {
   t: TFunction;
   inWorkoutSession: boolean;
   isResting: boolean;
-  restSecondsLeft: number;
-  onSkipRest?: () => void;
 }
 
 function LogTab({
@@ -215,60 +276,78 @@ function LogTab({
   t,
   inWorkoutSession,
   isResting,
-  restSecondsLeft,
-  onSkipRest,
 }: LogTabProps) {
-  const repTargets = [8, 10, 15, 20];
+  const repTargets = [8, 10, 12, 15, 20];
 
   return (
     <>
-      <div className={classes.formCard}>
-        <div className={classes.fieldSection}>
-          <div className={classes.fieldLabel}>{t("log.weightLabel").toUpperCase()}</div>
-          <div className={classes.weightControls}>
-            <button type="button" onClick={() => adjustWeight(-2.5)} className={classes.adjustButton}>
+      <div className={`${classes.logCard}${isResting ? ` ${classes.logCardResting}` : ""}`}>
+        {/* Weight */}
+        <div className={classes.inputGroup}>
+          <div className={classes.inputLabel}>{t("log.weightLabel")}</div>
+          <div className={classes.stepper}>
+            <button
+              type="button"
+              onClick={() => adjustWeight(-2.5)}
+              className={classes.stepBtn}
+            >
               -2.5
             </button>
             <input
               value={form.weight}
-              onChange={(e) => setForm((current) => ({ ...current, weight: e.target.value }))}
+              onChange={(e) => setForm((prev) => ({ ...prev, weight: e.target.value }))}
               placeholder="0"
               aria-label={t("log.weightLabel")}
               type="number"
               step="0.5"
-              className={classes.numberInput}
+              inputMode="decimal"
+              className={classes.bigInput}
             />
-            <button type="button" onClick={() => adjustWeight(2.5)} className={classes.adjustButton}>
+            <button
+              type="button"
+              onClick={() => adjustWeight(2.5)}
+              className={classes.stepBtn}
+            >
               +2.5
             </button>
           </div>
         </div>
 
-        <div className={classes.fieldSection}>
-          <div className={classes.fieldLabel}>{t("log.repsDoneLabel").toUpperCase()}</div>
-          <div className={classes.weightControls}>
-            <button type="button" onClick={() => adjustReps(-1)} className={classes.adjustButton}>
+        {/* Reps */}
+        <div className={classes.inputGroup}>
+          <div className={classes.inputLabel}>{t("log.repsDoneLabel")}</div>
+          <div className={classes.stepper}>
+            <button
+              type="button"
+              onClick={() => adjustReps(-1)}
+              className={classes.stepBtn}
+            >
               -1
             </button>
             <input
               value={form.reps}
-              onChange={(e) => setForm((current) => ({ ...current, reps: e.target.value }))}
+              onChange={(e) => setForm((prev) => ({ ...prev, reps: e.target.value }))}
               placeholder="0"
               aria-label={t("log.repsDoneLabel")}
               type="number"
-              className={classes.numberInput}
+              inputMode="numeric"
+              className={classes.bigInput}
             />
-            <button type="button" onClick={() => adjustReps(1)} className={classes.adjustButton}>
+            <button
+              type="button"
+              onClick={() => adjustReps(1)}
+              className={classes.stepBtn}
+            >
               +1
             </button>
           </div>
-          <div className={classes.chipRow}>
+          <div className={classes.repChips}>
             {repTargets.map((rep) => (
               <button
                 key={rep}
                 type="button"
-                onClick={() => setForm((current) => ({ ...current, reps: String(rep) }))}
-                className={classes.chip}
+                onClick={() => setForm((prev) => ({ ...prev, reps: String(rep) }))}
+                className={`${classes.repChip}${form.reps === String(rep) ? ` ${classes.repChipActive}` : ""}`}
               >
                 {rep} {t("common.reps")}
               </button>
@@ -276,73 +355,62 @@ function LogTab({
           </div>
         </div>
 
-        <div className={classes.fieldSection}>
-          <div className={classes.fieldLabel}>{t("log.notesOptional")}</div>
+        {/* Notes */}
+        <div className={classes.inputGroup}>
+          <div className={classes.inputLabel}>{t("log.notesOptional")}</div>
           <input
             value={form.notes}
-            onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))}
+            onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
             placeholder={t("log.notesPlaceholder")}
             aria-label={t("log.notesOptional")}
-            className={classes.textInput}
+            className={classes.notesInput}
           />
         </div>
 
-        <div className={classes.submitRow}>
-          <button
-            onClick={handleSubmit}
-            disabled={inWorkoutSession && isResting}
-            className={`${classes.submitButton}${inWorkoutSession && isResting ? ` ${classes.submitButtonDisabled}` : ""}`}
-          >
-            {t("log.saveRecord")}
-          </button>
-        </div>
+        {/* Submit */}
+        <button
+          onClick={handleSubmit}
+          disabled={inWorkoutSession && isResting}
+          className={`${classes.logBtn}${inWorkoutSession && isResting ? ` ${classes.logBtnDisabled}` : ""}`}
+        >
+          {t("log.saveRecord")}
+        </button>
       </div>
 
-      <SectionLabel>{t("log.history")}</SectionLabel>
-
+      {/* History */}
+      <div className={classes.historyLabel}>{t("log.history")}</div>
       {entries.length === 0 ? (
-        <div className={classes.emptyState}>{t("log.noRecords")}</div>
+        <div className={classes.emptyHistory}>{t("log.noRecords")}</div>
       ) : (
-        <div className={`${classes.historyList}${inWorkoutSession && isResting ? ` ${classes.historyListResting}` : ""}`}>
+        <div className={classes.historySection}>
           {[...entries].reverse().map((entry, reverseIndex) => {
             const originalIndex = entries.length - 1 - reverseIndex;
             return (
-              <div key={originalIndex} className={classes.historyEntry}>
+              <div key={originalIndex} className={classes.historyRow}>
                 <div className={classes.historyDate}>{formatDate(entry.date)}</div>
-                <div className={classes.historyContent}>
-                  <span className={classes.historyWeight}>{entry.weight ? `${entry.weight} kg` : "—"}</span>
-                  {entry.reps && <span className={classes.historyReps}>× {entry.reps} {t("common.reps")}</span>}
-                  {entry.notes && <div className={classes.historyNotes}>{entry.notes}</div>}
+                <div className={classes.historyMain}>
+                  <span className={classes.historyWeight}>
+                    {entry.weight ? `${entry.weight} kg` : "—"}
+                  </span>
+                  {entry.reps && (
+                    <span className={classes.historyReps}>
+                      × {entry.reps} {t("common.reps")}
+                    </span>
+                  )}
+                  {entry.notes && (
+                    <div className={classes.historyNotes}>{entry.notes}</div>
+                  )}
                 </div>
                 <button
                   onClick={() => deleteLog(exerciseId, originalIndex)}
                   aria-label={t("log.deleteRecord")}
-                  className={classes.deleteButton}
+                  className={classes.deleteBtn}
                 >
                   ×
                 </button>
               </div>
             );
           })}
-        </div>
-      )}
-
-      {inWorkoutSession && isResting && (
-        <div aria-label={t("session.quickRestControlsLabel")} role="region" className={classes.quickRestBar}>
-          <div role="status" aria-live="polite" className={classes.quickRestInfo}>
-            <div className={classes.quickRestLabel}>{t("session.resting")}</div>
-            <div className={classes.quickRestTime}>{formatDuration(restSecondsLeft)}</div>
-          </div>
-          <button
-            onClick={onSkipRest}
-            aria-label={t("session.skipRestAriaLabel", {
-              action: t("session.skipRest"),
-              status: t("session.resting"),
-            })}
-            className={classes.quickSkipButton}
-          >
-            {t("session.skipRest")}
-          </button>
         </div>
       )}
     </>
@@ -361,7 +429,7 @@ function ProgressTab({ entries, accentColor, t }: { entries: LogEntry[]; accentC
         </div>
       ) : (
         <div className={classes.chartCard}>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
               <XAxis
                 dataKey="date"
@@ -388,7 +456,6 @@ function ProgressTab({ entries, accentColor, t }: { entries: LogEntry[]; accentC
           </ResponsiveContainer>
         </div>
       )}
-
       {stats && (
         <div className={classes.statsGrid}>
           <StatCard label={t("progress.current")} value={`${stats.current} kg`} color={accentColor} />
@@ -446,8 +513,10 @@ function formatDuration(totalSeconds: number) {
 function getToneClass(color?: string) {
   switch ((color || "").toLowerCase()) {
     case "#e8643a":
+    case "#ff6b35":
       return classes.orangeTone;
     case "#3ab8e8":
+    case "#40c8f4":
       return classes.blueTone;
     case "#7de83a":
       return classes.greenTone;
