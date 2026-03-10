@@ -277,7 +277,8 @@ function LogTab({
   inWorkoutSession,
   isResting,
 }: LogTabProps) {
-  const repTargets = [8, 10, 12, 15, 20];
+  const weightTargets = [20, 30, 40, 50];
+  const repTargets = [8, 10, 12, 15];
 
   return (
     <>
@@ -310,6 +311,18 @@ function LogTab({
             >
               +2.5
             </button>
+          </div>
+          <div className={classes.repChips}>
+            {weightTargets.map((weight) => (
+              <button
+                key={weight}
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, weight: String(weight) }))}
+                className={`${classes.repChip}${form.weight === String(weight) ? ` ${classes.repChipActive}` : ""}`}
+              >
+                {weight} kg
+              </button>
+            ))}
           </div>
         </div>
 
