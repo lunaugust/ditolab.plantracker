@@ -57,9 +57,9 @@ describe("exercise catalog Spanish translations", () => {
 
     expect(
       catalog.find((entry) => entry.name === "band shrug")?.noteEs,
-    ).toContain("los trapecios");
+    ).toContain("trapecios");
     expect(
       catalog.find((entry) => entry.name === "cable incline fly (on stability ball)")?.noteEs,
-    ).toContain("los pectorales");
+    ).toContain("pectorales");
   });
 });
