@@ -27,6 +27,8 @@ interface PlanViewProps {
   onStartWorkoutSession?: (dayKey: string) => void;
   onResumeWorkoutSession?: () => void;
   onEndWorkoutSession?: () => void;
+  designVariant: "session" | "logbook";
+  onDesignVariantChange?: (variant: "session" | "logbook") => void;
 }
 
 export function PlanView({
@@ -48,6 +50,8 @@ export function PlanView({
   onStartWorkoutSession,
   onResumeWorkoutSession,
   onEndWorkoutSession,
+  designVariant,
+  onDesignVariantChange,
 }: PlanViewProps) {
   const { t, language } = useI18n();
   const safeActiveDay = trainingPlan[activeDay] ? activeDay : dayKeys[0];
@@ -79,6 +83,10 @@ export function PlanView({
 
   const currentDay = isEditing && draftDay ? draftDay : day;
   const activeAccent = dayColors[safeActiveDay];
+  const focusExercise = workoutSession
+    ? trainingPlan[workoutSession.dayKey]?.exercises?.[workoutSession.currentExerciseIndex]
+    : currentDay?.exercises[0];
+  const lastLog = focusExercise ? getLastLog(logs, focusExercise.id) : null;
 
   const startEditing = () => {
     setDraftDay(JSON.parse(JSON.stringify(day)));
@@ -135,13 +143,85 @@ export function PlanView({
 
   return (
     <PageContainer>
-      <div className={`${classes.shell} ${getToneClass(activeAccent)}`}>
+      <div className={`${classes.shell} ${getToneClass(activeAccent)} ${designVariant === "logbook" ? classes.logbookTone : classes.sessionTone}`}>
         <DayTabs
           days={dayKeys}
           activeDay={safeActiveDay}
           dayColors={dayColors}
           onSelect={setActiveDay}
         />
+
+        {onDesignVariantChange && (
+          <div className={classes.designExamples}>
+            {[
+              {
+                key: "session" as const,
+                label: "Glass Session",
+                detail: "Flow built around the active session card, rest rail, and thumbable start/resume.",
+              },
+              {
+                key: "logbook" as const,
+                label: "Logbook Pro",
+                detail: "High-contrast sheets, larger number inputs, and a persistent log history focus.",
+              },
+            ].map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                className={`${classes.exampleCard}${designVariant === option.key ? ` ${classes.exampleActive}` : ""}`}
+                onClick={() => onDesignVariantChange(option.key)}
+              >
+                <div className={classes.exampleBadge}>Example</div>
+                <div className={classes.exampleTitle}>{option.label}</div>
+                <div className={classes.exampleDetail}>{option.detail}</div>
+                <div className={classes.exampleSwatches}>
+                  <span className={classes.swatchPrimary} />
+                  <span className={classes.swatchAccent} />
+                </div>
+                {designVariant === option.key && <div className={classes.exampleCheck}>✓ Active</div>}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {currentDay && (
+          <div className={`${classes.sessionFocusCard}${workoutSession ? ` ${classes.sessionFocusActive}` : ""}`}>
+            <div className={classes.sessionFocusTop}>
+              <div className={classes.sessionFocusLabel}>
+                {workoutSession ? t("session.activeTitle") : t("session.startWorkout")}
+              </div>
+              <div className={classes.sessionFocusMeta}>
+                {focusExercise
+                  ? `${focusExercise.sets || "—"} ${t("common.series")} · ${focusExercise.reps || t("common.reps")} · ${focusExercise.rest || "—"}`
+                  : t("plan.addExercise")}
+              </div>
+            </div>
+            <div className={classes.sessionFocusMain}>
+              <div className={classes.sessionFocusName}>{workoutSession ? activeSessionExerciseName || t("session.resumeWorkout") : focusExercise?.name || t("session.startWorkout")}</div>
+              <div className={classes.sessionFocusDetail}>
+                {lastLog
+                  ? `${t("log.weightLabel")}: ${lastLog.weight || "—"} · ${t("log.repsDoneLabel")}: ${lastLog.reps || "—"}`
+                  : t("log.noRecords")}
+              </div>
+            </div>
+            <div className={classes.sessionFocusActions}>
+              {workoutSession ? (
+                <>
+                  <button onClick={onResumeWorkoutSession} className={classes.primaryCTA}>
+                    {t("session.resumeWorkout")}
+                  </button>
+                  <button onClick={onEndWorkoutSession} className={classes.ghostButton}>
+                    {t("session.endWorkout")}
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => onStartWorkoutSession?.(safeActiveDay)} className={classes.primaryCTA}>
+                  ▶ {t("session.startWorkout")}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className={classes.heroCard}>
           <div className={classes.heroTopRow}>
@@ -215,37 +295,6 @@ export function PlanView({
             </button>
           )}
         </div>
-
-        {!isEditing && workoutSession && (
-          <div className={classes.sessionCard}>
-            <div className={classes.sessionMain}>
-              <div className={classes.sessionLabel}>{t("session.activeTitle")}</div>
-              <div className={classes.sessionExerciseName}>{activeSessionExerciseName || t("session.resumeWorkout")}</div>
-              <div className={classes.sessionMeta}>
-                {workoutSession.dayKey} · {t("session.exerciseProgress", {
-                  current: workoutSession.currentExerciseIndex + 1,
-                  total: workoutSession.totalExercises,
-                })}
-              </div>
-            </div>
-            <div className={classes.sessionActions}>
-              <button onClick={onResumeWorkoutSession} className={classes.accentGhostButton}>
-                {t("session.resumeWorkout")}
-              </button>
-              <button onClick={onEndWorkoutSession} className={classes.ghostButton}>
-                {t("session.endWorkout")}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {!isEditing && !workoutSession && currentDay.exercises.length > 0 && onStartWorkoutSession && (
-          <div className={classes.sessionStartWrap}>
-            <button onClick={() => onStartWorkoutSession(safeActiveDay)} className={classes.startButton}>
-              ▶ {t("session.startWorkout")}
-            </button>
-          </div>
-        )}
 
         {isEditing && (
           <div className={classes.addExerciseWrap}>

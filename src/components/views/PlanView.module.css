@@ -9,6 +9,8 @@
 .violetTone { --accent: #c83ae8; }
 .pinkTone { --accent: #e83a7d; }
 .defaultTone { --accent: var(--color-accent-blue); }
+.sessionTone { --glassEdge: rgba(58, 184, 232, 0.16); }
+.logbookTone { --glassEdge: rgba(232, 100, 58, 0.14); }
 
 .heroCard,
 .actionRow,
@@ -70,6 +72,151 @@
   color: #888;
   font-size: 14px;
   line-height: 1.5;
+}
+
+.primaryCTA {
+  border-radius: 18px;
+  padding: 14px 16px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  background: linear-gradient(120deg, rgba(58, 184, 232, 0.8), rgba(232, 100, 58, 0.9));
+  border: 1px solid rgba(240, 237, 232, 0.08);
+  color: #0c0c0c;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.designExamples {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.exampleCard {
+  position: relative;
+  border-radius: 22px;
+  padding: 14px;
+  border: 1px solid rgba(240, 237, 232, 0.08);
+  background: linear-gradient(180deg, rgba(240, 237, 232, 0.05) 0%, rgba(17, 17, 17, 0.9) 100%);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  text-align: left;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+}
+
+.exampleActive {
+  border-color: var(--accent);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.3);
+}
+
+.exampleBadge {
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  color: #888;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.exampleTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 6px;
+}
+
+.exampleDetail {
+  font-size: 12px;
+  color: #777;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.exampleSwatches {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.swatchPrimary,
+.swatchAccent {
+  width: 16px;
+  height: 16px;
+  border-radius: 6px;
+}
+
+.swatchPrimary { background: linear-gradient(180deg, rgba(240, 237, 232, 0.08), rgba(17, 17, 17, 0.9)); }
+.swatchAccent { background: linear-gradient(135deg, rgba(58, 184, 232, 0.9), rgba(232, 100, 58, 0.9)); }
+
+.exampleCheck {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  color: var(--accent);
+}
+
+.sessionFocusCard {
+  border-radius: 28px;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(240, 237, 232, 0.08);
+  background:
+    linear-gradient(180deg, rgba(240, 237, 232, 0.06) 0%, rgba(17, 17, 17, 0.94) 100%),
+    radial-gradient(circle at 16% 0%, var(--glassEdge, rgba(58, 184, 232, 0.16)) 0%, transparent 46%);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.28);
+}
+
+.sessionFocusActive {
+  border-color: var(--accent);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.34);
+}
+
+.sessionFocusTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.sessionFocusLabel {
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+.sessionFocusMeta {
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  color: #777;
+}
+
+.sessionFocusMain {
+  margin-bottom: 10px;
+}
+
+.sessionFocusName {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.4px;
+}
+
+.sessionFocusDetail {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.sessionFocusActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
 }
 
 .heroAside {
@@ -301,5 +448,13 @@
 
   .metaGrid {
     grid-template-columns: 1fr;
+  }
+
+  .designExamples {
+    grid-template-columns: 1fr;
+  }
+
+  .sessionFocusActions {
+    flex-direction: column;
   }
 }

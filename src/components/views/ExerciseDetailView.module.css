@@ -9,6 +9,8 @@
 .violetTone { --accent: #c83ae8; }
 .pinkTone { --accent: #e83a7d; }
 .defaultTone { --accent: var(--color-accent-blue); }
+.sessionTone { --glassEdge: rgba(58, 184, 232, 0.16); }
+.logbookTone { --glassEdge: rgba(232, 100, 58, 0.14); }
 
 .surface,
 .sessionCard,
@@ -73,6 +75,22 @@
   margin-top: 4px;
 }
 
+.sessionStack {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sessionPill {
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  color: #f0ede8;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: linear-gradient(120deg, rgba(58, 184, 232, 0.2), rgba(232, 100, 58, 0.18));
+  border: 1px solid rgba(240, 237, 232, 0.08);
+}
+
 .ghostButton,
 .warningButton,
 .chip,
@@ -126,6 +144,16 @@
   margin-bottom: 20px;
   padding: 20px;
   border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(240, 237, 232, 0.05) 0%, rgba(17, 17, 17, 0.9) 100%),
+    radial-gradient(circle at 10% 0%, var(--glassEdge, rgba(58, 184, 232, 0.16)) 0%, transparent 42%);
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .headerTitle {
@@ -136,11 +164,23 @@
   letter-spacing: -1.1px;
 }
 
+.headerBadge {
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  color: #888;
+  border-radius: 999px;
+  padding: 6px 10px;
+  border: 1px solid rgba(240, 237, 232, 0.08);
+}
+
 .headerMeta {
   font-family: "DM Mono", monospace;
   font-size: 11px;
   color: #666;
   letter-spacing: 0.4px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .headerNote {
@@ -148,6 +188,58 @@
   color: #e8643a;
   margin-top: 8px;
   font-style: italic;
+}
+
+.sessionMeter {
+  margin-top: 10px;
+}
+
+.sessionMeterTrack {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(240, 237, 232, 0.06), rgba(17, 17, 17, 0.9));
+  border: 1px solid rgba(240, 237, 232, 0.08);
+  overflow: hidden;
+}
+
+.sessionMeterFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(120deg, rgba(58, 184, 232, 0.9), rgba(232, 100, 58, 0.9));
+  transition: width 160ms ease;
+}
+
+.sessionMeterLabel {
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  color: #777;
+  margin-top: 6px;
+}
+
+.lastEntry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(240, 237, 232, 0.03), rgba(17, 17, 17, 0.9));
+  border: 1px solid rgba(240, 237, 232, 0.05);
+}
+
+.lastEntryLabel {
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  color: #888;
+}
+
+.lastEntryValue {
+  font-family: "DM Sans", sans-serif;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  font-weight: 600;
 }
 
 .tabs {
@@ -175,6 +267,40 @@
 
 .contentSection {
   margin-top: 20px;
+}
+
+.quickLoad {
+  padding: 14px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(240, 237, 232, 0.06);
+  background: linear-gradient(180deg, rgba(240, 237, 232, 0.04) 0%, rgba(17, 17, 17, 0.9) 100%);
+  margin-bottom: 12px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+}
+
+.quickLoadLabel {
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #777;
+  margin-bottom: 4px;
+}
+
+.quickLoadValue {
+  font-size: 14px;
+  color: var(--color-text-primary);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.quickLoadButton {
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  color: var(--accent);
+  border: 1px solid rgba(240, 237, 232, 0.08);
+  background: linear-gradient(180deg, rgba(58, 184, 232, 0.12) 0%, rgba(17, 17, 17, 0.9) 100%);
 }
 
 .formCard {

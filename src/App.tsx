@@ -6,6 +6,9 @@ import { APP_VERSION, WHATS_NEW_STORAGE_KEY } from "./data/changelog";
 import { PlanView, PlanGeneratorWizard, PlanImportWizard, ExerciseDetailView, SessionHistoryView } from "./components/views";
 import type { TrainingPlan, WorkoutHistoryEntry, WorkoutSession } from "./services/types";
 
+type DesignVariant = "session" | "logbook";
+const DESIGN_VARIANT_KEY = "design_variant";
+
 /**
  * Root application component.
  *
@@ -36,6 +39,7 @@ export default function App() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
   const [workoutSession, setWorkoutSession] = useState<WorkoutSession | null>(null);
+  const [designVariant, setDesignVariant] = useState<DesignVariant>("session");
 
   // Show "What's New" once per version, after auth resolves.
   useEffect(() => {
@@ -45,6 +49,18 @@ export default function App() {
       setShowWhatsNew(true);
     }
   }, [auth.loading]);
+
+  // Persist and hydrate the chosen design variant so examples stay sticky.
+  useEffect(() => {
+    const stored = localStorage.getItem(DESIGN_VARIANT_KEY) as DesignVariant | null;
+    if (stored === "logbook" || stored === "session") {
+      setDesignVariant(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(DESIGN_VARIANT_KEY, designVariant);
+  }, [designVariant]);
 
   const dismissWhatsNew = () => {
     localStorage.setItem(WHATS_NEW_STORAGE_KEY, APP_VERSION);
@@ -285,7 +301,7 @@ export default function App() {
   }
 
   return (
-    <div className={styles.appShell}>
+    <div className={`${styles.appShell} ${designVariant === "logbook" ? styles.logbookTheme : styles.sessionTheme}`}>
       <Header
         saveMsg={planSaveMsg || logSaveMsg || historySaveMsg}
         authUserName={auth.user?.displayName}
@@ -308,6 +324,7 @@ export default function App() {
           onLogSet={isViewingActiveWorkoutExercise ? handleSessionSetLogged : undefined}
           onSkipRest={isViewingActiveWorkoutExercise ? skipWorkoutRest : undefined}
           onEndWorkoutSession={isViewingActiveWorkoutExercise ? () => endWorkoutSession() : undefined}
+          designVariant={designVariant}
         />
       ) : (
         <PlanView
@@ -329,6 +346,8 @@ export default function App() {
           onStartWorkoutSession={startWorkoutSession}
           onResumeWorkoutSession={resumeWorkoutSession}
           onEndWorkoutSession={() => endWorkoutSession()}
+          designVariant={designVariant}
+          onDesignVariantChange={setDesignVariant}
         />
       )}
 

@@ -7,3 +7,4 @@ export { useInstallPWA } from "./useInstallPWA";
 export { useExerciseGif } from "./useExerciseGif";
 export { useLocalizedExerciseName } from "./useLocalizedExerciseName";
 export { useLocalizedExerciseNote } from "./useLocalizedExerciseNote";
+export { useSwipeBack } from "./useSwipeBack";

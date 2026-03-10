@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -9,10 +9,10 @@ import {
 } from "recharts";
 import { colors } from "../../theme";
 import { useI18n } from "../../i18n";
-import { useExerciseGif, useLocalizedExerciseName, useLocalizedExerciseNote } from "../../hooks";
+import { useExerciseGif, useLocalizedExerciseName, useLocalizedExerciseNote, useSwipeBack } from "../../hooks";
 import { formatDate, buildChartData, computeWeightStats } from "../../utils/helpers";
 import { SectionLabel, StatCard, BackButton, PageContainer } from "../ui";
-import type { Exercise, LogEntry, LogsByExercise } from "../../services/types";
+import type { Exercise, LogEntry, LogsByExercise, WorkoutSession } from "../../services/types";
 import classes from "./ExerciseDetailView.module.css";
 
 interface ExerciseDetailViewProps {
@@ -22,15 +22,11 @@ interface ExerciseDetailViewProps {
   addLog: (exId: string, data: { weight: string; reps: string; notes: string }) => void;
   deleteLog: (exId: string, idx: number) => void;
   onBack: () => void;
-  workoutSession?: {
-    startedAt: number;
-    currentExerciseIndex: number;
-    totalExercises: number;
-    restSecondsLeft: number;
-  } | null;
+  workoutSession?: WorkoutSession | null;
   onLogSet?: (data: { weight: string; reps: string; notes: string }) => void;
   onSkipRest?: () => void;
   onEndWorkoutSession?: () => void;
+  designVariant: "session" | "logbook";
 }
 
 type FormState = { weight: string; reps: string; notes: string };
@@ -47,6 +43,7 @@ export function ExerciseDetailView({
   onLogSet,
   onSkipRest,
   onEndWorkoutSession,
+  designVariant,
 }: ExerciseDetailViewProps) {
   const { t } = useI18n();
   const gifUrl = useExerciseGif(exercise.exerciseId, exercise.name);
@@ -56,6 +53,7 @@ export function ExerciseDetailView({
   const [form, setForm] = useState<FormState>({ weight: "", reps: "", notes: "" });
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const entries = logs[exercise.id] || [];
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const latest = entries[entries.length - 1];
@@ -81,6 +79,8 @@ export function ExerciseDetailView({
     return () => window.clearInterval(timerId);
   }, [workoutSession?.startedAt]);
 
+  useSwipeBack(onBack, { enabled: true });
+
   const handleSubmit = () => {
     if (!form.weight.trim() && !form.reps.trim()) return;
     addLog(exercise.id, form);
@@ -102,9 +102,16 @@ export function ExerciseDetailView({
     setForm((prev) => ({ ...prev, reps: String(next) }));
   };
 
+  const latestEntry = entries[entries.length - 1];
+  const setTargetMatch = exercise.sets?.match(/(\d+)/);
+  const targetSets = setTargetMatch ? Math.max(1, Number(setTargetMatch[1]) || 1) : 1;
+  const setsLogged = workoutSession?.loggedSetsByExercise?.[exercise.id] || 0;
+  const nextSetNumber = Math.min(targetSets, setsLogged + 1);
+  const setProgressPct = Math.min(100, Math.floor((setsLogged / Math.max(1, targetSets)) * 100));
+
   return (
     <PageContainer>
-      <div className={`${classes.shell} ${getToneClass(accentColor)}`}>
+      <div ref={containerRef} className={`${classes.shell} ${getToneClass(accentColor)} ${designVariant === "logbook" ? classes.logbookTone : classes.sessionTone}`}>
         <BackButton onClick={onBack} />
 
         {workoutSession && (
@@ -119,9 +126,14 @@ export function ExerciseDetailView({
                 })}
               </div>
             </div>
-            <button onClick={onEndWorkoutSession} className={classes.ghostButton}>
-              {t("session.endWorkout")}
-            </button>
+            <div className={classes.sessionStack}>
+              <div className={classes.sessionPill}>
+                {t("common.series")}: {nextSetNumber}/{targetSets}
+              </div>
+              <button onClick={onEndWorkoutSession} className={classes.ghostButton}>
+                {t("session.endWorkout")}
+              </button>
+            </div>
           </div>
         )}
 
@@ -136,11 +148,32 @@ export function ExerciseDetailView({
         )}
 
         <div className={classes.headerCard}>
-          <div className={classes.headerTitle}>{localizedName}</div>
+          <div className={classes.headerRow}>
+            <div className={classes.headerTitle}>{localizedName}</div>
+            <div className={classes.headerBadge}>{t("common.series")} {exercise.sets || "—"}</div>
+          </div>
           <div className={classes.headerMeta}>
             {exercise.sets} {t("common.series")} · {exercise.reps} {t("common.reps")} · {exercise.rest}
           </div>
-          {localizedNote && <div className={classes.headerNote}>⚠ {localizedNote}</div>}
+          <div className={classes.sessionMeter}>
+            <div className={classes.sessionMeterTrack}>
+              <div className={classes.sessionMeterFill} style={{ width: `${setProgressPct}%` }} />
+            </div>
+            <div className={classes.sessionMeterLabel}>
+              {workoutSession ? `${t("common.series")}: ${setsLogged}/${targetSets}` : t("log.history")}
+            </div>
+          </div>
+          <div className={classes.headerMeta}>
+            {localizedNote && <span className={classes.headerNote}>⚠ {localizedNote}</span>}
+          </div>
+          {latestEntry && (
+            <div className={classes.lastEntry}>
+              <span className={classes.lastEntryLabel}>{t("log.history")}</span>
+              <span className={classes.lastEntryValue}>
+                {latestEntry.weight || "—"} kg · {latestEntry.reps || "—"} {t("common.reps")}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className={classes.tabs}>
@@ -175,6 +208,15 @@ export function ExerciseDetailView({
               isResting={!!workoutSession && workoutSession.restSecondsLeft > 0}
               restSecondsLeft={workoutSession?.restSecondsLeft || 0}
               onSkipRest={onSkipRest}
+              latestEntry={latestEntry}
+              onUseLatest={() => {
+                if (!latestEntry) return;
+                setForm((current) => ({
+                  ...current,
+                  weight: latestEntry.weight || current.weight,
+                  reps: latestEntry.reps || current.reps,
+                }));
+              }}
             />
           )}
 
@@ -201,6 +243,8 @@ interface LogTabProps {
   isResting: boolean;
   restSecondsLeft: number;
   onSkipRest?: () => void;
+  latestEntry?: LogEntry;
+  onUseLatest?: () => void;
 }
 
 function LogTab({
@@ -217,11 +261,25 @@ function LogTab({
   isResting,
   restSecondsLeft,
   onSkipRest,
+  latestEntry,
+  onUseLatest,
 }: LogTabProps) {
   const repTargets = [8, 10, 15, 20];
 
   return (
     <>
+      {latestEntry && (
+        <div className={classes.quickLoad}>
+          <div className={classes.quickLoadLabel}>Último set guardado</div>
+          <div className={classes.quickLoadValue}>
+            {latestEntry.weight || "—"} kg · {latestEntry.reps || "—"} {t("common.reps")}
+          </div>
+          <button type="button" onClick={onUseLatest} className={classes.quickLoadButton}>
+            Rellenar campos
+          </button>
+        </div>
+      )}
+
       <div className={classes.formCard}>
         <div className={classes.fieldSection}>
           <div className={classes.fieldLabel}>{t("log.weightLabel").toUpperCase()}</div>
