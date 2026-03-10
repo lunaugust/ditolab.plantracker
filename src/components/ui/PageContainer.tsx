@@ -1,4 +1,5 @@
 import { layout } from "../../theme";
+import styles from "./PageContainer.module.css";
 import type { ReactNode } from "react";
 
 interface PageContainerProps {
@@ -6,15 +7,5 @@ interface PageContainerProps {
 }
 
 export function PageContainer({ children }: PageContainerProps) {
-  return (
-    <div
-      style={{
-        maxWidth: layout.maxContentWidth,
-        margin: "0 auto",
-        padding: "16px 16px 24px",
-      }}
-    >
-      {children}
-    </div>
-  );
+  return <div className={styles.container}>{children}</div>;
 }

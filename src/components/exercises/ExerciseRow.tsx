@@ -39,28 +39,30 @@ export function ExerciseRow({
       onClick={interactive ? onClick : undefined}
       style={{
         ...performancePanelStyle(interactive ? accentColor : undefined, disabled),
-        background: disabled ? colors.surfaceAlt : colors.surface,
-        borderRadius: 18,
-        padding: "16px 16px",
+        background: disabled
+          ? `linear-gradient(180deg, ${colors.textPrimary}04 0%, ${colors.surfaceAlt}d8 100%)`
+          : `linear-gradient(180deg, ${colors.textPrimary}08 0%, ${colors.surface}f0 100%)`,
+        borderRadius: 24,
+        padding: "18px 18px",
         display: "flex",
         alignItems: "center",
         gap: 12,
         cursor: interactive ? "pointer" : "default",
-        border: `1px solid ${disabled ? colors.borderDim : interactive ? `${accentColor}33` : colors.borderLight}`,
+        border: `1px solid ${disabled ? colors.borderDim : interactive ? `${accentColor}2f` : `${colors.textPrimary}10`}`,
         opacity: disabled ? 0.4 : 1,
-        transition: "background 0.1s, border-color 0.1s, transform 0.1s",
+        transition: "background 0.14s, border-color 0.14s, transform 0.14s",
         minHeight: 64,
         WebkitTapHighlightColor: "transparent",
       }}
       onMouseEnter={(e) => {
         if (interactive) {
-          e.currentTarget.style.background = colors.surfaceAlt;
+          e.currentTarget.style.background = `linear-gradient(180deg, ${colors.textPrimary}10 0%, ${colors.surfaceAlt}f4 100%)`;
           e.currentTarget.style.transform = "translateY(-1px)";
         }
       }}
       onMouseLeave={(e) => {
         if (interactive) {
-          e.currentTarget.style.background = colors.surface;
+          e.currentTarget.style.background = `linear-gradient(180deg, ${colors.textPrimary}08 0%, ${colors.surface}f0 100%)`;
           e.currentTarget.style.transform = "translateY(0)";
         }
       }}

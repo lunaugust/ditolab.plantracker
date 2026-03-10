@@ -1,5 +1,5 @@
 import { colors, fonts } from "../../theme";
-import { performancePillStyle } from "../../theme/editorialPerformance";
+import { performancePanelStyle, performancePillStyle } from "../../theme/editorialPerformance";
 import type { CSSProperties } from "react";
 
 interface DayTabsProps {
@@ -33,13 +33,12 @@ export function DayTabs({ days, activeDay, dayColors, onSelect }: DayTabsProps) 
 
 const styles: Record<string, CSSProperties> = {
   container: {
+    ...performancePanelStyle(undefined, true),
     display: "flex",
     gap: 8,
     marginBottom: 20,
     padding: 6,
-    background: colors.surfaceAlt,
-    borderRadius: 20,
-    border: `1px solid ${colors.border}`,
+    borderRadius: 24,
   },
   tab: {
     flex: 1,

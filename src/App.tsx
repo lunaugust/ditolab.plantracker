@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import styles from "./App.module.css";
 import { useTrainingLogs, useNavigation, useAuth, useTrainingPlan, useInstallPWA, useWorkoutSessions } from "./hooks";
 import { Header, LoadingScreen, AuthScreen, FeedbackModal, WhatsNewModal } from "./components/layout";
 import { APP_VERSION, WHATS_NEW_STORAGE_KEY } from "./data/changelog";
 import { PlanView, PlanGeneratorWizard, PlanImportWizard, ExerciseDetailView, SessionHistoryView } from "./components/views";
-import { colors } from "./theme";
 import type { TrainingPlan, WorkoutHistoryEntry, WorkoutSession } from "./services/types";
 
 /**
@@ -246,7 +246,7 @@ export default function App() {
 
   if (showGenerator) {
     return (
-      <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
+      <div className={styles.overlayShell}>
         <PlanGeneratorWizard
           onApply={(plan: TrainingPlan) => {
             replacePlan(plan);
@@ -262,7 +262,7 @@ export default function App() {
 
   if (showImporter) {
     return (
-      <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
+      <div className={styles.overlayShell}>
         <PlanImportWizard
           onApply={(plan: TrainingPlan) => {
             replacePlan(plan);
@@ -278,14 +278,14 @@ export default function App() {
 
   if (showSessionHistory) {
     return (
-      <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary }}>
+      <div className={styles.overlayShell}>
         <SessionHistoryView sessions={workoutHistory} onBack={() => setShowSessionHistory(false)} />
       </div>
     );
   }
 
   return (
-    <div style={{ background: colors.bg, minHeight: "100dvh", fontFamily: "'DM Sans', sans-serif", color: colors.textPrimary, paddingBottom: 24 }}>
+    <div className={styles.appShell}>
       <Header
         saveMsg={planSaveMsg || logSaveMsg || historySaveMsg}
         authUserName={auth.user?.displayName}

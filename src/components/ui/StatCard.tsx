@@ -20,8 +20,8 @@ export function StatCard({ label, value, color = colors.textPrimary }: StatCardP
 const styles: Record<string, CSSProperties> = {
   card: {
     ...performancePanelStyle(undefined, true),
-    borderRadius: 18,
-    padding: "18px 14px",
+    borderRadius: 22,
+    padding: "20px 14px",
     textAlign: "center",
     flex: 1,
   },
@@ -34,7 +34,7 @@ const styles: Record<string, CSSProperties> = {
   },
   value: {
     fontFamily: fonts.mono,
-    fontSize: 17,
+    fontSize: 19,
     fontWeight: 600,
   },
 };

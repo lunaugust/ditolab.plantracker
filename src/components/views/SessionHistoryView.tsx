@@ -138,8 +138,8 @@ function formatDateTime(value: string, t: (key: string) => string) {
 
 const styles: Record<string, CSSProperties> = {
   heroCard: {
-    borderRadius: 24,
-    padding: 18,
+    borderRadius: 28,
+    padding: 20,
     marginBottom: 18,
   },
   eyebrow: {
@@ -150,10 +150,11 @@ const styles: Record<string, CSSProperties> = {
     marginBottom: 8,
   },
   heroTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 700,
     color: colors.textPrimary,
     marginBottom: 8,
+    letterSpacing: -1.1,
   },
   heroSubtitle: {
     fontSize: 14,
@@ -168,8 +169,8 @@ const styles: Record<string, CSSProperties> = {
   },
   metricCard: {
     ...performancePanelStyle(undefined, true),
-    borderRadius: 18,
-    padding: 14,
+    borderRadius: 22,
+    padding: 16,
   },
   metricValue: {
     color: colors.textPrimary,
@@ -184,8 +185,8 @@ const styles: Record<string, CSSProperties> = {
   },
   emptyCard: {
     ...performancePanelStyle(),
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 24,
+    padding: 20,
   },
   emptyText: {
     color: colors.textSecondary,
@@ -198,7 +199,7 @@ const styles: Record<string, CSSProperties> = {
     gap: 10,
   },
   sessionCard: {
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: "hidden",
   },
   sessionHeaderButton: {
@@ -247,7 +248,7 @@ const styles: Record<string, CSSProperties> = {
   },
   sessionBody: {
     borderTop: `1px solid ${colors.borderLight}`,
-    padding: 14,
+    padding: 16,
   },
   detailRow: {
     display: "flex",
@@ -277,8 +278,8 @@ const styles: Record<string, CSSProperties> = {
     gap: 12,
     alignItems: "center",
     ...performancePanelStyle(undefined, true),
-    borderRadius: 16,
-    padding: 10,
+    borderRadius: 20,
+    padding: 12,
   },
   exerciseName: {
     color: colors.textPrimary,

@@ -193,7 +193,7 @@ export function PlanView({
       </div>
 
       {/* Day info header */}
-      <div style={styles.dayHeaderRow}>
+      <div style={{ ...styles.dayHeaderRow, ...performancePanelStyle(activeAccent, true) }}>
         <div style={{ flex: 1 }}>
           {isEditing ? (
             <input
@@ -390,7 +390,7 @@ const styles = {
     ...performanceGhostButtonStyle(colors.textSecondary),
   },
   heroCard: {
-    marginBottom: 16,
+    marginBottom: 18,
   },
   heroTopRow: {
     display: "flex",
@@ -400,9 +400,9 @@ const styles = {
     marginBottom: 10,
   },
   heroTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 700,
-    letterSpacing: -0.8,
+    letterSpacing: -1.2,
   },
   heroSubtitle: {
     color: colors.textSecondary,
@@ -412,17 +412,20 @@ const styles = {
   heroMetric: {
     fontFamily: fonts.mono,
     fontSize: 12,
-    color: colors.accent.blue,
-    padding: "10px 12px",
+    color: colors.textPrimary,
+    padding: "10px 14px",
     borderRadius: 999,
-    border: `1px solid ${colors.accent.blue}55`,
-    background: `${colors.accent.blue}12`,
+    border: `1px solid ${colors.textPrimary}12`,
+    background: `linear-gradient(180deg, ${colors.textPrimary}10 0%, ${colors.accent.blue}14 100%)`,
   },
   actionRow: {
+    ...performancePanelStyle(undefined, true),
     display: "flex",
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 14,
     flexWrap: "wrap" as const,
+    padding: 12,
+    borderRadius: 24,
   },
   dayHeaderRow: {
     marginBottom: 20,
@@ -430,9 +433,11 @@ const styles = {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 10,
+    padding: 14,
+    borderRadius: 24,
   },
   daySubtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: colors.textSecondary,
     fontWeight: 400,
   },
@@ -448,8 +453,8 @@ const styles = {
   },
   editCard: {
     ...performancePanelStyle(undefined, true),
-    borderRadius: 18,
-    padding: 12,
+    borderRadius: 24,
+    padding: 14,
     display: "flex",
     gap: 10,
     alignItems: "flex-start",
@@ -498,19 +503,19 @@ const styles = {
   },
   sessionButton: {
     width: "100%",
-    border: `1px solid ${colors.border}`,
-    borderRadius: 18,
-    padding: "15px 12px",
+    border: `1px solid ${colors.textPrimary}12`,
+    borderRadius: 24,
+    padding: "16px 14px",
     cursor: "pointer",
     fontFamily: fonts.mono,
     fontSize: 12,
     fontWeight: 600,
-    boxShadow: "0 18px 40px rgba(0, 0, 0, 0.22)",
+    boxShadow: "0 24px 64px rgba(0, 0, 0, 0.26)",
   },
   sessionCard: {
     marginBottom: 12,
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 24,
+    padding: 18,
     display: "flex",
     gap: 12,
     alignItems: "center",
@@ -525,7 +530,7 @@ const styles = {
   },
   sessionExerciseName: {
     color: colors.textPrimary,
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: 700,
     marginBottom: 4,
   },

@@ -8,7 +8,7 @@
  *     whose stored "gymbuddy_seen_version" differs from APP_VERSION.
  */
 
-export const APP_VERSION = "1.9.0";
+export const APP_VERSION = "1.10.0";
 
 /** localStorage key that tracks the last version the user dismissed. */
 export const WHATS_NEW_STORAGE_KEY = "gymbuddy_seen_version";
@@ -35,18 +35,34 @@ export type ChangelogEntry = {
  */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.10.0",
+    date: "2026-03-09",
+    features: [
+      {
+        icon: "🫧",
+        es: "Rediseño Quiet Glass aplicado a la app completa con superficies translúcidas, jerarquía más calmada y mejor lectura en móvil.",
+        en: "Quiet Glass redesign applied across the full app with translucent surfaces, calmer hierarchy, and better mobile readability.",
+      },
+      {
+        icon: "✨",
+        es: "Nuevas transiciones de entrada, mejor espaciado tipográfico y overlays más fluidos para que la experiencia se sienta más pulida y consistente.",
+        en: "New entry transitions, tighter typographic spacing, and smoother overlays make the experience feel more polished and consistent.",
+      },
+    ],
+  },
+  {
     version: "1.9.0",
     date: "2026-03-09",
     features: [
       {
-        icon: "📰",
-        es: "Nuevo rediseño Editorial Performance en toda la app con jerarquía más clara, métricas destacadas y superficies más legibles en móvil.",
-        en: "New Editorial Performance redesign across the app with clearer hierarchy, stronger metrics, and more legible mobile surfaces.",
+        icon: "🏋️",
+        es: "Las sesiones activas mantienen el contexto del ejercicio actual y muestran progreso más claro mientras navegás entre plan y detalle.",
+        en: "Active workout sessions now keep current exercise context and show clearer progress while moving between plan and detail.",
       },
       {
-        icon: "📱",
-        es: "Plan, detalle, historial, generador, importador y modales ahora comparten el mismo lenguaje visual para una experiencia más consistente.",
-        en: "Plan, detail, history, generator, importer, and modal flows now share the same visual language for a more consistent experience.",
+        icon: "📚",
+        es: "El historial de sesiones resume duración, sets y estado de finalización para revisar entrenamientos anteriores más rápido.",
+        en: "Session history now summarises duration, sets, and completion state so previous workouts are faster to review.",
       },
     ],
   },

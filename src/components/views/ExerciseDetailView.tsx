@@ -494,12 +494,11 @@ function GifTab({ gifUrl, exerciseName, t }: { gifUrl?: string; exerciseName: st
 /* ---- Styles ---- */
 const styles: Record<string, CSSProperties> = {
   tabs: {
+    ...performancePanelStyle(undefined, true),
     display: "flex",
     gap: 8,
     padding: 6,
-    background: colors.surfaceAlt,
-    borderRadius: 20,
-    border: `1px solid ${colors.border}`,
+    borderRadius: 24,
   },
   tab: {
     flex: 1,
@@ -515,8 +514,8 @@ const styles: Record<string, CSSProperties> = {
 const formStyles: Record<string, CSSProperties> = {
   card: {
     ...performancePanelStyle(),
-    borderRadius: 18,
-    padding: 18,
+    borderRadius: 24,
+    padding: 20,
     marginBottom: 24,
   },
   grid: {
@@ -534,9 +533,9 @@ const formStyles: Record<string, CSSProperties> = {
   },
   numberInput: {
     width: "100%",
-    background: colors.bg,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 10,
+    background: `linear-gradient(180deg, ${colors.textPrimary}08 0%, ${colors.surfaceAlt}e8 100%)`,
+    border: `1px solid ${colors.textPrimary}12`,
+    borderRadius: 16,
     padding: "14px 14px",
     color: colors.textPrimary,
     fontFamily: fonts.mono,
@@ -550,10 +549,10 @@ const formStyles: Record<string, CSSProperties> = {
     alignItems: "center",
   },
   adjustBtn: {
-    border: `1px solid ${colors.border}`,
-    background: colors.bg,
+    border: `1px solid ${colors.textPrimary}10`,
+    background: `linear-gradient(180deg, ${colors.textPrimary}0a 0%, ${colors.surfaceAlt}dc 100%)`,
     color: colors.textPrimary,
-    borderRadius: 10,
+    borderRadius: 16,
     minHeight: 48,
     fontFamily: fonts.mono,
     fontSize: 12,
@@ -563,9 +562,9 @@ const formStyles: Record<string, CSSProperties> = {
   },
   textInput: {
     width: "100%",
-    background: colors.bg,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 10,
+    background: `linear-gradient(180deg, ${colors.textPrimary}08 0%, ${colors.surfaceAlt}e8 100%)`,
+    border: `1px solid ${colors.textPrimary}12`,
+    borderRadius: 16,
     padding: "14px 14px",
     color: colors.textPrimary,
     fontFamily: fonts.sans,
@@ -574,14 +573,15 @@ const formStyles: Record<string, CSSProperties> = {
   submit: {
     padding: 16,
     border: "none",
-    borderRadius: 12,
-    color: colors.bg,
+    borderRadius: 18,
+    color: colors.textOnAccent,
     fontFamily: fonts.sans,
     fontSize: 15,
     fontWeight: 700,
     cursor: "pointer",
     minHeight: 50,
     WebkitTapHighlightColor: "transparent",
+    boxShadow: "0 18px 40px rgba(0, 0, 0, 0.24)",
   },
   submitRow: {
     display: "grid",
@@ -603,8 +603,8 @@ const formStyles: Record<string, CSSProperties> = {
 
 const sessionStyles: Record<string, CSSProperties> = {
   card: {
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 24,
+    padding: 18,
     marginBottom: 12,
     display: "flex",
     alignItems: "center",
@@ -629,18 +629,18 @@ const sessionStyles: Record<string, CSSProperties> = {
     marginTop: 4,
   },
   endButton: {
-    border: `1px solid ${colors.border}`,
-    background: colors.bg,
+    border: `1px solid ${colors.textPrimary}10`,
+    background: `linear-gradient(180deg, ${colors.textPrimary}08 0%, ${colors.surfaceAlt}dc 100%)`,
     color: colors.textSecondary,
-    borderRadius: 8,
+    borderRadius: 999,
     padding: "8px 10px",
     fontFamily: fonts.mono,
     fontSize: 11,
     cursor: "pointer",
   },
   restCard: {
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 24,
+    padding: 18,
     marginBottom: 12,
     textAlign: "center",
   },
@@ -659,10 +659,10 @@ const sessionStyles: Record<string, CSSProperties> = {
     marginBottom: 8,
   },
   skipButton: {
-    border: `1px solid ${colors.border}`,
-    background: colors.bg,
+    border: `1px solid ${colors.textPrimary}10`,
+    background: `linear-gradient(180deg, ${colors.textPrimary}08 0%, ${colors.surfaceAlt}dc 100%)`,
     color: colors.textSecondary,
-    borderRadius: 8,
+    borderRadius: 999,
     padding: "8px 10px",
     fontFamily: fonts.mono,
     fontSize: 11,
@@ -676,9 +676,9 @@ const sessionStyles: Record<string, CSSProperties> = {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
-    background: colors.surface,
+    background: `linear-gradient(180deg, ${colors.textPrimary}0d 0%, ${colors.surface}ea 100%)`,
     border: `1px solid ${colors.warning}55`,
-    borderRadius: 18,
+    borderRadius: 22,
     padding: "10px 12px",
     marginTop: 12,
     boxShadow: "0 18px 40px rgba(0, 0, 0, 0.22)",
@@ -724,7 +724,7 @@ const historyStyles: Record<string, CSSProperties> = {
   },
   logEntry: {
     ...performancePanelStyle(undefined, true),
-    borderRadius: 16,
+    borderRadius: 20,
     padding: "14px 14px",
     display: "flex",
     alignItems: "center",
@@ -752,7 +752,7 @@ const historyStyles: Record<string, CSSProperties> = {
 const gifStyles = {
   card: {
     ...performancePanelStyle(),
-    borderRadius: 18,
+    borderRadius: 24,
     padding: 14,
     marginBottom: 20,
     textAlign: "center" as const,
@@ -776,7 +776,7 @@ const gifStyles = {
 const progressStyles: Record<string, CSSProperties> = {
   noDataCard: {
     ...performancePanelStyle(),
-    borderRadius: 18,
+    borderRadius: 24,
     padding: 40,
     textAlign: "center",
     marginBottom: 20,
@@ -788,7 +788,7 @@ const progressStyles: Record<string, CSSProperties> = {
   },
   chartCard: {
     ...performancePanelStyle(),
-    borderRadius: 18,
+    borderRadius: 24,
     padding: 20,
     marginBottom: 20,
   },
@@ -802,15 +802,15 @@ const progressStyles: Record<string, CSSProperties> = {
 const headerStyles: Record<string, CSSProperties> = {
   card: {
     marginBottom: 20,
-    padding: 18,
-    borderRadius: 18,
+    padding: 20,
+    borderRadius: 26,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 700,
     marginBottom: 8,
     color: colors.textPrimary,
-    letterSpacing: -0.8,
+    letterSpacing: -1.1,
   },
   meta: {
     fontFamily: fonts.mono,

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { colors, fonts } from "../../theme";
+import { performancePanelStyle } from "../../theme/editorialPerformance";
 import { searchExercises } from "../../data/exerciseCatalog";
 import { useI18n } from "../../i18n";
 import { useLocalizedExerciseName } from "../../hooks/useLocalizedExerciseName";
@@ -125,36 +126,37 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
 
 const defaultInputStyle: React.CSSProperties = {
   width: "100%",
-  border: `1px solid ${colors.border}`,
-  background: colors.bg,
+  border: `1px solid ${colors.textPrimary}12`,
+  background: `linear-gradient(180deg, ${colors.textPrimary}08 0%, ${colors.surfaceAlt}e8 100%)`,
   color: colors.textPrimary,
-  borderRadius: 10,
-  padding: "10px 12px",
+  borderRadius: 16,
+  padding: "12px 14px",
   fontFamily: fonts.sans,
   fontSize: 14,
   boxSizing: "border-box",
 };
 
 const dropdownStyle: React.CSSProperties = {
+  ...performancePanelStyle(colors.accent.blue),
   position: "absolute",
   top: "100%",
   left: 0,
   right: 0,
   zIndex: 50,
-  background: colors.surface,
-  border: `1px solid ${colors.border}`,
-  borderRadius: 10,
-  marginTop: 4,
+  borderRadius: 18,
+  marginTop: 8,
   maxHeight: 220,
   overflowY: "auto",
-  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+  boxShadow: "0 24px 64px rgba(0, 0, 0, 0.28)",
+  backdropFilter: "blur(18px)",
+  WebkitBackdropFilter: "blur(18px)",
 };
 
 const itemStyle: React.CSSProperties = {
-  padding: "8px 12px",
+  padding: "10px 12px",
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  borderBottom: `1px solid ${colors.border}`,
+  borderBottom: `1px solid ${colors.textPrimary}0c`,
 };
