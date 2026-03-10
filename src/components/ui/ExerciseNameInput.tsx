@@ -1,8 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { searchExercises } from "../../data/exerciseCatalog";
 import { useI18n } from "../../i18n";
+import { useExerciseGif } from "../../hooks";
 import { useLocalizedExerciseName } from "../../hooks/useLocalizedExerciseName";
 import classes from "./ExerciseNameInput.module.css";
+
+type SearchResult = {
+  exerciseId: string;
+  name: string;
+  nameEs?: string;
+  bodyParts: string[];
+};
 
 type Props = {
   value: string;
@@ -18,13 +26,15 @@ export function ExerciseNameInput({ value, onChange, placeholder, inputClassName
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [inputText, setInputText] = useState("");
-  const [results, setResults] = useState<{ exerciseId: string; name: string; nameEs?: string; bodyParts: string[] }[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [highlighted, setHighlighted] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const localizedValue = useLocalizedExerciseName(value);
   const inputDisplayValue = editing ? inputText : localizedValue;
+  const previewResult = results[highlighted] ?? results[0] ?? null;
+  const previewGifUrl = useExerciseGif(previewResult?.exerciseId, previewResult?.name);
 
   const doSearch = useCallback((query: string) => {
     if (query.length < 2) {
@@ -102,6 +112,22 @@ export function ExerciseNameInput({ value, onChange, placeholder, inputClassName
       />
       {open && results.length > 0 && (
         <div className={classes.dropdown}>
+          {previewResult && previewGifUrl && (
+            <div className={classes.previewCard} aria-live="polite">
+              <div className={classes.previewMediaWrap}>
+                <img
+                  src={previewGifUrl}
+                  alt={`${displayName(previewResult)} ${t("nav.gif")}`}
+                  className={classes.previewMedia}
+                />
+              </div>
+              <div className={classes.previewContent}>
+                <div className={classes.previewEyebrow}>{t("nav.gif")}</div>
+                <div className={classes.previewName}>{displayName(previewResult)}</div>
+                <div className={classes.previewMeta}>{previewResult.bodyParts.join(", ")}</div>
+              </div>
+            </div>
+          )}
           {results.map((r, i) => (
             <div
               key={r.exerciseId}

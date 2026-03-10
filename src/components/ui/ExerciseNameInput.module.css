@@ -30,6 +30,58 @@
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
 }
 
+.previewCard {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid rgba(240, 237, 232, 0.05);
+  background: linear-gradient(180deg, rgba(58, 184, 232, 0.12) 0%, rgba(240, 237, 232, 0.03) 100%);
+}
+
+.previewMediaWrap {
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(240, 237, 232, 0.08);
+  background: rgba(0, 0, 0, 0.18);
+  aspect-ratio: 1 / 1;
+}
+
+.previewMedia {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.previewContent {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.previewEyebrow {
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-ghost);
+}
+
+.previewName {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.previewMeta {
+  color: var(--color-text-ghost);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 .item {
   padding: 10px 12px;
   cursor: pointer;
@@ -57,4 +109,10 @@
   font-size: 10px;
   font-family: "DM Mono", monospace;
   margin-left: 8px;
+}
+
+@media (max-width: 640px) {
+  .previewCard {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
 }

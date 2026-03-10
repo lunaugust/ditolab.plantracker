@@ -136,6 +136,22 @@ describe("App", () => {
     expect(screen.getByText("EN")).toBeTruthy();
     expect(screen.getByTitle("Enviar comentarios")).toBeTruthy();
   });
+
+  it("shows a GIF preview when searching for an exercise in edit mode", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await waitForPlanLoad();
+
+    await user.click(screen.getByText("Editar plan"));
+
+    const nameInput = screen.getAllByPlaceholderText("Buscar ejercicio...")[0];
+    await user.click(nameInput);
+    await user.clear(nameInput);
+    await user.type(nameInput, "hack");
+
+    const previewImage = await screen.findByRole("img", { name: /Demostración/i });
+    expect(previewImage.getAttribute("src")).toContain("http");
+  });
 });
 
 /* ================================================================

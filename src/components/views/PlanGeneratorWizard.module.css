@@ -313,11 +313,17 @@
 }
 
 .previewExercise {
+  position: relative;
+  z-index: 0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   padding: 8px 0;
   border-bottom: 1px solid rgba(240, 237, 232, 0.08);
+}
+
+.previewExercise:focus-within {
+  z-index: 4;
 }
 
 .previewExercise:last-child {
