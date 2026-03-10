@@ -2,16 +2,35 @@
 
 /* ---- Design token CSS custom properties ---- */
 :root {
-  --color-bg:           #0d0d0d;
-  --color-surface:      #111111;
-  --color-surface-alt:  #0f0f0f;
-  --color-surface-elevated: #161616;
-  --color-text-primary: #f0ede8;
+  --color-bg:           #0a0a0f;
+  --color-surface:      #0e0e14;
+  --color-surface-alt:  #0c0c12;
+  --color-surface-elevated: #13131c;
+  --color-text-primary: #f2efeb;
   --color-text-secondary: #888888;
   --color-text-ghost:   #333333;
-  --color-border-soft: rgba(240, 237, 232, 0.08);
-  --color-accent-orange: #e8643a;
-  --color-accent-blue: #3ab8e8;
+  --color-border-soft: rgba(255, 255, 255, 0.07);
+  --color-accent-orange: #ff6b35;
+  --color-accent-blue: #40c8f4;
+
+  /* Liquid Glass tokens */
+  --glass-bg: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-blur: blur(24px) saturate(180%);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+
+  --glass-prominent-bg: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  --glass-prominent-border: rgba(255, 255, 255, 0.18);
+  --glass-prominent-shadow: 0 20px 60px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 /* ---- Reset ---- */
@@ -36,8 +55,9 @@ html, body, #root {
   min-height: 100vh;
   min-height: 100dvh; /* dynamic viewport for mobile browsers */
   background:
-    radial-gradient(circle at top, rgba(58, 184, 232, 0.12) 0%, transparent 28%),
-    radial-gradient(circle at 85% 0%, rgba(125, 232, 58, 0.08) 0%, transparent 20%),
+    radial-gradient(ellipse at 15% 0%, rgba(64, 200, 244, 0.18) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 10%, rgba(120, 80, 255, 0.12) 0%, transparent 38%),
+    radial-gradient(ellipse at 50% 80%, rgba(255, 107, 53, 0.08) 0%, transparent 40%),
     linear-gradient(180deg, var(--color-bg) 0%, var(--color-surface-alt) 100%);
   color: var(--color-text-primary);
   font-family: "DM Sans", sans-serif;
@@ -56,19 +76,19 @@ body {
 @keyframes quietGlassPageIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateX(24px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
 @keyframes quietGlassCardIn {
   from {
     opacity: 0;
-    transform: translateY(18px) scale(0.985);
+    transform: translateY(14px) scale(0.98);
   }
 
   to {
@@ -86,6 +106,30 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes glassRestIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes glassSlideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-32px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -108,8 +152,8 @@ select {
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: rgba(58, 184, 232, 0.4);
-  box-shadow: 0 0 0 4px rgba(58, 184, 232, 0.12);
+  border-color: rgba(64, 200, 244, 0.45);
+  box-shadow: 0 0 0 4px rgba(64, 200, 244, 0.12);
 }
 
 /* ---- Mobile touch optimisations ---- */
