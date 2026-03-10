@@ -1,0 +1,229 @@
+.shell {
+  --accent: var(--color-accent-blue);
+}
+
+.heroCard,
+.metricCard,
+.emptyCard,
+.sessionCard,
+.exerciseRow {
+  border: 1px solid rgba(240, 237, 232, 0.08);
+  background: linear-gradient(180deg, rgba(240, 237, 232, 0.05) 0%, rgba(17, 17, 17, 0.94) 100%);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+}
+
+.heroCard {
+  border-radius: 28px;
+  padding: 20px;
+  margin-bottom: 18px;
+  animation: quietGlassCardIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.eyebrow {
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #3ab8e8;
+  margin-bottom: 8px;
+}
+
+.heroTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+  letter-spacing: -1.1px;
+}
+
+.heroSubtitle {
+  font-size: 14px;
+  color: #888;
+  line-height: 1.5;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.metricCard {
+  border-radius: 22px;
+  padding: 16px;
+}
+
+.metricValue {
+  color: var(--color-text-primary);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.metricLabel {
+  color: #888;
+  font-size: 11px;
+  font-family: "DM Mono", monospace;
+}
+
+.emptyCard {
+  border-radius: 24px;
+  padding: 20px;
+}
+
+.emptyText {
+  color: #888;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.listColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sessionCard {
+  border-radius: 24px;
+  overflow: hidden;
+  animation: quietGlassCardIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sessionCardCompleted {
+  border-color: rgba(125, 232, 58, 0.24);
+}
+
+.sessionCardIncomplete {
+  border-color: rgba(232, 100, 58, 0.24);
+}
+
+.sessionHeaderButton {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 14px;
+  color: var(--color-text-primary);
+  display: block;
+}
+
+.sessionHeaderTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sessionHeaderMain {
+  flex: 1;
+  text-align: left;
+}
+
+.sessionDay {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.sessionDate {
+  color: #888;
+  font-size: 12px;
+}
+
+.statusPill {
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 1px solid rgba(240, 237, 232, 0.08);
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
+.statusCompleted {
+  color: #7de83a;
+}
+
+.statusIncomplete {
+  color: #e8643a;
+}
+
+.sessionMeta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: #888;
+  font-family: "DM Mono", monospace;
+  text-align: left;
+}
+
+.sessionBody {
+  border-top: 1px solid rgba(240, 237, 232, 0.08);
+  padding: 16px;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.detailLabel {
+  color: #666;
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.detailValue {
+  color: #888;
+  font-size: 12px;
+}
+
+.exerciseList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.exerciseRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  border-radius: 20px;
+  padding: 12px;
+}
+
+.exerciseName {
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.exerciseRest {
+  color: #666;
+  font-size: 11px;
+}
+
+.exerciseSets {
+  color: #3ab8e8;
+  font-family: "DM Mono", monospace;
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .sessionHeaderTop,
+  .detailRow,
+  .exerciseRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

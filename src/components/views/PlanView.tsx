@@ -4,10 +4,9 @@ import { getExerciseNoteById } from "../../data/exerciseCatalog";
 import { applyCatalogNoteSelection, applyManualNote } from "../../utils/exerciseNotes";
 import { DayTabs, SectionLabel, PageContainer, ExerciseNameInput } from "../ui";
 import { ExerciseRow } from "../exercises";
-import { colors, fonts } from "../../theme";
-import { performanceGhostButtonStyle, performanceHeroStyle, performancePanelStyle } from "../../theme/editorialPerformance";
 import { useI18n } from "../../i18n";
 import type { Exercise, TrainingDay, TrainingPlan, LogsByExercise, WorkoutSession } from "../../services/types";
+import classes from "./PlanView.module.css";
 
 interface PlanViewProps {
   activeDay: string;
@@ -64,17 +63,22 @@ export function PlanView({
   if (!day) {
     return (
       <PageContainer>
-        <SectionLabel>{t("plan.title")}</SectionLabel>
-        <div style={{ color: colors.textMuted, marginBottom: 12 }}>{t("plan.noDays")}</div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button onClick={addDay} style={styles.ghostButton}>{t("plan.addDay")}</button>
-          <button onClick={onOpenGenerator} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>✦ {t("generator.title")}</button>
-          <button onClick={onOpenImporter} style={{ ...styles.ghostButton, color: colors.accent.blue, borderColor: colors.accent.blue }}>{t("importer.openButton")}</button>
-          {onOpenSessionHistory && <button onClick={onOpenSessionHistory} style={styles.ghostButton}>{t("history.openButton")}</button>}
+        <div className={`${classes.shell} ${classes.defaultTone}`}>
+          <SectionLabel>{t("plan.title")}</SectionLabel>
+          <div className={classes.noDaysText}>{t("plan.noDays")}</div>
+          <div className={classes.noDaysActions}>
+            <button onClick={addDay} className={classes.ghostButton}>{t("plan.addDay")}</button>
+            <button onClick={onOpenGenerator} className={classes.accentGhostButton}>✦ {t("generator.title")}</button>
+            <button onClick={onOpenImporter} className={classes.accentGhostButton}>{t("importer.openButton")}</button>
+            {onOpenSessionHistory && <button onClick={onOpenSessionHistory} className={classes.ghostButton}>{t("history.openButton")}</button>}
+          </div>
         </div>
       </PageContainer>
     );
   }
+
+  const currentDay = isEditing && draftDay ? draftDay : day;
+  const activeAccent = dayColors[safeActiveDay];
 
   const startEditing = () => {
     setDraftDay(JSON.parse(JSON.stringify(day)));
@@ -91,9 +95,6 @@ export function PlanView({
     saveDay(safeActiveDay, draftDay);
     setIsEditing(false);
   };
-
-  const currentDay = isEditing && draftDay ? draftDay : day;
-  const activeAccent = dayColors[safeActiveDay];
 
   const updateExercise = (exerciseId: string, updater: (ex: Exercise) => Exercise) => {
     if (!draftDay) return;
@@ -134,414 +135,257 @@ export function PlanView({
 
   return (
     <PageContainer>
-      <DayTabs
-        days={dayKeys}
-        activeDay={safeActiveDay}
-        dayColors={dayColors}
-        onSelect={setActiveDay}
-      />
+      <div className={`${classes.shell} ${getToneClass(activeAccent)}`}>
+        <DayTabs
+          days={dayKeys}
+          activeDay={safeActiveDay}
+          dayColors={dayColors}
+          onSelect={setActiveDay}
+        />
 
-      <div style={{ ...styles.heroCard, ...performanceHeroStyle(activeAccent) }}>
-        <div style={styles.heroTopRow}>
-          <div>
-            <SectionLabel color={activeAccent}>{safeActiveDay}</SectionLabel>
-            <div style={styles.heroTitle}>{day.label}</div>
-          </div>
-          <div style={styles.heroMetric}>{currentDay.exercises.length} ex</div>
-        </div>
-        <div style={styles.heroSubtitle}>
-          {workoutSession
-            ? `${activeSessionExerciseName || t("session.resumeWorkout")} · ${t("session.exerciseProgress", { current: workoutSession.currentExerciseIndex + 1, total: workoutSession.totalExercises })}`
-            : `${currentDay.exercises.length} ${t("plan.addExercise").replace("+ ", "").toLowerCase()} · ${t("plan.editPlan")}`}
-        </div>
-      </div>
-
-      <div style={styles.actionRow}>
-        <button
-          onClick={() => {
-            const newDay = addDay();
-            if (newDay) setActiveDay(newDay);
-          }}
-          style={styles.ghostButton}
-        >
-          {t("plan.addDayShort")}
-        </button>
-        <button
-          onClick={() => removeDay(safeActiveDay)}
-          disabled={dayKeys.length <= 1}
-          style={{ ...styles.ghostButton, opacity: dayKeys.length <= 1 ? 0.4 : 1 }}
-        >
-          {t("plan.removeDayShort")}
-        </button>
-        <button
-          onClick={onOpenGenerator}
-          style={{ ...styles.ghostButton, ...performanceGhostButtonStyle(colors.accent.blue) }}
-        >
-          ✦ {t("generator.title")}
-        </button>
-        <button
-          onClick={onOpenImporter}
-          style={{ ...styles.ghostButton, ...performanceGhostButtonStyle(colors.accent.blue) }}
-        >
-          {t("importer.openButton")}
-        </button>
-        {onOpenSessionHistory && (
-          <button onClick={onOpenSessionHistory} style={styles.ghostButton}>
-            {t("history.openButton")}
-          </button>
-        )}
-      </div>
-
-      {/* Day info header */}
-      <div style={{ ...styles.dayHeaderRow, ...performancePanelStyle(activeAccent, true) }}>
-        <div style={{ flex: 1 }}>
-          {isEditing ? (
-            <input
-              value={currentDay.label}
-              onChange={(e) => setDraftDay((prev) => prev ? { ...prev, label: e.target.value } : prev)}
-              style={styles.dayLabelInput}
-            />
-          ) : (
-            <div style={styles.daySubtitle}>
-              {day.label}
+        <div className={classes.heroCard}>
+          <div className={classes.heroTopRow}>
+            <div className={classes.heroMain}>
+              <SectionLabel color={activeAccent}>{safeActiveDay}</SectionLabel>
+              {isEditing ? (
+                <input
+                  value={currentDay.label}
+                  onChange={(e) => setDraftDay((prev) => prev ? { ...prev, label: e.target.value } : prev)}
+                  aria-label={t("plan.dayName")}
+                  className={classes.heroTitleInput}
+                />
+              ) : (
+                <div className={classes.heroTitle}>{day.label}</div>
+              )}
             </div>
-          )}
-        </div>
-
-        <div style={{ display: "flex", gap: 8 }}>
-          {!isEditing && (
-            <button onClick={startEditing} style={styles.ghostButton}>
-              {t("plan.editPlan")}
-            </button>
-          )}
-          {isEditing && (
-            <>
-              <button onClick={cancelEditing} style={styles.ghostButton}>
-                {t("common.cancel")}
-              </button>
-              <button onClick={saveEditing} style={{ ...styles.ghostButton, ...performanceGhostButtonStyle(activeAccent) }}>
-                {t("common.save")}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {!isEditing && workoutSession && (
-        <div style={{ ...styles.sessionCard, ...performancePanelStyle(activeAccent) }}>
-          <div style={{ flex: 1 }}>
-            <div style={styles.sessionLabel}>{t("session.activeTitle")}</div>
-            <div style={styles.sessionExerciseName}>{activeSessionExerciseName || t("session.resumeWorkout")}</div>
-            <div style={styles.sessionMeta}>
-              {workoutSession.dayKey} · {t("session.exerciseProgress", {
-                current: workoutSession.currentExerciseIndex + 1,
-                total: workoutSession.totalExercises,
-              })}
+            <div className={classes.heroAside}>
+              <div className={classes.heroMetric}>{currentDay.exercises.length} ex</div>
+              <div className={classes.heroActions}>
+                {!isEditing && (
+                  <button onClick={startEditing} className={classes.ghostButton}>
+                    {t("plan.editPlan")}
+                  </button>
+                )}
+                {isEditing && (
+                  <>
+                    <button onClick={cancelEditing} className={classes.ghostButton}>
+                      {t("common.cancel")}
+                    </button>
+                    <button onClick={saveEditing} className={classes.accentGhostButton}>
+                      {t("common.save")}
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-          <div style={styles.sessionActions}>
-            <button onClick={onResumeWorkoutSession} style={{ ...styles.ghostButton, ...performanceGhostButtonStyle(activeAccent) }}>
-              {t("session.resumeWorkout")}
-            </button>
-            <button onClick={onEndWorkoutSession} style={styles.ghostButton}>
-              {t("session.endWorkout")}
-            </button>
+          <div className={classes.heroSubtitle}>
+            {workoutSession
+              ? `${activeSessionExerciseName || t("session.resumeWorkout")} · ${t("session.exerciseProgress", { current: workoutSession.currentExerciseIndex + 1, total: workoutSession.totalExercises })}`
+              : `${currentDay.exercises.length} ${t("plan.addExercise").replace("+ ", "").toLowerCase()} · ${t("plan.editPlan")}`}
           </div>
         </div>
-      )}
 
-      {!isEditing && !workoutSession && currentDay.exercises.length > 0 && onStartWorkoutSession && (
-        <div style={{ marginBottom: 12 }}>
-          <button
-            onClick={() => onStartWorkoutSession(safeActiveDay)}
-            style={{ ...styles.sessionButton, background: `${activeAccent}18`, borderColor: `${activeAccent}66`, color: activeAccent }}
-          >
-            ▶ {t("session.startWorkout")}
-          </button>
-        </div>
-      )}
-
-      {isEditing && (
-        <div style={{ marginBottom: 10 }}>
+        <div className={classes.actionRow}>
           <button
             onClick={() => {
-              setDraftDay((prev) => {
-                if (!prev) return prev;
-                return {
-                  ...prev,
-                  exercises: [
-                    {
-                      id: makeExerciseId(),
-                      name: t("plan.exerciseNameTemplate", { n: prev.exercises.length + 1 }),
-                      sets: "",
-                      reps: "",
-                      rest: "",
-                      note: "",
-                      noteSource: "custom",
-                      noteCatalogId: "",
-                    },
-                    ...prev.exercises,
-                  ],
-                };
-              });
+              const newDay = addDay();
+              if (newDay) setActiveDay(newDay);
             }}
-            style={styles.ghostButton}
+            className={classes.ghostButton}
           >
-            {t("plan.addExercise")}
+            {t("plan.addDayShort")}
           </button>
+          <button
+            onClick={() => removeDay(safeActiveDay)}
+            disabled={dayKeys.length <= 1}
+            className={`${classes.ghostButton}${dayKeys.length <= 1 ? ` ${classes.disabledButton}` : ""}`}
+          >
+            {t("plan.removeDayShort")}
+          </button>
+          <button onClick={onOpenGenerator} className={classes.accentGhostButton}>
+            ✦ {t("generator.title")}
+          </button>
+          <button onClick={onOpenImporter} className={classes.accentGhostButton}>
+            {t("importer.openButton")}
+          </button>
+          {onOpenSessionHistory && (
+            <button onClick={onOpenSessionHistory} className={classes.ghostButton}>
+              {t("history.openButton")}
+            </button>
+          )}
         </div>
-      )}
 
-      {/* Exercise list */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-        {!isEditing && currentDay.exercises.map((ex, i) => (
-          <ExerciseRow
-            key={ex.id}
-            exercise={ex}
-            index={i}
-            accentColor={dayColors[safeActiveDay]}
-            lastLog={getLastLog(logs, ex.id)}
-            showChevron={!!onExerciseClick}
-            onClick={onExerciseClick ? () => onExerciseClick(ex) : undefined}
-          />
-        ))}
-
-        {isEditing && currentDay.exercises.map((ex, i) => (
-          <div key={ex.id} style={styles.editCard}>
-            <div style={styles.editIndex}>{String(i + 1).padStart(2, "0")}</div>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-              <ExerciseNameInput
-                value={ex.name}
-                onChange={async (name, catalogId) => {
-                  updateExerciseField(ex.id, "name", name);
-                  if (!catalogId) {
-                    updateExercise(ex.id, (exercise) => ({
-                      ...exercise,
-                      noteSource: "custom",
-                    }));
-                    return;
-                  }
-
-                  const localizedNote = await getExerciseNoteById(catalogId, language);
-                  updateExercise(ex.id, (exercise) => applyCatalogNoteSelection(exercise, {
-                    name,
-                    catalogId,
-                    localizedNote,
-                  }));
-                }}
-                style={styles.nameInput}
-              />
-
-              <div style={styles.metaGrid}>
-                <input value={ex.sets} onChange={(e) => updateExerciseField(ex.id, "sets", e.target.value)} placeholder={t("plan.setsPlaceholder")} style={styles.metaInput} />
-                <input value={ex.reps} onChange={(e) => updateExerciseField(ex.id, "reps", e.target.value)} placeholder={t("plan.repsPlaceholder")} style={styles.metaInput} />
-                <input value={ex.rest} onChange={(e) => updateExerciseField(ex.id, "rest", e.target.value)} placeholder={t("plan.restPlaceholder")} style={styles.metaInput} />
-              </div>
-
-              <input
-                value={ex.note || ""}
-                onChange={(e) => {
-                  updateExercise(ex.id, (exercise) => applyManualNote(exercise, e.target.value));
-                }}
-                placeholder={t("plan.notePlaceholder")}
-                style={styles.noteInput}
-              />
-
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                <button
-                  onClick={() => moveExercise(i, -1)}
-                  disabled={i === 0}
-                  style={{ ...styles.ghostButton, fontSize: 10, padding: "6px 8px", opacity: i === 0 ? 0.4 : 1 }}
-                >
-                  {t("plan.moveUp")}
-                </button>
-                <button
-                  onClick={() => moveExercise(i, 1)}
-                  disabled={i === currentDay.exercises.length - 1}
-                  style={{ ...styles.ghostButton, fontSize: 10, padding: "6px 8px", opacity: i === currentDay.exercises.length - 1 ? 0.4 : 1 }}
-                >
-                  {t("plan.moveDown")}
-                </button>
-                <button
-                  onClick={() => {
-                    setDraftDay((prev) => {
-                      if (!prev) return prev;
-                      return {
-                        ...prev,
-                        exercises: prev.exercises.filter((exercise) => exercise.id !== ex.id),
-                      };
-                    });
-                  }}
-                  style={{ ...styles.ghostButton, fontSize: 10, padding: "6px 8px" }}
-                >
-                  {t("plan.removeExercise")}
-                </button>
+        {!isEditing && workoutSession && (
+          <div className={classes.sessionCard}>
+            <div className={classes.sessionMain}>
+              <div className={classes.sessionLabel}>{t("session.activeTitle")}</div>
+              <div className={classes.sessionExerciseName}>{activeSessionExerciseName || t("session.resumeWorkout")}</div>
+              <div className={classes.sessionMeta}>
+                {workoutSession.dayKey} · {t("session.exerciseProgress", {
+                  current: workoutSession.currentExerciseIndex + 1,
+                  total: workoutSession.totalExercises,
+                })}
               </div>
             </div>
+            <div className={classes.sessionActions}>
+              <button onClick={onResumeWorkoutSession} className={classes.accentGhostButton}>
+                {t("session.resumeWorkout")}
+              </button>
+              <button onClick={onEndWorkoutSession} className={classes.ghostButton}>
+                {t("session.endWorkout")}
+              </button>
+            </div>
           </div>
-        ))}
+        )}
+
+        {!isEditing && !workoutSession && currentDay.exercises.length > 0 && onStartWorkoutSession && (
+          <div className={classes.sessionStartWrap}>
+            <button onClick={() => onStartWorkoutSession(safeActiveDay)} className={classes.startButton}>
+              ▶ {t("session.startWorkout")}
+            </button>
+          </div>
+        )}
+
+        {isEditing && (
+          <div className={classes.addExerciseWrap}>
+            <button
+              onClick={() => {
+                setDraftDay((prev) => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    exercises: [
+                      {
+                        id: makeExerciseId(),
+                        name: t("plan.exerciseNameTemplate", { n: prev.exercises.length + 1 }),
+                        sets: "",
+                        reps: "",
+                        rest: "",
+                        note: "",
+                        noteSource: "custom",
+                        noteCatalogId: "",
+                      },
+                      ...prev.exercises,
+                    ],
+                  };
+                });
+              }}
+              className={classes.ghostButton}
+            >
+              {t("plan.addExercise")}
+            </button>
+          </div>
+        )}
+
+        <div className={classes.exerciseList}>
+          {!isEditing && currentDay.exercises.map((ex, i) => (
+            <ExerciseRow
+              key={ex.id}
+              exercise={ex}
+              index={i}
+              accentColor={dayColors[safeActiveDay]}
+              lastLog={getLastLog(logs, ex.id)}
+              showChevron={!!onExerciseClick}
+              onClick={onExerciseClick ? () => onExerciseClick(ex) : undefined}
+            />
+          ))}
+
+          {isEditing && currentDay.exercises.map((ex, i) => (
+            <div key={ex.id} className={classes.editCard}>
+              <div className={classes.editIndex}>{String(i + 1).padStart(2, "0")}</div>
+              <div className={classes.editContent}>
+                <ExerciseNameInput
+                  value={ex.name}
+                  onChange={async (name, catalogId) => {
+                    updateExerciseField(ex.id, "name", name);
+                    if (!catalogId) {
+                      updateExercise(ex.id, (exercise) => ({
+                        ...exercise,
+                        noteSource: "custom",
+                      }));
+                      return;
+                    }
+
+                    const localizedNote = await getExerciseNoteById(catalogId, language);
+                    updateExercise(ex.id, (exercise) => applyCatalogNoteSelection(exercise, {
+                      name,
+                      catalogId,
+                      localizedNote,
+                    }));
+                  }}
+                  inputClassName={classes.nameInput}
+                />
+
+                <div className={classes.metaGrid}>
+                  <input value={ex.sets} onChange={(e) => updateExerciseField(ex.id, "sets", e.target.value)} placeholder={t("plan.setsPlaceholder")} className={classes.metaInput} />
+                  <input value={ex.reps} onChange={(e) => updateExerciseField(ex.id, "reps", e.target.value)} placeholder={t("plan.repsPlaceholder")} className={classes.metaInput} />
+                  <input value={ex.rest} onChange={(e) => updateExerciseField(ex.id, "rest", e.target.value)} placeholder={t("plan.restPlaceholder")} className={classes.metaInput} />
+                </div>
+
+                <input
+                  value={ex.note || ""}
+                  onChange={(e) => {
+                    updateExercise(ex.id, (exercise) => applyManualNote(exercise, e.target.value));
+                  }}
+                  placeholder={t("plan.notePlaceholder")}
+                  className={classes.noteInput}
+                />
+
+                <div className={classes.editActions}>
+                  <button
+                    onClick={() => moveExercise(i, -1)}
+                    disabled={i === 0}
+                    className={`${classes.compactAction}${i === 0 ? ` ${classes.disabledButton}` : ""}`}
+                  >
+                    {t("plan.moveUp")}
+                  </button>
+                  <button
+                    onClick={() => moveExercise(i, 1)}
+                    disabled={i === currentDay.exercises.length - 1}
+                    className={`${classes.compactAction}${i === currentDay.exercises.length - 1 ? ` ${classes.disabledButton}` : ""}`}
+                  >
+                    {t("plan.moveDown")}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDraftDay((prev) => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          exercises: prev.exercises.filter((exercise) => exercise.id !== ex.id),
+                        };
+                      });
+                    }}
+                    className={classes.compactAction}
+                  >
+                    {t("plan.removeExercise")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </PageContainer>
   );
 }
 
-const styles = {
-  ghostButton: {
-    ...performanceGhostButtonStyle(colors.textSecondary),
-  },
-  heroCard: {
-    marginBottom: 18,
-  },
-  heroTopRow: {
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 10,
-  },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: 700,
-    letterSpacing: -1.2,
-  },
-  heroSubtitle: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    lineHeight: 1.5,
-  },
-  heroMetric: {
-    fontFamily: fonts.mono,
-    fontSize: 12,
-    color: colors.textPrimary,
-    padding: "10px 14px",
-    borderRadius: 999,
-    border: `1px solid ${colors.textPrimary}12`,
-    background: `linear-gradient(180deg, ${colors.textPrimary}10 0%, ${colors.accent.blue}14 100%)`,
-  },
-  actionRow: {
-    ...performancePanelStyle(undefined, true),
-    display: "flex",
-    gap: 8,
-    marginBottom: 14,
-    flexWrap: "wrap" as const,
-    padding: 12,
-    borderRadius: 24,
-  },
-  dayHeaderRow: {
-    marginBottom: 20,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-    padding: 14,
-    borderRadius: 24,
-  },
-  daySubtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    fontWeight: 400,
-  },
-  dayLabelInput: {
-    width: "100%",
-    border: `1px solid ${colors.border}`,
-    background: colors.surface,
-    color: colors.textPrimary,
-    borderRadius: 10,
-    padding: "10px 12px",
-    fontFamily: fonts.sans,
-    fontSize: 14,
-  },
-  editCard: {
-    ...performancePanelStyle(undefined, true),
-    borderRadius: 24,
-    padding: 14,
-    display: "flex",
-    gap: 10,
-    alignItems: "flex-start",
-  },
-  editIndex: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.textGhost,
-    minWidth: 22,
-    paddingTop: 10,
-  },
-  nameInput: {
-    width: "100%",
-    border: `1px solid ${colors.border}`,
-    background: colors.bg,
-    color: colors.textPrimary,
-    borderRadius: 10,
-    padding: "10px 12px",
-    fontFamily: fonts.sans,
-    fontSize: 14,
-  },
-  metaGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
-    gap: 8,
-  },
-  metaInput: {
-    width: "100%",
-    border: `1px solid ${colors.border}`,
-    background: colors.bg,
-    color: colors.textPrimary,
-    borderRadius: 10,
-    padding: "8px 10px",
-    fontFamily: fonts.mono,
-    fontSize: 12,
-  },
-  noteInput: {
-    width: "100%",
-    border: `1px solid ${colors.border}`,
-    background: colors.bg,
-    color: colors.textPrimary,
-    borderRadius: 10,
-    padding: "8px 10px",
-    fontFamily: fonts.sans,
-    fontSize: 12,
-  },
-  sessionButton: {
-    width: "100%",
-    border: `1px solid ${colors.textPrimary}12`,
-    borderRadius: 24,
-    padding: "16px 14px",
-    cursor: "pointer",
-    fontFamily: fonts.mono,
-    fontSize: 12,
-    fontWeight: 600,
-    boxShadow: "0 24px 64px rgba(0, 0, 0, 0.26)",
-  },
-  sessionCard: {
-    marginBottom: 12,
-    borderRadius: 24,
-    padding: 18,
-    display: "flex",
-    gap: 12,
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  sessionLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.accent.blue,
-    letterSpacing: 2,
-    marginBottom: 4,
-  },
-  sessionExerciseName: {
-    color: colors.textPrimary,
-    fontSize: 18,
-    fontWeight: 700,
-    marginBottom: 4,
-  },
-  sessionMeta: {
-    color: colors.textSecondary,
-    fontSize: 12,
-  },
-  sessionActions: {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap" as const,
-    justifyContent: "flex-end" as const,
-  },
-};
+function getToneClass(color?: string) {
+  switch ((color || "").toLowerCase()) {
+    case "#e8643a":
+      return classes.orangeTone;
+    case "#3ab8e8":
+      return classes.blueTone;
+    case "#7de83a":
+      return classes.greenTone;
+    case "#e8c93a":
+      return classes.yellowTone;
+    case "#c83ae8":
+      return classes.violetTone;
+    case "#e83a7d":
+      return classes.pinkTone;
+    default:
+      return classes.defaultTone;
+  }
+}

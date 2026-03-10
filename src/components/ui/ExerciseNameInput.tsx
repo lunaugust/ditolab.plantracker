@@ -1,19 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { colors, fonts } from "../../theme";
-import { performancePanelStyle } from "../../theme/editorialPerformance";
 import { searchExercises } from "../../data/exerciseCatalog";
 import { useI18n } from "../../i18n";
 import { useLocalizedExerciseName } from "../../hooks/useLocalizedExerciseName";
+import classes from "./ExerciseNameInput.module.css";
 
 type Props = {
   value: string;
   onChange: (name: string, exerciseId?: string) => void;
   placeholder?: string;
-  style?: React.CSSProperties;
+  inputClassName?: string;
+  containerClassName?: string;
   autoFocus?: boolean;
 };
 
-export function ExerciseNameInput({ value, onChange, placeholder, style, autoFocus }: Props) {
+export function ExerciseNameInput({ value, onChange, placeholder, inputClassName, containerClassName, autoFocus }: Props) {
   const { t, language } = useI18n();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -89,7 +89,7 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
   };
 
   return (
-    <div ref={containerRef} style={{ position: "relative" }}>
+    <div ref={containerRef} className={`${classes.container}${containerClassName ? ` ${containerClassName}` : ""}`}>
       <input
         ref={inputRef}
         autoFocus={autoFocus}
@@ -98,22 +98,19 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
         onFocus={() => { setEditing(true); setInputText(localizedValue); if (localizedValue.length >= 2) doSearch(localizedValue); }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder || t("common.searchExercise")}
-        style={{ ...defaultInputStyle, ...style }}
+        className={`${classes.input}${inputClassName ? ` ${inputClassName}` : ""}`}
       />
       {open && results.length > 0 && (
-        <div style={dropdownStyle}>
+        <div className={classes.dropdown}>
           {results.map((r, i) => (
             <div
               key={r.exerciseId}
               onMouseDown={(e) => { e.preventDefault(); select(r.name, r.exerciseId, displayName(r)); }}
               onMouseEnter={() => setHighlighted(i)}
-              style={{
-                ...itemStyle,
-                background: i === highlighted ? colors.border : "transparent",
-              }}
+              className={`${classes.item}${i === highlighted ? ` ${classes.itemActive}` : ""}`}
             >
-              <span style={{ color: colors.textPrimary, fontSize: 13 }}>{displayName(r)}</span>
-              <span style={{ color: colors.textGhost, fontSize: 10, fontFamily: fonts.mono, marginLeft: 8 }}>
+              <span className={classes.name}>{displayName(r)}</span>
+              <span className={classes.meta}>
                 {r.bodyParts.join(", ")}
               </span>
             </div>
@@ -123,40 +120,3 @@ export function ExerciseNameInput({ value, onChange, placeholder, style, autoFoc
     </div>
   );
 }
-
-const defaultInputStyle: React.CSSProperties = {
-  width: "100%",
-  border: `1px solid ${colors.textPrimary}12`,
-  background: `linear-gradient(180deg, ${colors.textPrimary}08 0%, ${colors.surfaceAlt}e8 100%)`,
-  color: colors.textPrimary,
-  borderRadius: 16,
-  padding: "12px 14px",
-  fontFamily: fonts.sans,
-  fontSize: 14,
-  boxSizing: "border-box",
-};
-
-const dropdownStyle: React.CSSProperties = {
-  ...performancePanelStyle(colors.accent.blue),
-  position: "absolute",
-  top: "100%",
-  left: 0,
-  right: 0,
-  zIndex: 50,
-  borderRadius: 18,
-  marginTop: 8,
-  maxHeight: 220,
-  overflowY: "auto",
-  boxShadow: "0 24px 64px rgba(0, 0, 0, 0.28)",
-  backdropFilter: "blur(18px)",
-  WebkitBackdropFilter: "blur(18px)",
-};
-
-const itemStyle: React.CSSProperties = {
-  padding: "10px 12px",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  borderBottom: `1px solid ${colors.textPrimary}0c`,
-};
